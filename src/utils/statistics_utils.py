@@ -1,6 +1,5 @@
 ﻿import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 
 from scipy.stats import shapiro, mannwhitneyu
 
@@ -94,36 +93,3 @@ def mann_whitney_u_test(
 
     print(f"\t-> Effect size: {effect} (|δ|={abs_delta:.7f})")
     print("\n")
-
-
-def linechart(
-        dict_a: dict[int, pd.DataFrame],
-        dict_b: dict[int, pd.DataFrame],
-        parameter: str,
-        label_a: str = "A",
-        label_b: str = "B",
-        title: str | None = None,
-) -> None:
-    iterations = sorted(dict_a.keys())
-    x_axis = np.array(iterations, dtype=int)
-
-    y_axis_a = get_max_values_from_runs(dict_a, parameter)
-    y_axis_b = get_max_values_from_runs(dict_b, parameter)
-
-    plt.figure(figsize=(10, 6))
-
-    plt.plot(x_axis, y_axis_a, marker="o", label=label_a)
-    plt.plot(x_axis, y_axis_b, marker="o", label=label_b)
-
-    plt.xlabel("Iteration")
-    plt.ylabel(parameter)
-
-    if title is None:
-        title = f"Comparison of '{parameter}' Across Runs"
-
-    plt.title(title)
-
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
