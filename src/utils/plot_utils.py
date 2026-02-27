@@ -48,6 +48,134 @@ def linechart(
     plt.show()
 
 
+def linechart_per_iteration(
+        dict_a: dict[int, pd.DataFrame],
+        dict_b: dict[int, pd.DataFrame],
+        iterations: list[int],
+        parameter: str,
+        label_a: str = "A",
+        label_b: str = "B",
+        title: str | None = None,
+        share_y: bool = True
+) -> None:
+    n = len(iterations)
+
+    if share_y:
+        all_values = []
+        for it in iterations:
+            all_values.extend(dict_a[it][parameter].values.tolist())
+            all_values.extend(dict_b[it][parameter].values.tolist())
+        y_min, y_max = min(all_values), max(all_values)
+    else:
+        y_min = y_max = None
+
+    fig, axes = plt.subplots(nrows=n, ncols=2, figsize=(14, 4 * n), sharey=share_y)
+
+    if n == 1:
+        axes = np.array([axes])
+
+    for row_idx, it in enumerate(iterations):
+        df_a = dict_a[it]
+        df_b = dict_b[it]
+
+        x_a = df_a["elapsed_time"].values
+        x_b = df_b["elapsed_time"].values
+
+        axes[row_idx, 0].plot(
+            x_a,
+            df_a[parameter].values,
+            marker="o",
+            label=f"{label_a} – iteration {it}",
+        )
+        axes[row_idx, 0].set_title(f"{label_a} (iteration {it})")
+        if share_y:
+            axes[row_idx, 0].set_ylim(y_min, y_max)
+        axes[row_idx, 0].set_xlabel("Elapsed time (s)")
+        axes[row_idx, 0].set_ylabel(parameter)
+        axes[row_idx, 0].grid(True)
+
+        axes[row_idx, 1].plot(
+            x_b,
+            df_b[parameter].values,
+            marker="o",
+            label=f"{label_b} – iteration {it}",
+        )
+        axes[row_idx, 1].set_title(f"{label_b} (iteration {it})")
+        if share_y:
+            axes[row_idx, 1].set_ylim(y_min, y_max)
+        axes[row_idx, 1].set_xlabel("Elapsed time (s)")
+        axes[row_idx, 1].grid(True)
+
+    if title is None:
+        title = f"Comparison of '{parameter}' Across Selected Iterations"
+
+    fig.suptitle(title, fontsize=16)
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    plt.show()
+
+
+def linechart_per_iteration_timeseries(
+        dict_a: dict[int, pd.DataFrame],
+        dict_b: dict[int, pd.DataFrame],
+        iterations: list[int],
+        parameter: str,
+        label_a: str = "A",
+        label_b: str = "B",
+        title: str | None = None,
+) -> None:
+    n = len(iterations)
+
+    all_values = []
+    for it in iterations:
+        all_values.extend(dict_a[it][parameter].values.tolist())
+        all_values.extend(dict_b[it][parameter].values.tolist())
+    y_min, y_max = min(all_values), max(all_values)
+
+    fig, axes = plt.subplots(nrows=n, ncols=1, figsize=(12, 3.5 * n), sharey=True)
+
+    if n == 1:
+        axes = np.array([axes])
+
+    for row_idx, it in enumerate(iterations):
+        df_a = dict_a[it]
+        df_b = dict_b[it]
+
+        x_a = df_a["elapsed_time"].values
+        x_b = df_b["elapsed_time"].values
+
+        ax = axes[row_idx]
+
+        ax.plot(
+            x_a,
+            df_a[parameter].values,
+            marker="o",
+            label=label_a,
+        )
+        ax.plot(
+            x_b,
+            df_b[parameter].values,
+            marker="o",
+            label=label_b,
+        )
+
+        ax.set_title(f"Iteration {it}")
+        ax.set_ylim(y_min, y_max)
+        ax.set_ylabel(parameter)
+        ax.grid(True)
+
+        if row_idx == n - 1:
+            ax.set_xlabel("Elapsed time (s)")
+
+        ax.legend()
+
+    if title is None:
+        title = f"Comparison of '{parameter}' Across Selected Iterations"
+
+    fig.suptitle(title, fontsize=16)
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.show()
+
+
 def _parse_core_struct(value: object) -> dict[str, float]:
     """Normalize core struct values to a dict[str, float]."""
     if isinstance(value, dict):
@@ -124,7 +252,7 @@ def _collect_per_core_series(
 
     for it in iterations:
         df = data[it]
-        core_values = _extract_core_values(df)  # core_id -> {param: value}
+        core_values = _extract_core_values(df)
 
         for core_id, vals in core_values.items():
             if core_id not in per_core_series:
