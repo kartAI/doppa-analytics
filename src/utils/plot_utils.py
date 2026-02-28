@@ -110,7 +110,7 @@ def linechart_per_iteration(
         title = f"Comparison of '{parameter}' Across Selected Iterations"
 
     fig.suptitle(title, fontsize=16)
-    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
     plt.show()
 
 
@@ -172,7 +172,7 @@ def linechart_per_iteration_timeseries(
         title = f"Comparison of '{parameter}' Across Selected Iterations"
 
     fig.suptitle(title, fontsize=16)
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
     plt.show()
 
 
@@ -339,4 +339,138 @@ def plot_barchart_per_core(
 
     fig.suptitle(title)
     fig.tight_layout(rect=(0, 0, 0.95, 0.95))
+    plt.show()
+
+
+def heatmap_cpu_percent_per_iteration(
+        dict_a: dict[int, pd.DataFrame],
+        dict_b: dict[int, pd.DataFrame],
+        iterations: list[int],
+        label_a: str = "A",
+        label_b: str = "B",
+        title: str | None = None,
+) -> None:
+    """
+    For each selected iteration, plot a heatmap of CPU percent per core over time.
+
+    Layout:
+      - One row per iteration
+      - Left column: dict_a
+      - Right column: dict_b
+
+    Heatmap:
+      - x-axis: sample index (with elapsed_time tick labels)
+      - y-axis: cores (core_1, core_2, ...)
+      - colour: core_i["percent"]
+    """
+
+    iterations = [it for it in iterations if it in dict_a and it in dict_b]
+    if not iterations:
+        raise ValueError("None of the requested iterations exist in both dict_a and dict_b.")
+
+    n = len(iterations)
+
+    fig, axes = plt.subplots(
+        nrows=n,
+        ncols=2,
+        figsize=(18, 3.5 * n),
+        sharex=False,
+        sharey=False,
+    )
+
+    if n == 1:
+        axes = np.array([axes])
+
+    def _extract_matrix(df: pd.DataFrame) -> tuple[np.ndarray, list[str], np.ndarray]:
+        if "elapsed_time" not in df.columns:
+            raise ValueError("DataFrame must contain 'elapsed_time' column.")
+
+        times = df["elapsed_time"].values
+        core_cols = sorted(
+            [c for c in df.columns if c.startswith("core_")],
+            key=lambda c: int(c.split("_")[1]),
+        )
+        core_labels = core_cols
+
+        mat = np.zeros((len(core_cols), len(times)), dtype=float)
+
+        for row_idx, col in enumerate(core_cols):
+            percent_vals = (
+                df[col]
+                .apply(_parse_core_struct)
+                .apply(lambda d: float(d.get("percent", 0.0)))
+                .values
+            )
+            mat[row_idx, :] = percent_vals
+
+        return mat, core_labels, times
+
+    vmin, vmax = 0.0, 100.0
+    first_im = None
+
+    for row_idx, it in enumerate(iterations):
+
+        mat_a, core_labels_a, times_a = _extract_matrix(dict_a[it])
+        ax_left = axes[row_idx, 0]
+        im = ax_left.imshow(
+            mat_a,
+            aspect="auto",
+            origin="lower",
+            vmin=vmin,
+            vmax=vmax,
+            cmap="viridis",
+        )
+        if first_im is None:
+            first_im = im
+
+        ax_left.set_title(f"{label_a} – iteration {it}")
+        ax_left.set_yticks(np.arange(len(core_labels_a)))
+        ax_left.set_yticklabels(core_labels_a)
+
+        n_samples = mat_a.shape[1]
+        if n_samples > 1:
+            xticks_idx = np.linspace(0, n_samples - 1, num=min(5, n_samples), dtype=int)
+            ax_left.set_xticks(xticks_idx)
+            ax_left.set_xticklabels(
+                [f"{times_a[i]:.3f}" for i in xticks_idx],
+                rotation=45,
+            )
+        ax_left.set_xlabel("Elapsed time (s)")
+        ax_left.set_ylabel("Core")
+
+        mat_b, core_labels_b, times_b = _extract_matrix(dict_b[it])
+        ax_right = axes[row_idx, 1]
+        ax_right.imshow(
+            mat_b,
+            aspect="auto",
+            origin="lower",
+            vmin=vmin,
+            vmax=vmax,
+            cmap="viridis",
+        )
+        ax_right.set_title(f"{label_b} – iteration {it}")
+        ax_right.set_yticks(np.arange(len(core_labels_b)))
+        ax_right.set_yticklabels(core_labels_b)
+
+        n_samples_b = mat_b.shape[1]
+        if n_samples_b > 1:
+            xticks_idx_b = np.linspace(0, n_samples_b - 1, num=min(5, n_samples_b), dtype=int)
+            ax_right.set_xticks(xticks_idx_b)
+            ax_right.set_xticklabels(
+                [f"{times_b[i]:.3f}" for i in xticks_idx_b],
+                rotation=45,
+            )
+        ax_right.set_xlabel("Elapsed time (s)")
+
+    if title is None:
+        title = "CPU percent per core – heatmaps across selected iterations"
+
+    fig.suptitle(title, fontsize=16)
+    fig.tight_layout(rect=(0, 0.05, 1, 0.94))
+
+    if first_im is not None:
+        cbar_ax = fig.add_axes([0.15, 0.02, 0.7, 0.02])
+        cbar = fig.colorbar(first_im, cax=cbar_ax, orientation="horizontal")
+        cbar.set_label("CPU percent")
+
     plt.show()
