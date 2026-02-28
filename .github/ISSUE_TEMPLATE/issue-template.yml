@@ -1,0 +1,14 @@
+﻿name: "Issue"
+description: "Create a new issue to break down a user story into smaller, manageable tasks."
+labels: [ "enhancement" ]
+projects: [ "kartAI/15" ]
+assignees:
+  - jathavaan
+
+body:
+  - type: textarea
+    attributes:
+      label: "Task description"
+      description: "Describe the issue in detail explaining how the issue should be completed."
+    validations:
+      required: true
