@@ -1,0 +1,61 @@
+\begin{tabular}{lllrll}
+\toprule
+ &  &  & N & Median [95\% CI] & CV \\
+Query & Run & Metric &  &  &  \\
+\midrule
+\multirow[t]{5}{*}{bbox-filtering-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 33 & 0.0600 [0.0400, 0.0800] & 0.486 \\
+ &  & cpu_time_user_seconds & 33 & 4.5600 [4.3300, 5.1100] & 0.148 \\
+ &  & elapsed_time & 33 & 1.8293 [1.6096, 1.9923] & 0.150 \\
+ &  & network_bytes_received & 33 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.000 \\
+ &  & network_bytes_sent & 33 & 906\,B [906\,B, 906\,B] & 0.049 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{bbox-filtering-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 771 & 0.0100 [0.0100, 0.0100] & 0.929 \\
+ &  & cpu_time_user_seconds & 771 & 0.0500 [0.0500, 0.0500] & 0.306 \\
+ &  & elapsed_time & 771 & 0.0558 [0.0557, 0.0559] & 0.273 \\
+ &  & network_bytes_received & 771 & 0\,B [0\,B, 0\,B] & --- \\
+ &  & network_bytes_sent & 771 & 66\,B [66\,B, 66\,B] & 0.053 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{bbox-filtering-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 915 & 0.0000 [0.0000, 0.0000] & 1.874 \\
+ &  & cpu_time_user_seconds & 915 & 0.0100 [0.0100, 0.0100] & 1.155 \\
+ &  & elapsed_time & 915 & 0.0384 [0.0382, 0.0386] & 0.426 \\
+ &  & network_bytes_received & 915 & 1.70\,MB [1.70\,MB, 1.70\,MB] & 0.001 \\
+ &  & network_bytes_sent & 915 & 11.9\,KB [11.9\,KB, 12.1\,KB] & 0.150 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{knn-search-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 63 & 0.0200 [0.0200, 0.0200] & 0.495 \\
+ &  & cpu_time_user_seconds & 63 & 2.5200 [2.5100, 2.5400] & 0.077 \\
+ &  & elapsed_time & 63 & 0.9130 [0.9051, 0.9167] & 0.084 \\
+ &  & network_bytes_received & 63 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.002 \\
+ &  & network_bytes_sent & 63 & 840\,B [840\,B, 840\,B] & 0.175 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{knn-search-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 46 & 5.4800 [4.8700, 6.5116] & 0.380 \\
+ &  & cpu_time_user_seconds & 46 & 65.2400 [63.3300, 68.4000] & 0.120 \\
+ &  & elapsed_time & 46 & 77.7692 [73.6151, 82.2207] & 0.189 \\
+ &  & network_bytes_received & 46 & 42\,B [42\,B, 42\,B] & 0.392 \\
+ &  & network_bytes_sent & 46 & 108\,B [108\,B, 108\,B] & 0.264 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{knn-search-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 2456 & 0.0000 [0.0000, 0.0000] & 9.863 \\
+ &  & cpu_time_user_seconds & 2456 & 0.0000 [0.0000, 0.0000] & 3.727 \\
+ &  & elapsed_time & 2456 & 0.0042 [0.0042, 0.0042] & 0.472 \\
+ &  & network_bytes_received & 2456 & 8.7\,KB [8.7\,KB, 8.7\,KB] & 0.000 \\
+ &  & network_bytes_sent & 2456 & 628\,B [628\,B, 628\,B] & 0.008 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{point-in-polygon-lookup-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 10 & 0.3600 [0.3200, 0.4050] & 0.208 \\
+ &  & cpu_time_user_seconds & 10 & 48.8550 [47.4100, 50.7500] & 0.064 \\
+ &  & elapsed_time & 10 & 17.5138 [17.0396, 18.1868] & 0.065 \\
+ &  & network_bytes_received & 10 & 933.2\,KB [933.2\,KB, 933.2\,KB] & 0.000 \\
+ &  & network_bytes_sent & 10 & 8.6\,KB [8.6\,KB, 8.8\,KB] & 0.020 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{point-in-polygon-lookup-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 17 & 0.0000 [0.0000, 0.0000] & --- \\
+ &  & cpu_time_user_seconds & 17 & 3.5800 [3.5800, 3.6000] & 0.010 \\
+ &  & elapsed_time & 17 & 3.5833 [3.5716, 3.6001] & 0.010 \\
+ &  & network_bytes_received & 17 & 0\,B [0\,B, 0\,B] & --- \\
+ &  & network_bytes_sent & 17 & 66\,B [66\,B, 66\,B] & 0.258 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{point-in-polygon-lookup-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 1747 & 0.0000 [0.0000, 0.0000] & 6.800 \\
+ &  & cpu_time_user_seconds & 1747 & 0.0000 [0.0000, 0.0000] & 2.459 \\
+ &  & elapsed_time & 1747 & 0.0142 [0.0142, 0.0143] & 0.272 \\
+ &  & network_bytes_received & 1747 & 1.9\,KB [1.9\,KB, 1.9\,KB] & 0.000 \\
+ &  & network_bytes_sent & 1747 & 3.0\,KB [3.0\,KB, 3.0\,KB] & 0.006 \\
+\cline{1-6} \cline{2-6}
+\bottomrule
+\end{tabular}

@@ -1,0 +1,33 @@
+\begin{tabular}{lllllrrrr}
+\toprule
+Workload & Size & Config A & Config B & Metric & Direction & Significant & Effect Size & Consistent \\
+\midrule
+bbox-filtering & small & duckdb & local & elapsed\_time & True & True & True & True \\
+bbox-filtering & small & duckdb & local & network\_bytes\_received & False & True & True & False \\
+bbox-filtering & small & duckdb & local & network\_bytes\_sent & True & True & True & True \\
+bbox-filtering & small & duckdb & postgis & elapsed\_time & True & True & True & True \\
+bbox-filtering & small & duckdb & postgis & network\_bytes\_received & True & True & True & True \\
+bbox-filtering & small & duckdb & postgis & network\_bytes\_sent & True & True & True & True \\
+bbox-filtering & small & local & postgis & elapsed\_time & True & True & True & True \\
+bbox-filtering & small & local & postgis & network\_bytes\_received & True & True & True & True \\
+bbox-filtering & small & local & postgis & network\_bytes\_sent & True & True & True & True \\
+knn-search & small & duckdb & local & elapsed\_time & True & True & True & True \\
+knn-search & small & duckdb & local & network\_bytes\_received & True & True & True & True \\
+knn-search & small & duckdb & local & network\_bytes\_sent & True & True & True & True \\
+knn-search & small & duckdb & postgis & elapsed\_time & True & True & True & True \\
+knn-search & small & duckdb & postgis & network\_bytes\_received & True & True & True & True \\
+knn-search & small & duckdb & postgis & network\_bytes\_sent & True & True & True & True \\
+knn-search & small & local & postgis & elapsed\_time & True & True & True & True \\
+knn-search & small & local & postgis & network\_bytes\_received & True & True & True & True \\
+knn-search & small & local & postgis & network\_bytes\_sent & True & True & True & True \\
+point-in-polygon-lookup & small & duckdb & local & elapsed\_time & True & True & True & True \\
+point-in-polygon-lookup & small & duckdb & local & network\_bytes\_received & False & True & True & False \\
+point-in-polygon-lookup & small & duckdb & local & network\_bytes\_sent & True & True & True & True \\
+point-in-polygon-lookup & small & duckdb & postgis & elapsed\_time & True & True & True & True \\
+point-in-polygon-lookup & small & duckdb & postgis & network\_bytes\_received & True & True & True & True \\
+point-in-polygon-lookup & small & duckdb & postgis & network\_bytes\_sent & True & True & True & True \\
+point-in-polygon-lookup & small & local & postgis & elapsed\_time & True & True & True & True \\
+point-in-polygon-lookup & small & local & postgis & network\_bytes\_received & True & True & True & True \\
+point-in-polygon-lookup & small & local & postgis & network\_bytes\_sent & True & True & True & True \\
+\bottomrule
+\end{tabular}
