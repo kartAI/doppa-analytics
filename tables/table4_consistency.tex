@@ -1,0 +1,24 @@
+\begin{tabular}{llllllrrrr}
+\toprule
+ & workload\_type & dataset\_size & config\_a & config\_b & metric & direction\_consistent & all\_significant & effect\_size\_consistent & fully\_consistent \\
+\midrule
+0 & bbox-filtering & small & duckdb & local & elapsed\_time & True & True & True & True \\
+1 & bbox-filtering & small & duckdb & local & network\_bytes\_received & False & True & True & False \\
+2 & bbox-filtering & small & duckdb & local & network\_bytes\_sent & True & True & True & True \\
+3 & bbox-filtering & small & duckdb & postgis & elapsed\_time & True & True & True & True \\
+4 & bbox-filtering & small & duckdb & postgis & network\_bytes\_received & True & True & True & True \\
+5 & bbox-filtering & small & duckdb & postgis & network\_bytes\_sent & True & True & True & True \\
+6 & bbox-filtering & small & local & postgis & elapsed\_time & True & True & True & True \\
+7 & bbox-filtering & small & local & postgis & network\_bytes\_received & True & True & True & True \\
+8 & bbox-filtering & small & local & postgis & network\_bytes\_sent & True & True & True & True \\
+9 & point-in-polygon-lookup & small & duckdb & local & elapsed\_time & True & True & True & True \\
+10 & point-in-polygon-lookup & small & duckdb & local & network\_bytes\_received & False & True & True & False \\
+11 & point-in-polygon-lookup & small & duckdb & local & network\_bytes\_sent & True & True & True & True \\
+12 & point-in-polygon-lookup & small & duckdb & postgis & elapsed\_time & True & True & True & True \\
+13 & point-in-polygon-lookup & small & duckdb & postgis & network\_bytes\_received & True & True & True & True \\
+14 & point-in-polygon-lookup & small & duckdb & postgis & network\_bytes\_sent & True & True & True & True \\
+15 & point-in-polygon-lookup & small & local & postgis & elapsed\_time & True & True & True & True \\
+16 & point-in-polygon-lookup & small & local & postgis & network\_bytes\_received & True & True & True & True \\
+17 & point-in-polygon-lookup & small & local & postgis & network\_bytes\_sent & True & True & True & True \\
+\bottomrule
+\end{tabular}

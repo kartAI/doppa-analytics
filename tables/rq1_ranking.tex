@@ -1,0 +1,15 @@
+\begin{tabular}{llllrrrr}
+\toprule
+ &  &  & fastest & consistent & median\_postgis & median\_local & median\_duckdb \\
+workload\_type & dataset\_size & metric &  &  &  &  &  \\
+\midrule
+\multirow[t]{3}{*}{bbox-filtering} & \multirow[t]{3}{*}{small} & elapsed\_time & local & True & 0.0554 & 0.0278 & 1.5615 \\
+ &  & network\_bytes\_received & local & False & 1703111.0000 & 0.0000 & 93323.0000 \\
+ &  & network\_bytes\_sent & local & True & 11866.0000 & 0.0000 & 906.0000 \\
+\cline{1-8} \cline{2-8}
+\multirow[t]{3}{*}{point-in-polygon-lookup} & \multirow[t]{3}{*}{small} & elapsed\_time & postgis & True & 0.0211 & 3.9849 & 17.8098 \\
+ &  & network\_bytes\_received & local & False & 1877.0000 & 0.0000 & 933230.0000 \\
+ &  & network\_bytes\_sent & local & True & 3048.0000 & 66.0000 & 8664.0000 \\
+\cline{1-8} \cline{2-8}
+\bottomrule
+\end{tabular}

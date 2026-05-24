@@ -1,0 +1,31 @@
+\begin{tabular}{llllllrrrrlrrrrrrrrrr}
+\toprule
+ &  &  &  &  &  & n\_paired & wilcoxon\_stat & p\_value & a12 & a12\_category & ratio\_median & ratio\_ci\_lower & ratio\_ci\_upper & diff\_median & diff\_ci\_lower & diff\_ci\_upper & friedman\_stat & friedman\_p & p\_value\_holm & significant \\
+workload\_type & dataset\_size & config\_a & config\_b & benchmark\_run & metric &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+\midrule
+\multirow[t]{9}{*}{bbox-filtering} & \multirow[t]{9}{*}{small} & \multirow[t]{6}{*}{duckdb} & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{1} & elapsed\_time & 37 & 0.0000 & 0.0000 & 1.0000 & large & 43.8695 & 34.6909 & 49.6546 & 1.5214 & 1.4401 & 1.7152 & 74.0000 & 0.0000 & 0.0000 & True \\
+ &  &  &  &  & network\_bytes\_received & 37 & 0.0000 & 0.0000 & 1.0000 & large & NaN & NaN & NaN & 93323.0000 & 93323.0000 & 93323.0000 & 74.0000 & 0.0000 & 0.0000 & True \\
+ &  &  &  &  & network\_bytes\_sent & 37 & 0.0000 & 0.0000 & 1.0000 & large & 13.7273 & 13.7273 & 14.7273 & 906.0000 & 906.0000 & 906.0000 & 74.0000 & 0.0000 & 0.0000 & True \\
+\cline{4-21} \cline{5-21}
+ &  &  & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed\_time & 37 & 0.0000 & 0.0000 & 1.0000 & large & 14.3723 & 13.2492 & 17.3932 & 1.4577 & 1.3389 & 1.6420 & 74.0000 & 0.0000 & 0.0000 & True \\
+ &  &  &  &  & network\_bytes\_received & 37 & 0.0000 & 0.0000 & 0.0000 & large & 0.0548 & 0.0548 & 0.0548 & -1609854.0000 & -1609986.0000 & -1609722.0000 & 74.0000 & 0.0000 & 0.0000 & True \\
+ &  &  &  &  & network\_bytes\_sent & 37 & 0.0000 & 0.0000 & 0.0000 & large & 0.0983 & 0.0968 & 0.1001 & -8848.0000 & -9372.0000 & -8518.0000 & 74.0000 & 0.0000 & 0.0000 & True \\
+\cline{3-21} \cline{4-21} \cline{5-21}
+ &  & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed\_time & 37 & 0.0000 & 0.0000 & 0.0066 & large & 0.3511 & 0.2926 & 0.4403 & -0.0610 & -0.0911 & -0.0532 & 74.0000 & 0.0000 & 0.0000 & True \\
+ &  &  &  &  & network\_bytes\_received & 37 & 0.0000 & 0.0000 & 0.0000 & large & 0.0000 & 0.0000 & 0.0000 & -1703177.0000 & -1703243.0000 & -1703045.0000 & 74.0000 & 0.0000 & 0.0000 & True \\
+ &  &  &  &  & network\_bytes\_sent & 37 & 0.0000 & 0.0000 & 0.0000 & large & 0.0000 & 0.0000 & 0.0060 & -9820.0000 & -10348.0000 & -9490.0000 & 74.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-21} \cline{2-21} \cline{3-21} \cline{4-21} \cline{5-21}
+\multirow[t]{9}{*}{point-in-polygon-lookup} & \multirow[t]{9}{*}{small} & \multirow[t]{6}{*}{duckdb} & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{1} & elapsed\_time & 10 & 0.0000 & 0.0020 & 1.0000 & large & 4.5059 & 4.3782 & 4.8837 & 14.0232 & 13.2558 & 14.5274 & 20.0000 & 0.0000 & 0.0059 & True \\
+ &  &  &  &  & network\_bytes\_received & 10 & 0.0000 & 0.0020 & 1.0000 & large & NaN & NaN & NaN & 933230.0000 & 933230.0000 & 933230.0000 & 20.0000 & 0.0000 & 0.0059 & True \\
+ &  &  &  &  & network\_bytes\_sent & 10 & 0.0000 & 0.0020 & 1.0000 & large & 131.2727 & 129.2727 & 132.2727 & 8598.0000 & 8466.0000 & 8697.0000 & 20.0000 & 0.0000 & 0.0059 & True \\
+\cline{4-21} \cline{5-21}
+ &  &  & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed\_time & 10 & 0.0000 & 0.0020 & 1.0000 & large & 953.9867 & 922.9539 & 1068.4519 & 17.7923 & 17.1766 & 18.3125 & 20.0000 & 0.0000 & 0.0059 & True \\
+ &  &  &  &  & network\_bytes\_received & 10 & 0.0000 & 0.0020 & 1.0000 & large & 497.1923 & 497.1923 & 497.1923 & 931353.0000 & 931353.0000 & 931353.0000 & 20.0000 & 0.0000 & 0.0059 & True \\
+ &  &  &  &  & network\_bytes\_sent & 10 & 0.0000 & 0.0020 & 1.0000 & large & 2.8425 & 2.7992 & 2.8642 & 5616.0000 & 5484.0000 & 5682.0000 & 20.0000 & 0.0000 & 0.0059 & True \\
+\cline{3-21} \cline{4-21} \cline{5-21}
+ &  & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed\_time & 10 & 0.0000 & 0.0020 & 1.0000 & large & 218.8826 & 194.3843 & 237.1397 & 3.9349 & 3.7939 & 4.0384 & 20.0000 & 0.0000 & 0.0059 & True \\
+ &  &  &  &  & network\_bytes\_received & 10 & 0.0000 & 0.0020 & 0.0000 & large & 0.0000 & 0.0000 & 0.0000 & -1877.0000 & -1877.0000 & -1877.0000 & 20.0000 & 0.0000 & 0.0059 & True \\
+ &  &  &  &  & network\_bytes\_sent & 10 & 0.0000 & 0.0020 & 0.0000 & large & 0.0217 & 0.0214 & 0.0217 & -2982.0000 & -3015.0000 & -2982.0000 & 20.0000 & 0.0000 & 0.0059 & True \\
+\cline{1-21} \cline{2-21} \cline{3-21} \cline{4-21} \cline{5-21}
+\bottomrule
+\end{tabular}
