@@ -137,6 +137,27 @@ def enrich_samples(
     return samples_df
 
 
+def enrich_costs(
+    costs_df: pd.DataFrame,
+    experiments: dict[str, dict],
+    workload_types: list[str],
+) -> pd.DataFrame:
+    if costs_df.empty:
+        return costs_df
+
+    parsed = costs_df["query_id"].apply(
+        lambda qid: parse_query_id(qid, experiments, workload_types)
+    )
+    valid = parsed.notna()
+    costs_df = costs_df[valid].copy()
+    parsed = parsed[valid]
+
+    costs_df["workload_type"] = parsed.apply(lambda x: x[0])
+    costs_df["configuration"] = parsed.apply(lambda x: x[1])
+    costs_df["dataset_size"] = parsed.apply(lambda x: x[2])
+    return costs_df
+
+
 def extract_worker_count(config: str) -> int | None:
     m = re.search(r"(\d+)-nodes?", config)
     return int(m.group(1)) if m else None

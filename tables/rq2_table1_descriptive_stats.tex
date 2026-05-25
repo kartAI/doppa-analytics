@@ -3,16 +3,156 @@
  &  &  & N & Median [95\% CI] & CV \\
 Query & Run & Metric &  &  &  \\
 \midrule
-\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-4-nodes-large} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 5 & 0.0100 [0.0000, 0.0100] & 0.913 \\
- &  & cpu_time_user_seconds & 5 & 0.1500 [0.1500, 0.1600] & 0.057 \\
- &  & driver_collection_time_ms & 5 & 0.0000 [0.0000, 1377.0000] & 1.404 \\
- &  & elapsed_time & 5 & 204.2465 [202.3325, 206.8289] & 0.009 \\
- &  & executor_input_bytes_read & 5 & 20.27\,GB [10.13\,GB, 50.67\,GB] & 0.697 \\
- &  & executor_run_time_ms & 5 & 6001262.0000 [3009335.0000, 15203859.0000] & 0.703 \\
- &  & network_bytes_received & 5 & 76.1\,KB [76.0\,KB, 76.4\,KB] & 0.002 \\
- &  & network_bytes_sent & 5 & 39.4\,KB [39.4\,KB, 39.4\,KB] & 0.001 \\
- &  & shuffle_read_bytes & 5 & 21.40\,GB [10.70\,GB, 53.50\,GB] & 0.697 \\
- &  & shuffle_write_bytes & 5 & 21.40\,GB [10.70\,GB, 53.50\,GB] & 0.697 \\
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-16-nodes-large} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0100 [0.0000, 0.0100] & 0.866 \\
+ &  & cpu_time_user_seconds & 3 & 0.0800 [0.0800, 0.0800] & 0.000 \\
+ &  & driver_collection_time_ms & 3 & 1179.0000 [0.0000, 1391.0000] & 0.875 \\
+ &  & elapsed_time & 3 & 74.0517 [70.0273, 74.7374] & 0.035 \\
+ &  & executor_input_bytes_read & 3 & 12.19\,GB [12.19\,GB, 24.38\,GB] & 0.433 \\
+ &  & executor_run_time_ms & 3 & 3790561.0000 [3774665.0000, 7478670.0000] & 0.426 \\
+ &  & network_bytes_received & 3 & 48.3\,KB [48.2\,KB, 48.3\,KB] & 0.002 \\
+ &  & network_bytes_sent & 3 & 25.2\,KB [25.1\,KB, 25.2\,KB] & 0.002 \\
+ &  & shuffle_read_bytes & 3 & 12.84\,GB [12.84\,GB, 25.67\,GB] & 0.433 \\
+ &  & shuffle_write_bytes & 3 & 12.84\,GB [12.84\,GB, 25.67\,GB] & 0.433 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-2-nodes-large} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0100 [0.0100, 0.0200] & 0.433 \\
+ &  & cpu_time_user_seconds & 3 & 0.2300 [0.2100, 0.2400] & 0.067 \\
+ &  & driver_collection_time_ms & 3 & 1048.0000 [0.0000, 1603.0000] & 0.921 \\
+ &  & elapsed_time & 3 & 450.6650 [449.0372, 462.7576] & 0.017 \\
+ &  & executor_input_bytes_read & 3 & 12.16\,GB [12.16\,GB, 24.32\,GB] & 0.433 \\
+ &  & executor_run_time_ms & 3 & 3506514.0000 [3480307.0000, 6932991.0000] & 0.428 \\
+ &  & network_bytes_received & 3 & 132.3\,KB [132.1\,KB, 139.8\,KB] & 0.033 \\
+ &  & network_bytes_sent & 3 & 67.8\,KB [67.8\,KB, 71.6\,KB] & 0.032 \\
+ &  & shuffle_read_bytes & 3 & 12.84\,GB [12.84\,GB, 25.68\,GB] & 0.433 \\
+ &  & shuffle_write_bytes & 3 & 12.84\,GB [12.84\,GB, 25.68\,GB] & 0.433 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-2-nodes-medium} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0100 [0.0100, 0.0100] & 0.000 \\
+ &  & cpu_time_user_seconds & 3 & 0.1500 [0.1500, 0.1900] & 0.141 \\
+ &  & driver_collection_time_ms & 3 & 0.0000 [0.0000, 1109.0000] & 1.732 \\
+ &  & elapsed_time & 3 & 200.7476 [199.7049, 203.8709] & 0.011 \\
+ &  & executor_input_bytes_read & 3 & 10.12\,GB [5.06\,GB, 15.18\,GB] & 0.500 \\
+ &  & executor_run_time_ms & 3 & 3131645.0000 [1493625.0000, 4634644.0000] & 0.509 \\
+ &  & network_bytes_received & 3 & 76.0\,KB [76.0\,KB, 76.4\,KB] & 0.003 \\
+ &  & network_bytes_sent & 3 & 39.4\,KB [39.4\,KB, 39.5\,KB] & 0.002 \\
+ &  & shuffle_read_bytes & 3 & 10.69\,GB [5.35\,GB, 16.04\,GB] & 0.500 \\
+ &  & shuffle_write_bytes & 3 & 10.69\,GB [5.35\,GB, 16.04\,GB] & 0.500 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-4-nodes-large} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0100 [0.0000, 0.0100] & 0.866 \\
+ &  & cpu_time_user_seconds & 3 & 0.1300 [0.1300, 0.1400] & 0.043 \\
+ &  & driver_collection_time_ms & 3 & 1108.0000 [0.0000, 1326.0000] & 0.876 \\
+ &  & elapsed_time & 3 & 239.5954 [235.3063, 242.6667] & 0.015 \\
+ &  & executor_input_bytes_read & 3 & 12.16\,GB [12.16\,GB, 36.47\,GB] & 0.693 \\
+ &  & executor_run_time_ms & 3 & 3590872.0000 [3588870.0000, 10923107.0000] & 0.702 \\
+ &  & network_bytes_received & 3 & 83.2\,KB [83.1\,KB, 83.2\,KB] & 0.001 \\
+ &  & network_bytes_sent & 3 & 43.0\,KB [42.9\,KB, 43.1\,KB] & 0.002 \\
+ &  & shuffle_read_bytes & 3 & 12.84\,GB [12.84\,GB, 38.52\,GB] & 0.693 \\
+ &  & shuffle_write_bytes & 3 & 12.84\,GB [12.84\,GB, 38.52\,GB] & 0.693 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-4-nodes-medium} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0000 [0.0000, 0.0100] & 1.732 \\
+ &  & cpu_time_user_seconds & 3 & 0.1300 [0.1100, 0.1300] & 0.094 \\
+ &  & driver_collection_time_ms & 3 & 0.0000 [0.0000, 1136.0000] & 1.732 \\
+ &  & elapsed_time & 3 & 105.5606 [104.5566, 106.6109] & 0.010 \\
+ &  & executor_input_bytes_read & 3 & 10.12\,GB [5.06\,GB, 15.19\,GB] & 0.500 \\
+ &  & executor_run_time_ms & 3 & 3248396.0000 [1509849.0000, 4758726.0000] & 0.512 \\
+ &  & network_bytes_received & 3 & 55.2\,KB [55.0\,KB, 55.4\,KB] & 0.004 \\
+ &  & network_bytes_sent & 3 & 28.7\,KB [28.7\,KB, 28.8\,KB] & 0.002 \\
+ &  & shuffle_read_bytes & 3 & 10.69\,GB [5.35\,GB, 16.04\,GB] & 0.500 \\
+ &  & shuffle_write_bytes & 3 & 10.69\,GB [5.35\,GB, 16.04\,GB] & 0.500 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-4-nodes-small} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0000 [0.0000, 0.0100] & 1.732 \\
+ &  & cpu_time_user_seconds & 3 & 0.0600 [0.0500, 0.0600] & 0.102 \\
+ &  & driver_collection_time_ms & 3 & 0.0000 [0.0000, 1139.0000] & 1.732 \\
+ &  & elapsed_time & 3 & 20.1552 [18.5120, 22.2321] & 0.092 \\
+ &  & executor_input_bytes_read & 3 & 986.10\,MB [493.05\,MB, 986.10\,MB] & 0.346 \\
+ &  & executor_run_time_ms & 3 & 410517.0000 [203681.0000, 582732.0000] & 0.476 \\
+ &  & network_bytes_received & 3 & 34.1\,KB [34.1\,KB, 34.1\,KB] & 0.001 \\
+ &  & network_bytes_sent & 3 & 18.0\,KB [18.0\,KB, 18.1\,KB] & 0.001 \\
+ &  & shuffle_read_bytes & 3 & 1.05\,GB [525.16\,MB, 1.05\,GB] & 0.346 \\
+ &  & shuffle_write_bytes & 3 & 1.05\,GB [525.17\,MB, 1.05\,GB] & 0.346 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-8-nodes-large} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0000 [0.0000, 0.0100] & 1.732 \\
+ &  & cpu_time_user_seconds & 3 & 0.1300 [0.1200, 0.1600] & 0.152 \\
+ &  & driver_collection_time_ms & 3 & 0.0000 [0.0000, 1919.0000] & 1.732 \\
+ &  & elapsed_time & 3 & 125.8219 [124.4093, 129.9706] & 0.023 \\
+ &  & executor_input_bytes_read & 3 & 36.50\,GB [12.17\,GB, 48.66\,GB] & 0.573 \\
+ &  & executor_run_time_ms & 3 & 11446553.0000 [3698436.0000, 15049557.0000] & 0.576 \\
+ &  & network_bytes_received & 3 & 62.1\,KB [55.3\,KB, 62.3\,KB] & 0.067 \\
+ &  & network_bytes_sent & 3 & 32.3\,KB [28.8\,KB, 32.3\,KB] & 0.065 \\
+ &  & shuffle_read_bytes & 3 & 38.52\,GB [12.84\,GB, 51.36\,GB] & 0.573 \\
+ &  & shuffle_write_bytes & 3 & 38.52\,GB [12.84\,GB, 51.36\,GB] & 0.573 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-8-nodes-medium} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0000 [0.0000, 0.0100] & 1.732 \\
+ &  & cpu_time_user_seconds & 3 & 0.0700 [0.0600, 0.0700] & 0.087 \\
+ &  & driver_collection_time_ms & 3 & 1523.0000 [0.0000, 1809.0000] & 0.876 \\
+ &  & elapsed_time & 3 & 57.1752 [57.1132, 59.3524] & 0.022 \\
+ &  & executor_input_bytes_read & 3 & 5.07\,GB [5.07\,GB, 20.26\,GB] & 0.866 \\
+ &  & executor_run_time_ms & 3 & 1601922.0000 [1567099.0000, 6657964.0000] & 0.894 \\
+ &  & network_bytes_received & 3 & 41.2\,KB [41.1\,KB, 41.4\,KB] & 0.003 \\
+ &  & network_bytes_sent & 3 & 21.6\,KB [21.6\,KB, 21.6\,KB] & 0.001 \\
+ &  & shuffle_read_bytes & 3 & 5.35\,GB [5.35\,GB, 21.38\,GB] & 0.866 \\
+ &  & shuffle_write_bytes & 3 & 5.35\,GB [5.35\,GB, 21.38\,GB] & 0.866 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-8-nodes-small} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0000 [0.0000, 0.0000] & --- \\
+ &  & cpu_time_user_seconds & 3 & 0.0600 [0.0600, 0.0600] & 0.000 \\
+ &  & driver_collection_time_ms & 3 & 0.0000 [0.0000, 1151.0000] & 1.732 \\
+ &  & elapsed_time & 3 & 15.8147 [14.1931, 16.4304] & 0.075 \\
+ &  & executor_input_bytes_read & 3 & 986.10\,MB [493.05\,MB, 1.97\,GB] & 0.655 \\
+ &  & executor_run_time_ms & 3 & 568000.0000 [288000.0000, 1417332.0000] & 0.776 \\
+ &  & network_bytes_received & 3 & 34.2\,KB [33.9\,KB, 34.4\,KB] & 0.007 \\
+ &  & network_bytes_sent & 3 & 18.0\,KB [18.0\,KB, 18.1\,KB] & 0.001 \\
+ &  & shuffle_read_bytes & 3 & 1.05\,GB [524.94\,MB, 2.10\,GB] & 0.655 \\
+ &  & shuffle_write_bytes & 3 & 1.05\,GB [524.94\,MB, 2.10\,GB] & 0.655 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-partitioned-4-nodes-small} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0200 [0.0200, 0.0200] & 0.000 \\
+ &  & cpu_time_user_seconds & 3 & 0.4700 [0.4500, 0.4800] & 0.033 \\
+ &  & driver_collection_time_ms & 3 & 8591.0000 [0.0000, 9441.0000] & 0.869 \\
+ &  & elapsed_time & 3 & 1102.0524 [1046.3925, 1112.4945] & 0.033 \\
+ &  & executor_input_bytes_read & 3 & 493.05\,MB [493.05\,MB, 986.10\,MB] & 0.433 \\
+ &  & executor_run_time_ms & 3 & 1145284.0000 [1083088.0000, 2627463.0000] & 0.540 \\
+ &  & network_bytes_received & 3 & 286.7\,KB [272.4\,KB, 286.9\,KB] & 0.030 \\
+ &  & network_bytes_sent & 3 & 146.0\,KB [139.0\,KB, 146.0\,KB] & 0.028 \\
+ &  & shuffle_read_bytes & 3 & 524.97\,MB [524.96\,MB, 1.05\,GB] & 0.433 \\
+ &  & shuffle_write_bytes & 3 & 524.97\,MB [524.97\,MB, 1.05\,GB] & 0.433 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-partitioned-8-nodes-small} & \multirow[t]{10}{*}{1} & cpu_time_system_seconds & 3 & 0.0100 [0.0100, 0.0200] & 0.433 \\
+ &  & cpu_time_user_seconds & 3 & 0.2800 [0.2600, 0.2900] & 0.055 \\
+ &  & driver_collection_time_ms & 3 & 0.0000 [0.0000, 0.0000] & --- \\
+ &  & elapsed_time & 3 & 584.8223 [528.9793, 616.8247] & 0.077 \\
+ &  & executor_input_bytes_read & 3 & 1.48\,GB [986.10\,MB, 1.97\,GB] & 0.333 \\
+ &  & executor_run_time_ms & 3 & 1998907.0000 [1359610.0000, 2664432.0000] & 0.325 \\
+ &  & network_bytes_received & 3 & 167.6\,KB [153.6\,KB, 174.6\,KB] & 0.065 \\
+ &  & network_bytes_sent & 3 & 85.6\,KB [78.6\,KB, 89.1\,KB] & 0.063 \\
+ &  & shuffle_read_bytes & 3 & 1.57\,GB [1.05\,GB, 2.10\,GB] & 0.333 \\
+ &  & shuffle_write_bytes & 3 & 1.57\,GB [1.05\,GB, 2.10\,GB] & 0.333 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{national-scale-spatial-join-duckdb-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 2 & 8.6300 [8.0900, 9.1700] & 0.088 \\
+ &  & cpu_time_user_seconds & 2 & 16309.7250 [16175.3000, 16444.1500] & 0.012 \\
+ &  & elapsed_time & 2 & 4246.5380 [4211.1732, 4281.9028] & 0.012 \\
+ &  & network_bytes_received & 2 & 18.6\,KB [14.3\,KB, 22.9\,KB] & 0.325 \\
+ &  & network_bytes_sent & 2 & 3.4\,KB [3.1\,KB, 3.7\,KB] & 0.127 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{national-scale-spatial-join-duckdb-medium} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 3 & 1.8500 [1.6500, 1.9500] & 0.084 \\
+ &  & cpu_time_user_seconds & 3 & 5658.2900 [5602.9500, 5688.1900] & 0.008 \\
+ &  & elapsed_time & 3 & 1473.5492 [1458.3339, 1480.5824] & 0.008 \\
+ &  & network_bytes_received & 3 & 22.9\,KB [14.2\,KB, 22.9\,KB] & 0.250 \\
+ &  & network_bytes_sent & 3 & 3.6\,KB [3.0\,KB, 3.7\,KB] & 0.117 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{national-scale-spatial-join-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 3 & 0.2200 [0.1900, 0.3100] & 0.260 \\
+ &  & cpu_time_user_seconds & 3 & 637.8600 [633.5500, 686.4000] & 0.045 \\
+ &  & elapsed_time & 3 & 166.2821 [165.5077, 179.1822] & 0.045 \\
+ &  & network_bytes_received & 3 & 104.2\,KB [95.3\,KB, 104.2\,KB] & 0.051 \\
+ &  & network_bytes_sent & 3 & 3.8\,KB [2.6\,KB, 3.9\,KB] & 0.204 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{national-scale-spatial-join-postgis-medium} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 3 & 0.0000 [0.0000, 0.0000] & --- \\
+ &  & cpu_time_user_seconds & 3 & 0.0000 [0.0000, 0.0000] & --- \\
+ &  & elapsed_time & 3 & 1381.0976 [1367.3049, 1408.9616] & 0.015 \\
+ &  & network_bytes_received & 3 & 11.1\,KB [11.1\,KB, 11.2\,KB] & 0.003 \\
+ &  & network_bytes_sent & 3 & 2.1\,KB [2.0\,KB, 2.2\,KB] & 0.041 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{national-scale-spatial-join-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 3 & 0.0000 [0.0000, 0.0000] & --- \\
+ &  & cpu_time_user_seconds & 3 & 0.0000 [0.0000, 0.0000] & --- \\
+ &  & elapsed_time & 3 & 14.1643 [14.1183, 14.2000] & 0.003 \\
+ &  & network_bytes_received & 3 & 9.5\,KB [9.5\,KB, 9.5\,KB] & 0.000 \\
+ &  & network_bytes_sent & 3 & 829\,B [763\,B, 895\,B] & 0.080 \\
 \cline{1-6} \cline{2-6}
 \bottomrule
 \end{tabular}

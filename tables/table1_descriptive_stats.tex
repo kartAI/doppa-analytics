@@ -3,59 +3,95 @@
  &  &  & N & Median [95\% CI] & CV \\
 Query & Run & Metric &  &  &  \\
 \midrule
-\multirow[t]{5}{*}{bbox-filtering-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 33 & 0.0600 [0.0400, 0.0800] & 0.486 \\
- &  & cpu_time_user_seconds & 33 & 4.5600 [4.3300, 5.1100] & 0.148 \\
- &  & elapsed_time & 33 & 1.8293 [1.6096, 1.9923] & 0.150 \\
- &  & network_bytes_received & 33 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.000 \\
- &  & network_bytes_sent & 33 & 906\,B [906\,B, 906\,B] & 0.049 \\
+\multirow[t]{5}{*}{bbox-filtering-duckdb-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 25 & 0.7800 [0.4500, 1.0500] & 0.716 \\
+ &  & cpu_time_user_seconds & 25 & 126.5800 [117.5600, 131.7000] & 0.124 \\
+ &  & elapsed_time & 25 & 33.2309 [30.6226, 35.1095] & 0.126 \\
+ &  & network_bytes_received & 25 & 12.0\,KB [12.0\,KB, 12.0\,KB] & 0.002 \\
+ &  & network_bytes_sent & 25 & 816\,B [774\,B, 844\,B] & 0.058 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{bbox-filtering-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 771 & 0.0100 [0.0100, 0.0100] & 0.929 \\
- &  & cpu_time_user_seconds & 771 & 0.0500 [0.0500, 0.0500] & 0.306 \\
- &  & elapsed_time & 771 & 0.0558 [0.0557, 0.0559] & 0.273 \\
- &  & network_bytes_received & 771 & 0\,B [0\,B, 0\,B] & --- \\
- &  & network_bytes_sent & 771 & 66\,B [66\,B, 66\,B] & 0.053 \\
+\multirow[t]{5}{*}{bbox-filtering-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 57 & 0.0500 [0.0400, 0.0500] & 0.660 \\
+ &  & cpu_time_user_seconds & 57 & 4.8000 [4.7100, 4.9600] & 0.202 \\
+ &  & elapsed_time & 57 & 1.2983 [1.2753, 1.3379] & 0.207 \\
+ &  & network_bytes_received & 57 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.003 \\
+ &  & network_bytes_sent & 57 & 906\,B [906\,B, 906\,B] & 0.319 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{bbox-filtering-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 915 & 0.0000 [0.0000, 0.0000] & 1.874 \\
- &  & cpu_time_user_seconds & 915 & 0.0100 [0.0100, 0.0100] & 1.155 \\
- &  & elapsed_time & 915 & 0.0384 [0.0382, 0.0386] & 0.426 \\
- &  & network_bytes_received & 915 & 1.70\,MB [1.70\,MB, 1.70\,MB] & 0.001 \\
- &  & network_bytes_sent & 915 & 11.9\,KB [11.9\,KB, 12.1\,KB] & 0.150 \\
+\multirow[t]{5}{*}{bbox-filtering-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 755 & 0.0100 [0.0100, 0.0100] & 0.872 \\
+ &  & cpu_time_user_seconds & 755 & 0.0500 [0.0500, 0.0500] & 0.303 \\
+ &  & elapsed_time & 755 & 0.0567 [0.0565, 0.0569] & 0.264 \\
+ &  & network_bytes_received & 755 & 0\,B [0\,B, 0\,B] & 27.477 \\
+ &  & network_bytes_sent & 755 & 66\,B [66\,B, 66\,B] & 0.036 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{knn-search-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 63 & 0.0200 [0.0200, 0.0200] & 0.495 \\
- &  & cpu_time_user_seconds & 63 & 2.5200 [2.5100, 2.5400] & 0.077 \\
- &  & elapsed_time & 63 & 0.9130 [0.9051, 0.9167] & 0.084 \\
- &  & network_bytes_received & 63 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.002 \\
- &  & network_bytes_sent & 63 & 840\,B [840\,B, 840\,B] & 0.175 \\
+\multirow[t]{5}{*}{bbox-filtering-postgis-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 928 & 0.0000 [0.0000, 0.0000] & 1.823 \\
+ &  & cpu_time_user_seconds & 928 & 0.0100 [0.0100, 0.0100] & 1.267 \\
+ &  & elapsed_time & 928 & 0.0424 [0.0423, 0.0425] & 0.330 \\
+ &  & network_bytes_received & 928 & 1.86\,MB [1.86\,MB, 1.86\,MB] & 0.000 \\
+ &  & network_bytes_sent & 928 & 16.3\,KB [16.2\,KB, 16.4\,KB] & 0.091 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{knn-search-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 46 & 5.4800 [4.8700, 6.5116] & 0.380 \\
- &  & cpu_time_user_seconds & 46 & 65.2400 [63.3300, 68.4000] & 0.120 \\
- &  & elapsed_time & 46 & 77.7692 [73.6151, 82.2207] & 0.189 \\
- &  & network_bytes_received & 46 & 42\,B [42\,B, 42\,B] & 0.392 \\
- &  & network_bytes_sent & 46 & 108\,B [108\,B, 108\,B] & 0.264 \\
+\multirow[t]{5}{*}{bbox-filtering-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 1153 & 0.0000 [0.0000, 0.0000] & 1.824 \\
+ &  & cpu_time_user_seconds & 1153 & 0.0100 [0.0100, 0.0100] & 1.261 \\
+ &  & elapsed_time & 1153 & 0.0319 [0.0318, 0.0320] & 0.373 \\
+ &  & network_bytes_received & 1153 & 1.70\,MB [1.70\,MB, 1.70\,MB] & 0.000 \\
+ &  & network_bytes_sent & 1153 & 13.6\,KB [13.6\,KB, 13.7\,KB] & 0.127 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{knn-search-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 2456 & 0.0000 [0.0000, 0.0000] & 9.863 \\
- &  & cpu_time_user_seconds & 2456 & 0.0000 [0.0000, 0.0000] & 3.727 \\
- &  & elapsed_time & 2456 & 0.0042 [0.0042, 0.0042] & 0.472 \\
- &  & network_bytes_received & 2456 & 8.7\,KB [8.7\,KB, 8.7\,KB] & 0.000 \\
- &  & network_bytes_sent & 2456 & 628\,B [628\,B, 628\,B] & 0.008 \\
+\multirow[t]{5}{*}{knn-search-duckdb-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 24 & 0.4850 [0.4300, 0.5700] & 0.397 \\
+ &  & cpu_time_user_seconds & 24 & 82.1450 [75.9800, 90.2500] & 0.126 \\
+ &  & elapsed_time & 24 & 21.5107 [19.9059, 23.6576] & 0.127 \\
+ &  & network_bytes_received & 24 & 12.0\,KB [12.0\,KB, 12.0\,KB] & 0.022 \\
+ &  & network_bytes_sent & 24 & 708\,B [708\,B, 714\,B] & 0.057 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{point-in-polygon-lookup-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 10 & 0.3600 [0.3200, 0.4050] & 0.208 \\
- &  & cpu_time_user_seconds & 10 & 48.8550 [47.4100, 50.7500] & 0.064 \\
- &  & elapsed_time & 10 & 17.5138 [17.0396, 18.1868] & 0.065 \\
- &  & network_bytes_received & 10 & 933.2\,KB [933.2\,KB, 933.2\,KB] & 0.000 \\
- &  & network_bytes_sent & 10 & 8.6\,KB [8.6\,KB, 8.8\,KB] & 0.020 \\
+\multirow[t]{5}{*}{knn-search-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 35 & 0.1100 [0.1000, 0.1300] & 0.380 \\
+ &  & cpu_time_user_seconds & 35 & 6.2900 [6.0700, 6.4700] & 0.126 \\
+ &  & elapsed_time & 35 & 1.7015 [1.6423, 1.7583] & 0.129 \\
+ &  & network_bytes_received & 35 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.000 \\
+ &  & network_bytes_sent & 35 & 906\,B [906\,B, 972\,B] & 0.052 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{point-in-polygon-lookup-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 17 & 0.0000 [0.0000, 0.0000] & --- \\
- &  & cpu_time_user_seconds & 17 & 3.5800 [3.5800, 3.6000] & 0.010 \\
- &  & elapsed_time & 17 & 3.5833 [3.5716, 3.6001] & 0.010 \\
- &  & network_bytes_received & 17 & 0\,B [0\,B, 0\,B] & --- \\
- &  & network_bytes_sent & 17 & 66\,B [66\,B, 66\,B] & 0.258 \\
+\multirow[t]{5}{*}{knn-search-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 20 & 3.3700 [3.0800, 4.1800] & 0.564 \\
+ &  & cpu_time_user_seconds & 20 & 61.9700 [59.1150, 68.2950] & 0.099 \\
+ &  & elapsed_time & 20 & 66.0863 [62.1673, 72.6600] & 0.116 \\
+ &  & network_bytes_received & 20 & 42\,B [42\,B, 42\,B] & 0.592 \\
+ &  & network_bytes_sent & 20 & 108\,B [108\,B, 108\,B] & 0.253 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{point-in-polygon-lookup-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 1747 & 0.0000 [0.0000, 0.0000] & 6.800 \\
- &  & cpu_time_user_seconds & 1747 & 0.0000 [0.0000, 0.0000] & 2.459 \\
- &  & elapsed_time & 1747 & 0.0142 [0.0142, 0.0143] & 0.272 \\
- &  & network_bytes_received & 1747 & 1.9\,KB [1.9\,KB, 1.9\,KB] & 0.000 \\
- &  & network_bytes_sent & 1747 & 3.0\,KB [3.0\,KB, 3.0\,KB] & 0.006 \\
+\multirow[t]{5}{*}{knn-search-postgis-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 2841 & 0.0000 [0.0000, 0.0000] & 12.189 \\
+ &  & cpu_time_user_seconds & 2841 & 0.0000 [0.0000, 0.0000] & 4.513 \\
+ &  & elapsed_time & 2841 & 0.0040 [0.0040, 0.0040] & 0.305 \\
+ &  & network_bytes_received & 2841 & 7.9\,KB [7.9\,KB, 7.9\,KB] & 0.000 \\
+ &  & network_bytes_sent & 2841 & 628\,B [628\,B, 628\,B] & 0.006 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{knn-search-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 2801 & 0.0000 [0.0000, 0.0000] & 11.794 \\
+ &  & cpu_time_user_seconds & 2801 & 0.0000 [0.0000, 0.0000] & 4.462 \\
+ &  & elapsed_time & 2801 & 0.0044 [0.0044, 0.0044] & 0.224 \\
+ &  & network_bytes_received & 2801 & 8.7\,KB [8.7\,KB, 8.7\,KB] & 0.000 \\
+ &  & network_bytes_sent & 2801 & 628\,B [628\,B, 628\,B] & 0.007 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{point-in-polygon-lookup-duckdb-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 14 & 0.9350 [0.8000, 1.0600] & 0.199 \\
+ &  & cpu_time_user_seconds & 14 & 147.9150 [139.2800, 164.1635] & 0.099 \\
+ &  & elapsed_time & 14 & 38.7127 [36.2606, 42.7056] & 0.099 \\
+ &  & network_bytes_received & 14 & 12.0\,KB [12.0\,KB, 12.0\,KB] & 0.001 \\
+ &  & network_bytes_sent & 14 & 816\,B [816\,B, 882\,B] & 0.051 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{point-in-polygon-lookup-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 38 & 0.0500 [0.0450, 0.0600] & 0.287 \\
+ &  & cpu_time_user_seconds & 38 & 5.9950 [5.7700, 6.0950] & 0.063 \\
+ &  & elapsed_time & 38 & 1.5879 [1.5147, 1.6153] & 0.064 \\
+ &  & network_bytes_received & 38 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.002 \\
+ &  & network_bytes_sent & 38 & 906\,B [906\,B, 939\,B] & 0.055 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{point-in-polygon-lookup-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 134 & 0.0000 [0.0000, 0.0000] & --- \\
+ &  & cpu_time_user_seconds & 134 & 0.4100 [0.4100, 0.4200] & 0.164 \\
+ &  & elapsed_time & 134 & 0.4147 [0.4074, 0.4238] & 0.163 \\
+ &  & network_bytes_received & 134 & 0\,B [0\,B, 0\,B] & --- \\
+ &  & network_bytes_sent & 134 & 66\,B [66\,B, 66\,B] & 0.126 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{point-in-polygon-lookup-postgis-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 2560 & 0.0000 [0.0000, 0.0000] & 11.567 \\
+ &  & cpu_time_user_seconds & 2560 & 0.0000 [0.0000, 0.0000] & 4.038 \\
+ &  & elapsed_time & 2560 & 0.0041 [0.0041, 0.0041] & 0.303 \\
+ &  & network_bytes_received & 2560 & 1.9\,KB [1.9\,KB, 1.9\,KB] & 0.000 \\
+ &  & network_bytes_sent & 2560 & 616\,B [616\,B, 616\,B] & 0.345 \\
+\cline{1-6} \cline{2-6}
+\multirow[t]{5}{*}{point-in-polygon-lookup-postgis-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 2462 & 0.0000 [0.0000, 0.0000] & 9.681 \\
+ &  & cpu_time_user_seconds & 2462 & 0.0000 [0.0000, 0.0000] & 3.744 \\
+ &  & elapsed_time & 2462 & 0.0041 [0.0040, 0.0041] & 0.409 \\
+ &  & network_bytes_received & 2462 & 1.9\,KB [1.9\,KB, 1.9\,KB] & 0.000 \\
+ &  & network_bytes_sent & 2462 & 616\,B [616\,B, 616\,B] & 0.352 \\
 \cline{1-6} \cline{2-6}
 \bottomrule
 \end{tabular}

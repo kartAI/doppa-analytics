@@ -1,4 +1,8 @@
 from .charts import (
+    plot_cost_bars,
+    plot_cost_breakdown,
+    plot_cost_performance,
+    plot_coverage_heatmap,
     plot_cpu_breakdown,
     plot_cross_workload,
     plot_cv_iqr,

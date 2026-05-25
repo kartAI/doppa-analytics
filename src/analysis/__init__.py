@@ -1,4 +1,5 @@
 from .loading import (
+    enrich_costs,
     enrich_samples,
     extract_strategy,
     extract_worker_count,
@@ -20,6 +21,7 @@ from .tables import (
     LATEX_COLUMN_RENAMES,
     LATEX_INDEX_RENAMES,
     build_consistency_table,
+    build_cost_summary,
     build_cross_pass_table,
     build_descriptive_table,
     build_pairwise_table,
@@ -27,6 +29,7 @@ from .tables import (
     build_scaling_table,
     compact_descriptive_table,
     format_consistency_table,
+    format_cost_table,
     format_ranking_table,
     split_pairwise_effects,
     split_pairwise_significance,
