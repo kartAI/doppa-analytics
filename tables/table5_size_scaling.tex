@@ -1,0 +1,19 @@
+\begin{tabular}{llrrr}
+\toprule
+ &  & median\_small & median\_large & ratio\_large\_vs\_small \\
+workload\_type & configuration &  &  &  \\
+\midrule
+\multirow[t]{3}{*}{bbox-filtering} & duckdb & 1.2983 & 33.2309 & 25.5957 \\
+ & local & 0.0567 & NaN & NaN \\
+ & postgis & 0.0319 & 0.0424 & 1.3280 \\
+\cline{1-5}
+\multirow[t]{3}{*}{knn-search} & duckdb & 1.7015 & 21.5107 & 12.6425 \\
+ & local & 66.0863 & NaN & NaN \\
+ & postgis & 0.0044 & 0.0040 & 0.9044 \\
+\cline{1-5}
+\multirow[t]{3}{*}{point-in-polygon-lookup} & duckdb & 1.5879 & 38.7127 & 24.3792 \\
+ & local & 0.4147 & NaN & NaN \\
+ & postgis & 0.0041 & 0.0041 & 1.0035 \\
+\cline{1-5}
+\bottomrule
+\end{tabular}

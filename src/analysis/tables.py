@@ -312,6 +312,72 @@ def build_rq1_ranking(
     return table
 
 
+COST_BREAKDOWN_COLS = [
+    "compute_cost",
+    "storage_cost",
+    "network_cost",
+    "operations_cost",
+]
+
+
+def build_cost_summary(
+    costs_df: pd.DataFrame,
+) -> pd.DataFrame:
+    if costs_df.empty:
+        return pd.DataFrame()
+
+    group_keys = ["workload_type", "dataset_size", "configuration"]
+    agg = (
+        costs_df.groupby(group_keys + ["cost_type"])
+        .agg(
+            total_cost=("total_cost", "sum"),
+            compute_cost=("compute_cost", "sum"),
+            storage_cost=("storage_cost", "sum"),
+            network_cost=("network_cost", "sum"),
+            operations_cost=("operations_cost", "sum"),
+        )
+        .reset_index()
+    )
+
+    pivot = agg.pivot_table(
+        index=group_keys,
+        columns="cost_type",
+        values="total_cost",
+        aggfunc="sum",
+        fill_value=0.0,
+    )
+    pivot.columns = [f"cost_{ct}" for ct in pivot.columns]
+    pivot["total_cost"] = pivot.sum(axis=1)
+
+    breakdown = (
+        costs_df.groupby(group_keys)[COST_BREAKDOWN_COLS]
+        .sum()
+    )
+    result = pivot.join(breakdown)
+    return result.sort_index()
+
+
+def format_cost_table(cost_summary: pd.DataFrame) -> pd.DataFrame:
+    if cost_summary.empty:
+        return cost_summary
+    df = cost_summary.copy()
+    df.index = df.index.rename(LATEX_INDEX_RENAMES)
+
+    usd_cols = [c for c in df.columns if "cost" in c]
+    for c in usd_cols:
+        df[c] = df[c].apply(lambda v: f"\\${v:.4f}" if not np.isnan(v) else "---")
+
+    renames = {
+        "total_cost": "Total (USD)",
+        "compute_cost": "Compute",
+        "storage_cost": "Storage",
+        "network_cost": "Network",
+        "operations_cost": "Operations",
+    }
+    df = df.rename(columns={k: v for k, v in renames.items() if k in df.columns})
+    return df
+
+
 # ── LaTeX formatting helpers ───────────────────────────────────────────────
 
 LATEX_COLUMN_RENAMES: dict[str, str] = {
