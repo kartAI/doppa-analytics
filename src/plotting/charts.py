@@ -11,7 +11,9 @@ from IPython.display import display
 
 from src.analysis.stats import bootstrap_median_ci
 
-from .style import StyleConfig
+from .style import PALETTE, StyleConfig, tint
+
+_ANNOTATION_FACE = tint(PALETTE["thesisamber"], 0.7)
 
 
 def _savefig(fig: plt.Figure, name: str, figures_dir: Path) -> None:
@@ -149,10 +151,10 @@ def plot_coverage_heatmap(
 
     cmap = LinearSegmentedColormap.from_list(
         "coverage",
-        ["#D32F2F", "#FF9800", "#4CAF50"],
+        [PALETTE["thesisbrick"], PALETTE["thesisamber"], PALETTE["thesissage"]],
         N=256,
     )
-    cmap.set_bad(color="#E0E0E0")
+    cmap.set_bad(color=PALETTE["thesislight"])
 
     n_rows = len(row_labels)
     fig, ax = plt.subplots(
@@ -196,19 +198,19 @@ def plot_coverage_heatmap(
 
             if n_tot == 0 and not was_attempted:
                 text = "N/A"
-                color = "0.4"
+                color = PALETTE["thesisgray"]
             elif n_tot == 0 and was_attempted:
                 text = "FAILED\n(0 iters)"
                 color = "white"
             elif rate == 1.0:
                 text = f"{n_succ}"
-                color = "white" if n_succ > 0 else "0.3"
+                color = "white" if n_succ > 0 else PALETTE["thesisslate"]
             elif rate == 0.0:
                 text = f"0/{n_tot}\nFAILED"
                 color = "white"
             else:
                 text = f"{n_succ}/{n_tot}\n({rate:.0%})"
-                color = "black" if rate > 0.5 else "white"
+                color = PALETTE["thesisslate"] if rate > 0.5 else "white"
 
             ax.text(
                 ci, ri, text,
@@ -261,8 +263,8 @@ def _annotate_missing(
         va="bottom",
         fontsize=7,
         fontstyle="italic",
-        color="#D32F2F",
-        bbox=dict(boxstyle="round,pad=0.3", fc="#FFF3E0", ec="#E65100", alpha=0.85),
+        color=PALETTE["thesisbrick"],
+        bbox=dict(boxstyle="round,pad=0.3", fc=_ANNOTATION_FACE, ec=PALETTE["thesiscoral"], alpha=0.85),
     )
 
 
@@ -330,7 +332,7 @@ def plot_median_bars(
                     y,
                     xerr=[ci_lo, ci_hi],
                     fmt="none",
-                    ecolor="0.3",
+                    ecolor=PALETTE["thesisslate"],
                     capsize=3,
                     linewidth=1.2,
                 )
@@ -409,7 +411,7 @@ def plot_violin(
             for i, pc in enumerate(parts["bodies"]):
                 pc.set_facecolor(style.color(configs_present[i]))
                 pc.set_alpha(0.7)
-            parts["cmedians"].set_color("black")
+            parts["cmedians"].set_color(PALETTE["thesisslate"])
             parts["cmedians"].set_linewidth(1.5)
 
             q1s = [np.percentile(d, 25) for d in bp_data]
@@ -418,7 +420,7 @@ def plot_violin(
                 range(len(bp_data)),
                 q1s,
                 q3s,
-                color="0.3",
+                color=PALETTE["thesisslate"],
                 linewidth=3,
                 zorder=3,
             )
@@ -598,7 +600,7 @@ def plot_cpu_breakdown(
                 sys_meds,
                 height=0.5,
                 left=user_meds,
-                color="0.55",
+                color=PALETTE["thesisgray"],
                 edgecolor="white",
                 linewidth=0.5,
                 alpha=0.8,
@@ -671,9 +673,9 @@ def plot_network_io(
                     patch.set_alpha(0.7)
                 for element in ["whiskers", "caps"]:
                     for line in bplot[element]:
-                        line.set_color("0.4")
+                        line.set_color(PALETTE["thesisgray"])
                 for med in bplot["medians"]:
-                    med.set_color("black")
+                    med.set_color(PALETTE["thesisslate"])
                     med.set_linewidth(1.5)
 
                 if use_log:
@@ -799,7 +801,7 @@ def plot_cv_iqr(
                 ax.set_yscale("symlog", linthresh=0.5)
             ax.axhline(
                 y=0.10,
-                color="red",
+                color=PALETTE["thesisbrick"],
                 linestyle="--",
                 alpha=0.6,
                 linewidth=1,
@@ -925,7 +927,7 @@ def plot_cross_workload(
                         fontsize=6,
                         fontweight="bold",
                         fontstyle="italic",
-                        color="#D32F2F",
+                        color=PALETTE["thesisbrick"],
                         ha="center",
                         va="bottom",
                     )
@@ -958,11 +960,11 @@ def plot_cross_workload(
                     va="bottom",
                     fontsize=7,
                     fontstyle="italic",
-                    color="#D32F2F",
+                    color=PALETTE["thesisbrick"],
                     bbox=dict(
                         boxstyle="round,pad=0.3",
-                        fc="#FFF3E0",
-                        ec="#E65100",
+                        fc=_ANNOTATION_FACE,
+                        ec=PALETTE["thesiscoral"],
                         alpha=0.85,
                     ),
                 )
@@ -991,7 +993,7 @@ def plot_scaling_curve(
             s = ds_data[ds_data["strategy"] == strategy].sort_values(
                 "worker_count"
             )
-            col = style.strategy_colors.get(strategy, "#999")
+            col = style.strategy_colors.get(strategy, PALETTE["thesisgray"])
             ax.errorbar(
                 s["worker_count"],
                 s["headline_median"],
@@ -1036,11 +1038,11 @@ def plot_scaling_curve(
                     va="bottom",
                     fontsize=7,
                     fontstyle="italic",
-                    color="#D32F2F",
+                    color=PALETTE["thesisbrick"],
                     bbox=dict(
                         boxstyle="round,pad=0.3",
-                        fc="#FFF3E0",
-                        ec="#E65100",
+                        fc=_ANNOTATION_FACE,
+                        ec=PALETTE["thesiscoral"],
                         alpha=0.85,
                     ),
                 )
@@ -1110,9 +1112,9 @@ def plot_databricks_metrics(
                 patch.set_alpha(0.7)
             for element in ["whiskers", "caps"]:
                 for line in bplot[element]:
-                    line.set_color("0.4")
+                    line.set_color(PALETTE["thesisgray"])
             for med in bplot["medians"]:
-                med.set_color("black")
+                med.set_color(PALETTE["thesisslate"])
                 med.set_linewidth(1.5)
 
         if "bytes" in metric:
@@ -1177,7 +1179,7 @@ def plot_size_scaling(
                 meds,
                 width * 0.9,
                 label=ds.capitalize(),
-                color=style.size_colors.get(ds, "#999"),
+                color=style.size_colors.get(ds, PALETTE["thesisgray"]),
                 edgecolor="white",
                 linewidth=0.5,
             )
@@ -1276,12 +1278,6 @@ def plot_cost_breakdown(
         "network_cost": "Network",
         "operations_cost": "Operations",
     }
-    cat_colors = {
-        "compute_cost": "#42A5F5",
-        "storage_cost": "#66BB6A",
-        "network_cost": "#FFA726",
-        "operations_cost": "#AB47BC",
-    }
 
     for wt in cost_summary.index.get_level_values("workload_type").unique():
         for ds in cost_summary.index.get_level_values("dataset_size").unique():
@@ -1303,7 +1299,7 @@ def plot_cost_breakdown(
                 ax.barh(
                     y, vals, left=left, height=0.6,
                     label=cat_labels.get(col, col),
-                    color=cat_colors.get(col, "#999"),
+                    color=style.cost_category_colors.get(col, PALETTE["thesisgray"]),
                     edgecolor="white", linewidth=0.5,
                 )
                 left += vals
