@@ -4,9 +4,11 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.ticker import FuncFormatter
+from matplotlib.dates import DateFormatter, AutoDateLocator
+from matplotlib.ticker import FuncFormatter, ScalarFormatter
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from IPython.display import display
 
 from src.analysis.stats import bootstrap_median_ci
@@ -45,6 +47,19 @@ def _fmt_value(v: float, metric: str = "") -> str:
     if abs(v) >= 0.001:
         return f"{v:.4f}"
     return f"{v:.2e}"
+
+
+def _apply_plain_ticks(ax: plt.Axes, which: str = "both") -> None:
+    for name in (["x", "y"] if which == "both" else [which]):
+        axis = getattr(ax, f"{name}axis")
+        fmt = ScalarFormatter()
+        fmt.set_scientific(False)
+        fmt.set_useOffset(False)
+        axis.set_major_formatter(fmt)
+
+
+def _byte_formatter() -> FuncFormatter:
+    return FuncFormatter(lambda x, _: _fmt_value(x, "bytes"))
 
 
 # ── Coverage / failure heatmap ──────────────────────────────────────────
@@ -156,26 +171,6 @@ def plot_coverage_heatmap(
     )
     cmap.set_bad(color=PALETTE["thesislight"])
 
-    n_rows = len(row_labels)
-    fig, ax = plt.subplots(
-        figsize=(max(7, 2.0 * len(col_labels)), max(6, 0.5 * n_rows + 1.5))
-    )
-    im = ax.imshow(
-        rate_matrix,
-        cmap=cmap,
-        vmin=0,
-        vmax=1,
-        aspect="auto",
-    )
-
-    ax.set_xticks(range(len(col_labels)))
-    ax.set_xticklabels(
-        [ds.capitalize() for ds in col_labels], fontsize=11, fontweight="bold"
-    )
-    ax.xaxis.set_ticks_position("top")
-    ax.xaxis.set_label_position("top")
-    ax.set_yticks(range(n_rows))
-
     y_labels_formatted = []
     prev_wt = None
     for wt, cfg in row_labels:
@@ -185,7 +180,30 @@ def plot_coverage_heatmap(
         prev_wt = wt
         y_labels_formatted.append(label)
 
-    ax.set_yticklabels(y_labels_formatted, fontsize=8)
+    n_rows = len(row_labels)
+    fig, ax = plt.subplots(
+        figsize=(max(7, 2.0 * len(col_labels)), max(6, 0.5 * n_rows + 1.5))
+    )
+
+    sns.heatmap(
+        rate_matrix,
+        cmap=cmap,
+        vmin=0,
+        vmax=1,
+        ax=ax,
+        annot=False,
+        cbar_kws={"label": "Success rate", "shrink": 0.8, "pad": 0.02},
+        xticklabels=[ds.capitalize() for ds in col_labels],
+        yticklabels=y_labels_formatted,
+        linewidths=0,
+    )
+
+    ax.xaxis.set_ticks_position("top")
+    ax.xaxis.set_label_position("top")
+    for label in ax.get_xticklabels():
+        label.set_fontsize(11)
+        label.set_fontweight("bold")
+    ax.tick_params(axis="y", labelsize=8)
 
     for ri in range(len(row_labels)):
         for ci in range(len(col_labels)):
@@ -213,9 +231,9 @@ def plot_coverage_heatmap(
                 color = PALETTE["thesisslate"] if rate > 0.5 else "white"
 
             ax.text(
-                ci, ri, text,
+                ci + 0.5, ri + 0.5, text,
                 ha="center", va="center",
-                fontsize=7, fontweight="bold",
+                fontsize=7, fontweight="medium",
                 color=color,
             )
 
@@ -223,18 +241,14 @@ def plot_coverage_heatmap(
     prev_wt = None
     for ri, (wt, _) in enumerate(row_labels):
         if wt != prev_wt and prev_wt is not None:
-            wt_boundaries.append(ri - 0.5)
+            wt_boundaries.append(ri)
         prev_wt = wt
     for y in wt_boundaries:
         ax.axhline(y=y, color="white", linewidth=2)
 
-    cbar = fig.colorbar(im, ax=ax, shrink=0.8, pad=0.02)
-    cbar.set_label("Success rate", fontsize=10)
-
     ax.set_title(
         "Benchmark Coverage — Success Rate by Configuration",
-        fontsize=13,
-        fontweight="bold",
+        fontsize=12,
         pad=12,
     )
     fig.tight_layout()
@@ -301,8 +315,35 @@ def plot_median_bars(
                 axes = [axes]
 
             for ax, metric in zip(axes, metrics_present):
-                medians, ci_lo, ci_hi, colors, labels = [], [], [], [], []
-                for cfg in configs:
+                plot_data = data[data["configuration"].isin(configs)].dropna(
+                    subset=[metric]
+                )
+                configs_with_data = [
+                    c
+                    for c in configs
+                    if c in plot_data["configuration"].unique()
+                ]
+                if not configs_with_data:
+                    continue
+
+                palette = {c: style.color(c) for c in configs_with_data}
+
+                sns.barplot(
+                    data=plot_data,
+                    y="configuration",
+                    x=metric,
+                    estimator=np.median,
+                    errorbar=None,
+                    palette=palette,
+                    order=configs_with_data,
+                    saturation=1.0,
+                    width=0.6,
+                    edgecolor="white",
+                    linewidth=0.5,
+                    ax=ax,
+                )
+
+                for i, cfg in enumerate(configs_with_data):
                     vals = (
                         data[data["configuration"] == cfg][metric]
                         .dropna()
@@ -312,30 +353,39 @@ def plot_median_bars(
                         continue
                     med = np.median(vals)
                     lo, hi = bootstrap_median_ci(vals)
-                    medians.append(med)
-                    ci_lo.append(med - lo)
-                    ci_hi.append(hi - med)
-                    colors.append(style.color(cfg))
-                    labels.append(style.label(cfg))
+                    ax.errorbar(
+                        med,
+                        i,
+                        xerr=[[med - lo], [hi - med]],
+                        fmt="none",
+                        ecolor=PALETTE["thesisgray"],
+                        capsize=2,
+                        linewidth=0.8,
+                    )
+                    ax.annotate(
+                        _fmt_value(med, metric),
+                        xy=(med, i),
+                        xytext=(5, 0),
+                        textcoords="offset points",
+                        va="center",
+                        fontsize=7,
+                        fontweight="medium",
+                    )
 
-                y = np.arange(len(medians))
-                ax.barh(
-                    y,
-                    medians,
-                    color=colors,
-                    edgecolor="white",
-                    linewidth=0.5,
-                    height=0.6,
-                )
-                ax.errorbar(
-                    medians,
-                    y,
-                    xerr=[ci_lo, ci_hi],
-                    fmt="none",
-                    ecolor=PALETTE["thesisslate"],
-                    capsize=3,
-                    linewidth=1.2,
-                )
+                medians = [
+                    np.median(
+                        data[data["configuration"] == c][metric]
+                        .dropna()
+                        .values
+                    )
+                    for c in configs_with_data
+                    if len(
+                        data[data["configuration"] == c][metric]
+                        .dropna()
+                        .values
+                    )
+                    > 0
+                ]
                 if _needs_log_scale(medians):
                     ax.set_xscale(
                         "symlog",
@@ -343,27 +393,24 @@ def plot_median_bars(
                             min(m for m in medians if m > 0) * 0.5, 1e-6
                         ),
                     )
-                for yi, med in zip(y, medians):
-                    ax.annotate(
-                        _fmt_value(med, metric),
-                        xy=(med, yi),
-                        xytext=(5, 0),
-                        textcoords="offset points",
-                        va="center",
-                        fontsize=7,
-                        fontweight="bold",
-                    )
-                ax.set_yticks(y)
-                ax.set_yticklabels(labels)
+                if "bytes" in metric:
+                    ax.xaxis.set_major_formatter(_byte_formatter())
+                elif ax.get_xscale() != "linear":
+                    _apply_plain_ticks(ax, "x")
+
+                ax.set_yticklabels(
+                    [style.label(c) for c in configs_with_data]
+                )
                 ax.set_xlabel(style.metric_label(metric))
                 ax.invert_yaxis()
                 if all_configs is not None:
-                    _annotate_missing(ax, configs, all_configs, style)
+                    _annotate_missing(
+                        ax, configs_with_data, all_configs, style
+                    )
 
             fig.suptitle(
                 f"{style.workload_label(wt)} ({ds})",
-                fontsize=14,
-                fontweight="bold",
+                fontsize=13,
             )
             fig.tight_layout()
             _savefig(fig, f"{wt}_{ds}_median_bars", figures_dir)
@@ -385,47 +432,40 @@ def plot_violin(
 
             data = successful[mask]
             configs = sorted(data["configuration"].unique())
-            bp_data = []
-            configs_present = []
-            for c in configs:
-                vals = (
-                    data[data["configuration"] == c]["elapsed_time"]
-                    .dropna()
-                    .values
-                )
-                if len(vals) > 0:
-                    bp_data.append(vals)
-                    configs_present.append(c)
-            if not bp_data:
+            configs_present = [
+                c
+                for c in configs
+                if data[data["configuration"] == c]["elapsed_time"]
+                .notna()
+                .any()
+            ]
+            if not configs_present:
                 continue
+
+            palette = {c: style.color(c) for c in configs_present}
+            plot_data = data[data["configuration"].isin(configs_present)]
 
             fig, ax = plt.subplots(
                 figsize=(max(8, 2.5 * len(configs_present)), max(5, 6))
             )
-            parts = ax.violinplot(
-                bp_data,
-                positions=range(len(bp_data)),
-                showmedians=True,
-                showextrema=False,
-            )
-            for i, pc in enumerate(parts["bodies"]):
-                pc.set_facecolor(style.color(configs_present[i]))
-                pc.set_alpha(0.7)
-            parts["cmedians"].set_color(PALETTE["thesisslate"])
-            parts["cmedians"].set_linewidth(1.5)
 
-            q1s = [np.percentile(d, 25) for d in bp_data]
-            q3s = [np.percentile(d, 75) for d in bp_data]
-            ax.vlines(
-                range(len(bp_data)),
-                q1s,
-                q3s,
-                color=PALETTE["thesisslate"],
-                linewidth=3,
-                zorder=3,
+            sns.violinplot(
+                data=plot_data,
+                x="configuration",
+                y="elapsed_time",
+                palette=palette,
+                order=configs_present,
+                inner="box",
+                cut=0,
+                saturation=0.85,
+                width=0.7,
+                linewidth=0.8,
+                linecolor=PALETTE["thesisslate"],
+                legend=False,
+                ax=ax,
             )
 
-            all_elapsed = np.concatenate(bp_data)
+            all_elapsed = plot_data["elapsed_time"].dropna().values
             if _needs_log_scale(all_elapsed.tolist()):
                 ax.set_yscale(
                     "symlog",
@@ -433,24 +473,31 @@ def plot_violin(
                         all_elapsed[all_elapsed > 0].min() * 0.5, 1e-6
                     ),
                 )
+                _apply_plain_ticks(ax, "y")
 
-            for i, d in enumerate(bp_data):
-                med = np.median(d)
-                ax.annotate(
-                    _fmt_value(med, "elapsed_time"),
-                    xy=(i, med),
-                    xytext=(5, 5),
-                    textcoords="offset points",
-                    fontsize=8,
-                    fontweight="bold",
+            for i, cfg in enumerate(configs_present):
+                vals = (
+                    data[data["configuration"] == cfg]["elapsed_time"]
+                    .dropna()
+                    .values
                 )
+                if len(vals) > 0:
+                    med = np.median(vals)
+                    ax.annotate(
+                        _fmt_value(med, "elapsed_time"),
+                        xy=(i, med),
+                        xytext=(5, 5),
+                        textcoords="offset points",
+                        fontsize=8,
+                        fontweight="medium",
+                    )
 
-            ax.set_xticks(range(len(configs_present)))
             ax.set_xticklabels(
-                [style.label(c) for c in configs_present],
+                [style.label(cfg) for cfg in configs_present],
                 rotation=30,
                 ha="right",
             )
+            ax.set_xlabel("")
             ax.set_ylabel(style.metric_label("elapsed_time"))
             ax.set_title(f"{style.workload_label(wt)} ({ds})")
             if all_configs is not None:
@@ -474,26 +521,36 @@ def plot_timeseries(
 
             data = successful[mask]
             configs = sorted(data["configuration"].unique())
+            palette = {c: style.color(c) for c in configs}
 
             fig, ax = plt.subplots(figsize=(10, 5))
-            for cfg in configs:
-                d = data[data["configuration"] == cfg].sort_values(
-                    "local_iteration"
-                )
-                ax.plot(
-                    d["local_iteration"],
-                    d["elapsed_time"],
-                    label=style.label(cfg),
-                    color=style.color(cfg),
-                    alpha=0.7,
-                    linewidth=0.8,
-                )
+
+            sns.lineplot(
+                data=data,
+                x="local_iteration",
+                y="elapsed_time",
+                hue="configuration",
+                palette=palette,
+                hue_order=configs,
+                estimator=None,
+                sort=True,
+                alpha=0.7,
+                linewidth=0.8,
+                ax=ax,
+            )
+
+            handles, _ = ax.get_legend_handles_labels()
+            ax.legend(
+                handles,
+                [style.label(c) for c in configs],
+                loc="best",
+                fontsize=9,
+            )
             ax.set_xlabel("Iteration (within pass)")
             ax.set_ylabel(style.metric_label("elapsed_time"))
             ax.set_title(
                 f"{style.workload_label(wt)} ({ds}) — Iteration timeseries"
             )
-            ax.legend(loc="best", fontsize=9)
             fig.tight_layout()
             _savefig(fig, f"{wt}_{ds}_timeseries", figures_dir)
 
@@ -513,25 +570,38 @@ def plot_scatter(
 
             data = successful[mask]
             configs = sorted(data["configuration"].unique())
+            palette = {c: style.color(c) for c in configs}
 
             fig, ax = plt.subplots(figsize=(8, 6))
-            for cfg in configs:
-                d = data[data["configuration"] == cfg]
-                ax.scatter(
-                    d["elapsed_time"],
-                    d["network_bytes_received"],
-                    label=style.label(cfg),
-                    color=style.color(cfg),
-                    alpha=0.5,
-                    s=15,
-                    edgecolors="none",
-                )
+
+            sns.scatterplot(
+                data=data,
+                x="elapsed_time",
+                y="network_bytes_received",
+                hue="configuration",
+                palette=palette,
+                hue_order=configs,
+                alpha=0.5,
+                s=15,
+                edgecolor="none",
+                ax=ax,
+            )
+
+            ax.yaxis.set_major_formatter(_byte_formatter())
+
+            handles, _ = ax.get_legend_handles_labels()
+            ax.legend(
+                handles,
+                [style.label(c) for c in configs],
+                loc="best",
+                fontsize=9,
+                markerscale=2,
+            )
             ax.set_xlabel(style.metric_label("elapsed_time"))
             ax.set_ylabel(style.metric_label("network_bytes_received"))
             ax.set_title(
                 f"{style.workload_label(wt)} ({ds}) — Elapsed vs Network I/O"
             )
-            ax.legend(loc="best", fontsize=9, markerscale=2)
             fig.tight_layout()
             _savefig(fig, f"{wt}_{ds}_scatter", figures_dir)
 
@@ -557,65 +627,69 @@ def plot_cpu_breakdown(
 
             configs = sorted(data["configuration"].unique())
             configs_present = [
-                c for c in configs if len(data[data["configuration"] == c]) > 0
+                cfg
+                for cfg in configs
+                if len(data[data["configuration"] == cfg]) > 0
             ]
 
-            user_meds = [
-                float(
-                    np.median(
-                        data[data["configuration"] == c][
-                            "cpu_time_user_seconds"
-                        ].dropna()
-                    )
-                )
-                for c in configs_present
-            ]
-            sys_meds = [
-                float(
-                    np.median(
-                        data[data["configuration"] == c][
-                            "cpu_time_system_seconds"
-                        ].dropna()
-                    )
-                )
-                for c in configs_present
-            ]
+            plot_data = data[
+                data["configuration"].isin(configs_present)
+            ].assign(
+                total_cpu=lambda d: d["cpu_time_user_seconds"].fillna(0)
+                + d["cpu_time_system_seconds"].fillna(0)
+            )
+            palette = {c: style.color(c) for c in configs_present}
 
             fig_h = max(4, 1.2 * len(configs_present) + 1)
             fig, ax = plt.subplots(
                 figsize=(max(8, 2 * len(configs_present)), fig_h)
             )
-            y = np.arange(len(configs_present))
-            ax.barh(
-                y,
-                user_meds,
-                height=0.5,
-                color=[style.color(c) for c in configs_present],
+
+            sns.barplot(
+                data=plot_data,
+                y="configuration",
+                x="total_cpu",
+                estimator=np.median,
+                errorbar=None,
+                palette=palette,
+                order=configs_present,
+                saturation=1.0,
+                width=0.5,
                 edgecolor="white",
                 linewidth=0.5,
-                label="User",
+                ax=ax,
             )
-            ax.barh(
-                y,
-                sys_meds,
-                height=0.5,
-                left=user_meds,
-                color=PALETTE["thesisgray"],
-                edgecolor="white",
-                linewidth=0.5,
-                alpha=0.8,
-                label="System",
+
+            for i, cfg in enumerate(configs_present):
+                vals = (
+                    plot_data[plot_data["configuration"] == cfg]["total_cpu"]
+                    .dropna()
+                    .values
+                )
+                if len(vals) > 0:
+                    med = np.median(vals)
+                    ax.annotate(
+                        _fmt_value(med),
+                        xy=(med, i),
+                        xytext=(5, 0),
+                        textcoords="offset points",
+                        va="center",
+                        fontsize=8,
+                        fontweight="medium",
+                    )
+
+            ax.set_yticklabels(
+                [style.label(cfg) for cfg in configs_present]
             )
-            ax.set_yticks(y)
-            ax.set_yticklabels([style.label(c) for c in configs_present])
             ax.set_xlabel("CPU time (s)")
             ax.set_title(
-                f"{style.workload_label(wt)} ({ds}) — CPU time (user + system)"
+                f"{style.workload_label(wt)} ({ds}) — CPU Time"
             )
-            ax.legend(loc="best", fontsize=9)
             ax.invert_yaxis()
             if all_configs is not None:
-                _annotate_missing(ax, configs_present, all_configs, style)
+                _annotate_missing(
+                    ax, configs_present, all_configs, style
+                )
             fig.tight_layout()
             _savefig(fig, f"{wt}_{ds}_cpu", figures_dir)
 
@@ -638,58 +712,79 @@ def plot_network_io(
             data = successful[mask]
             configs = sorted(data["configuration"].unique())
             configs_present = [
-                c for c in configs if len(data[data["configuration"] == c]) > 0
+                c
+                for c in configs
+                if len(data[data["configuration"] == c]) > 0
             ]
 
             fig, axes = plt.subplots(1, 2, figsize=(13, 6))
             fig.subplots_adjust(wspace=0.35)
             for ax, metric in zip(axes, net_metrics):
-                bp_data, bp_colors, bp_labels = [], [], []
-                for cfg in configs_present:
-                    vals = (
-                        data[data["configuration"] == cfg][metric]
-                        .dropna()
-                        .values
-                    )
-                    if len(vals) > 0:
-                        bp_data.append(vals)
-                        bp_colors.append(style.color(cfg))
-                        bp_labels.append(style.label(cfg))
-
-                if not bp_data:
+                metric_configs = [
+                    c
+                    for c in configs_present
+                    if data[data["configuration"] == c][metric]
+                    .notna()
+                    .any()
+                ]
+                if not metric_configs:
                     continue
 
-                all_vals = np.concatenate(bp_data)
+                plot_data = data[
+                    data["configuration"].isin(metric_configs)
+                ]
+                palette = {c: style.color(c) for c in metric_configs}
+
+                all_vals = plot_data[metric].dropna().values
                 pos_vals = all_vals[all_vals > 0]
                 use_log = len(pos_vals) > 0 and (
                     pos_vals.max() / pos_vals.min() > 100
                 )
 
-                bplot = ax.boxplot(
-                    bp_data, patch_artist=True, showfliers=False, widths=0.6
+                sns.boxplot(
+                    data=plot_data,
+                    x="configuration",
+                    y=metric,
+                    palette=palette,
+                    order=metric_configs,
+                    saturation=0.65,
+                    width=0.6,
+                    linecolor=PALETTE["thesisslate"],
+                    linewidth=0.8,
+                    fliersize=0,
+                    legend=False,
+                    ax=ax,
                 )
-                for patch, color in zip(bplot["boxes"], bp_colors):
-                    patch.set_facecolor(color)
-                    patch.set_alpha(0.7)
-                for element in ["whiskers", "caps"]:
-                    for line in bplot[element]:
-                        line.set_color(PALETTE["thesisgray"])
-                for med in bplot["medians"]:
-                    med.set_color(PALETTE["thesisslate"])
-                    med.set_linewidth(1.5)
+                sns.stripplot(
+                    data=plot_data,
+                    x="configuration",
+                    y=metric,
+                    palette=palette,
+                    order=metric_configs,
+                    size=3,
+                    alpha=0.4,
+                    jitter=0.15,
+                    legend=False,
+                    ax=ax,
+                )
 
                 if use_log:
                     ax.set_yscale("symlog", linthresh=1)
 
                 ax.set_xticklabels(
-                    bp_labels, rotation=30, ha="right", fontsize=9
+                    [style.label(c) for c in metric_configs],
+                    rotation=30,
+                    ha="right",
+                    fontsize=9,
                 )
+                ax.set_xlabel("")
+                ax.yaxis.set_major_formatter(_byte_formatter())
                 ax.set_ylabel(style.metric_label(metric))
 
             fig.suptitle(
                 f"{style.workload_label(wt)} ({ds}) — Network I/O",
-                fontsize=14,
-                fontweight="bold",
+                fontsize=13,
+                fontweight="medium",
             )
             if all_configs is not None:
                 _annotate_missing(
@@ -795,10 +890,11 @@ def plot_cv_iqr(
                                 ha="center",
                                 va="bottom",
                                 fontsize=6,
-                                fontweight="bold",
+                                fontweight="medium",
                             )
             if use_log_cv:
                 ax.set_yscale("symlog", linthresh=0.5)
+                _apply_plain_ticks(ax, "y")
             ax.axhline(
                 y=0.10,
                 color=PALETTE["thesisbrick"],
@@ -821,6 +917,127 @@ def plot_cv_iqr(
             ax.legend(loc="best", fontsize=8)
             fig.tight_layout()
             _savefig(fig, f"{wt}_{ds}_cv", figures_dir)
+
+
+def plot_variation(
+    successful: pd.DataFrame,
+    style: StyleConfig,
+    figures_dir: Path,
+    all_configs: list[str] | None = None,
+) -> None:
+    variation_metrics = [
+        "elapsed_time",
+        "network_bytes_received",
+        "network_bytes_sent",
+    ]
+    for wt in sorted(successful["workload_type"].unique()):
+        for ds in sorted(
+            successful["dataset_size"].unique(),
+            key=lambda s: style.size_order.get(s, 99),
+        ):
+            mask = (successful["workload_type"] == wt) & (
+                successful["dataset_size"] == ds
+            )
+            if not mask.any():
+                continue
+
+            data = successful[mask]
+            configs = sorted(data["configuration"].unique())
+            metrics_present = [
+                m for m in variation_metrics if data[m].notna().any()
+            ]
+            if not metrics_present:
+                continue
+
+            n_metrics = len(metrics_present)
+            fig, axes = plt.subplots(
+                1, n_metrics, figsize=(5.5 * n_metrics, max(5, 6))
+            )
+            if n_metrics == 1:
+                axes = [axes]
+
+            for ax, metric in zip(axes, metrics_present):
+                metric_configs = [
+                    c
+                    for c in configs
+                    if data[data["configuration"] == c][metric]
+                    .notna()
+                    .any()
+                ]
+                if not metric_configs:
+                    continue
+
+                plot_data = data[
+                    data["configuration"].isin(metric_configs)
+                ]
+                palette = {c: style.color(c) for c in metric_configs}
+
+                sns.boxplot(
+                    data=plot_data,
+                    x="configuration",
+                    y=metric,
+                    palette=palette,
+                    order=metric_configs,
+                    saturation=0.65,
+                    width=0.6,
+                    linecolor=PALETTE["thesisslate"],
+                    linewidth=0.8,
+                    fliersize=0,
+                    legend=False,
+                    ax=ax,
+                )
+                sns.stripplot(
+                    data=plot_data,
+                    x="configuration",
+                    y=metric,
+                    palette=palette,
+                    order=metric_configs,
+                    size=3,
+                    alpha=0.4,
+                    jitter=0.15,
+                    legend=False,
+                    ax=ax,
+                )
+
+                all_vals = plot_data[metric].dropna().values
+                pos_vals = all_vals[all_vals > 0]
+                if (
+                    len(pos_vals) >= 2
+                    and pos_vals.max() / pos_vals.min() > 20
+                ):
+                    ax.set_yscale(
+                        "symlog",
+                        linthresh=max(
+                            float(pos_vals.min()) * 0.5, 1e-6
+                        ),
+                    )
+
+                if "bytes" in metric:
+                    ax.yaxis.set_major_formatter(_byte_formatter())
+                elif ax.get_yscale() != "linear":
+                    _apply_plain_ticks(ax, "y")
+
+                ax.set_xticklabels(
+                    [style.label(c) for c in metric_configs],
+                    rotation=30,
+                    ha="right",
+                    fontsize=9,
+                )
+                ax.set_xlabel("")
+                ax.set_ylabel(style.metric_label(metric))
+
+                if all_configs is not None:
+                    _annotate_missing(
+                        ax, metric_configs, all_configs, style
+                    )
+
+            fig.suptitle(
+                f"{style.workload_label(wt)} ({ds}) — Distribution",
+                fontsize=13,
+                fontweight="medium",
+            )
+            fig.tight_layout()
+            _savefig(fig, f"{wt}_{ds}_variation", figures_dir)
 
 
 # ── Cross-workload / cross-size charts ───────────────────────────────────
@@ -917,7 +1134,7 @@ def plot_cross_workload(
                         ha="center",
                         va="bottom",
                         fontsize=7,
-                        fontweight="bold",
+                        fontweight="medium",
                     )
                 elif not has_data:
                     y_pos = ax.get_ylim()[0]
@@ -925,7 +1142,7 @@ def plot_cross_workload(
                         "N/A",
                         xy=(bar.get_x() + bar.get_width() / 2, y_pos),
                         fontsize=6,
-                        fontweight="bold",
+                        fontweight="medium",
                         fontstyle="italic",
                         color=PALETTE["thesisbrick"],
                         ha="center",
@@ -938,6 +1155,7 @@ def plot_cross_workload(
         )
         ax.set_ylabel(style.metric_label("elapsed_time"))
         ax.set_yscale("log")
+        _apply_plain_ticks(ax, "y")
         ax.set_title(
             f"Cross-workload Comparison ({ds}) — Median Elapsed Time (log scale)"
         )
@@ -1004,9 +1222,9 @@ def plot_scaling_curve(
                 marker="o",
                 label=strategy.capitalize(),
                 color=col,
-                capsize=4,
-                linewidth=2,
-                markersize=8,
+                capsize=3,
+                linewidth=1.4,
+                markersize=6,
             )
 
         if "dataset_size" in rq2_single_node.columns:
@@ -1087,43 +1305,66 @@ def plot_databricks_metrics(
     fig.subplots_adjust(hspace=0.45, wspace=0.3)
     axes_flat = np.atleast_1d(axes).flatten()
 
+    palette = {c: style.color(c) for c in dbr_configs}
+
     last_i = 0
     for i, metric in enumerate(dbr_metrics_present):
         last_i = i
         ax = axes_flat[i]
-        bp_data, bp_colors, bp_labels = [], [], []
-        for cfg in dbr_configs:
-            vals = (
-                dbr_data[dbr_data["configuration"] == cfg][metric]
-                .dropna()
-                .values
-            )
-            if len(vals) > 0:
-                bp_data.append(vals)
-                bp_colors.append(style.color(cfg))
-                bp_labels.append(style.label(cfg))
 
-        if bp_data:
-            bplot = ax.boxplot(
-                bp_data, patch_artist=True, showfliers=False, widths=0.5
-            )
-            for patch, color in zip(bplot["boxes"], bp_colors):
-                patch.set_facecolor(color)
-                patch.set_alpha(0.7)
-            for element in ["whiskers", "caps"]:
-                for line in bplot[element]:
-                    line.set_color(PALETTE["thesisgray"])
-            for med in bplot["medians"]:
-                med.set_color(PALETTE["thesisslate"])
-                med.set_linewidth(1.5)
+        metric_configs = [
+            c
+            for c in dbr_configs
+            if dbr_data[dbr_data["configuration"] == c][metric]
+            .notna()
+            .any()
+        ]
+        if not metric_configs:
+            continue
+
+        plot_data = dbr_data[
+            dbr_data["configuration"].isin(metric_configs)
+        ]
+        metric_palette = {c: palette[c] for c in metric_configs}
+
+        sns.boxplot(
+            data=plot_data,
+            x="configuration",
+            y=metric,
+            palette=metric_palette,
+            order=metric_configs,
+            saturation=0.65,
+            width=0.5,
+            linecolor=PALETTE["thesisslate"],
+            linewidth=0.8,
+            fliersize=0,
+            legend=False,
+            ax=ax,
+        )
+        sns.stripplot(
+            data=plot_data,
+            x="configuration",
+            y=metric,
+            palette=metric_palette,
+            order=metric_configs,
+            size=2.5,
+            alpha=0.35,
+            jitter=0.12,
+            legend=False,
+            ax=ax,
+        )
 
         if "bytes" in metric:
             ax.yaxis.set_major_formatter(
                 FuncFormatter(lambda x, _, m=metric: _fmt_value(x, m))
             )
         ax.set_xticklabels(
-            bp_labels, rotation=35, ha="right", fontsize=8
+            [style.label(c) for c in metric_configs],
+            rotation=35,
+            ha="right",
+            fontsize=8,
         )
+        ax.set_xlabel("")
         ax.set_title(
             style.metric_label(metric), fontsize=11, fontweight="bold"
         )
@@ -1134,8 +1375,8 @@ def plot_databricks_metrics(
 
     fig.suptitle(
         "Databricks Configurations — Internal Metrics",
-        fontsize=14,
-        fontweight="bold",
+        fontsize=13,
+        fontweight="medium",
     )
     _savefig(fig, "databricks_metrics", figures_dir)
 
@@ -1192,7 +1433,7 @@ def plot_size_scaling(
                         ha="center",
                         va="bottom",
                         fontsize=7,
-                        fontweight="bold",
+                        fontweight="medium",
                     )
 
         ax.set_xticks(x)
@@ -1205,6 +1446,7 @@ def plot_size_scaling(
         )
         ax.set_ylabel(style.metric_label("elapsed_time"))
         ax.set_yscale("log")
+        _apply_plain_ticks(ax, "y")
         ax.set_title(
             f"{style.workload_label(wt)} — Median Elapsed Time by Dataset Size"
         )
@@ -1232,26 +1474,50 @@ def plot_cost_bars(
                 data = data.to_frame().T
 
             configs = [idx if isinstance(idx, str) else idx[-1] for idx in data.index]
-            totals = data["total_cost"].values
+            totals = data["total_cost"].values.astype(float)
 
-            fig, ax = plt.subplots(figsize=(max(7, 1.5 * len(configs)), max(4, 1.2 * len(configs) + 1)))
-            y = np.arange(len(configs))
-            colors = [style.color(c) for c in configs]
-            ax.barh(y, totals, color=colors, edgecolor="white", linewidth=0.5, height=0.6)
-            for yi, val in zip(y, totals):
+            plot_df = pd.DataFrame(
+                {"config": configs, "total_cost": totals}
+            )
+            palette = {c: style.color(c) for c in configs}
+
+            fig, ax = plt.subplots(
+                figsize=(
+                    max(7, 1.5 * len(configs)),
+                    max(4, 1.2 * len(configs) + 1),
+                )
+            )
+
+            sns.barplot(
+                data=plot_df,
+                y="config",
+                x="total_cost",
+                palette=palette,
+                order=configs,
+                saturation=1.0,
+                width=0.6,
+                edgecolor="white",
+                linewidth=0.5,
+                errorbar=None,
+                ax=ax,
+            )
+
+            for i, (cfg, val) in enumerate(zip(configs, totals)):
                 ax.annotate(
                     f"${val:.4f}",
-                    xy=(val, yi),
+                    xy=(val, i),
                     xytext=(5, 0),
                     textcoords="offset points",
                     va="center",
                     fontsize=8,
-                    fontweight="bold",
+                    fontweight="medium",
                 )
-            ax.set_yticks(y)
+
             ax.set_yticklabels([style.label(c) for c in configs])
             ax.set_xlabel("Total cost (USD)")
-            ax.set_title(f"{style.workload_label(wt)} ({ds}) — Infrastructure Cost")
+            ax.set_title(
+                f"{style.workload_label(wt)} ({ds}) — Infrastructure Cost"
+            )
             ax.invert_yaxis()
             fig.tight_layout()
             tag = f"_{suffix}" if suffix else ""
@@ -1312,7 +1578,7 @@ def plot_cost_breakdown(
                     textcoords="offset points",
                     va="center",
                     fontsize=8,
-                    fontweight="bold",
+                    fontweight="medium",
                 )
 
             ax.set_yticks(y)
@@ -1366,13 +1632,26 @@ def plot_cost_performance(
             if len(points) < 2:
                 continue
 
+            plot_df = pd.DataFrame(points)
+            palette = {p["config"]: style.color(p["config"]) for p in points}
+
             fig, ax = plt.subplots(figsize=(8, 6))
+
+            sns.scatterplot(
+                data=plot_df,
+                x="total_cost",
+                y="median_elapsed",
+                hue="config",
+                palette=palette,
+                s=90,
+                edgecolor="white",
+                linewidth=0.6,
+                zorder=5,
+                legend=False,
+                ax=ax,
+            )
+
             for p in points:
-                ax.scatter(
-                    p["total_cost"], p["median_elapsed"],
-                    color=style.color(p["config"]),
-                    s=120, zorder=5, edgecolors="white", linewidth=1,
-                )
                 ax.annotate(
                     style.label(p["config"]),
                     xy=(p["total_cost"], p["median_elapsed"]),
@@ -1380,6 +1659,7 @@ def plot_cost_performance(
                     textcoords="offset points",
                     fontsize=8,
                 )
+
             ax.set_xlabel("Total infrastructure cost (USD)")
             ax.set_ylabel("Median elapsed time (s)")
             ax.set_title(f"{style.workload_label(wt)} ({ds}) — Cost vs. Performance")
@@ -1388,8 +1668,10 @@ def plot_cost_performance(
             times_arr = [p["median_elapsed"] for p in points]
             if max(costs_arr) / max(min(costs_arr), 1e-9) > 20:
                 ax.set_xscale("log")
+                _apply_plain_ticks(ax, "x")
             if max(times_arr) / max(min(times_arr), 1e-9) > 20:
                 ax.set_yscale("log")
+                _apply_plain_ticks(ax, "y")
 
             fig.tight_layout()
             tag = f"_{suffix}" if suffix else ""
@@ -1505,3 +1787,124 @@ def plot_ranking_stability(
                         "Pairwise elapsed-time ratio (config_a / config_b) across sizes:"
                     )
                     display(adv_pivot.round(4))
+
+
+# ── Execution timeline (Gantt) ─────────────────────────────────────────
+
+
+def plot_execution_timeline(
+    samples_df: pd.DataFrame,
+    style: StyleConfig,
+    figures_dir: Path,
+) -> None:
+    df = samples_df.copy()
+    df["started_at"] = pd.to_datetime(df["started_at"], utc=True)
+    df["ended_at"] = pd.to_datetime(df["ended_at"], utc=True)
+
+    spans = (
+        df.groupby(["query_id", "benchmark_run", "workload_type",
+                     "configuration", "dataset_size"])
+        .agg(start=("started_at", "min"), end=("ended_at", "max"))
+        .reset_index()
+    )
+    spans["duration_min"] = (spans["end"] - spans["start"]).dt.total_seconds() / 60
+
+    size_order = style.size_order
+    all_sizes = sorted(spans["dataset_size"].unique(), key=lambda s: size_order.get(s, 99))
+
+    runs = sorted(spans["benchmark_run"].unique())
+
+    for run in runs:
+        run_spans = spans[spans["benchmark_run"] == run].copy()
+        if run_spans.empty:
+            continue
+
+        groups = (
+            run_spans.groupby(["workload_type", "configuration"])
+            .agg(earliest=("start", "min"))
+            .reset_index()
+            .sort_values(["workload_type", "configuration"])
+        )
+        row_keys = list(zip(groups["workload_type"], groups["configuration"]))
+
+        n_rows = len(row_keys)
+        n_sizes = len(all_sizes)
+        row_h = 0.8
+        sub_h = row_h / max(n_sizes, 1)
+        fig_h = max(3.0, 0.45 * n_rows + 1.2)
+        fig, ax = plt.subplots(figsize=(10, fig_h))
+
+        x_min_dt = run_spans["start"].min()
+        x_max_dt = run_spans["end"].max()
+        x_span = (x_max_dt - x_min_dt).total_seconds()
+
+        min_bar = pd.Timedelta(seconds=x_span * 0.025)
+
+        for i, (wt, cfg) in enumerate(row_keys):
+            mask = (run_spans["workload_type"] == wt) & (run_spans["configuration"] == cfg)
+            group = run_spans[mask]
+
+            for _, row in group.iterrows():
+                ds = row["dataset_size"]
+                size_idx = all_sizes.index(ds)
+                y = i - row_h / 2 + sub_h * size_idx + sub_h / 2
+                color = style.size_colors.get(ds, style.fallback_color)
+
+                actual_width = row["end"] - row["start"]
+                clamped = actual_width < min_bar
+                display_width = max(actual_width, min_bar)
+
+                ax.barh(
+                    y, display_width,
+                    left=row["start"], height=sub_h * 0.85,
+                    color=color, edgecolor="white", linewidth=0.3,
+                )
+
+                if clamped:
+                    ax.plot(
+                        row["end"], y, marker=5, markersize=4,
+                        color=color, clip_on=False,
+                    )
+
+                bar_secs = display_width.total_seconds()
+                dur_label = f"{row['duration_min']:.1f}m"
+                if bar_secs / max(x_span, 1) > 0.12:
+                    mid = row["start"] + display_width / 2
+                    ax.text(
+                        mid, y, dur_label,
+                        ha="center", va="center", fontsize=6, color="white",
+                        fontweight="bold",
+                    )
+                else:
+                    nudge = pd.Timedelta(seconds=x_span * 0.004)
+                    label_anchor = row["start"] + display_width
+                    ax.text(
+                        label_anchor + nudge, y, dur_label,
+                        ha="left", va="center", fontsize=6,
+                        color=PALETTE["thesisslate"],
+                    )
+
+        labels = [
+            f"{style.workload_label(wt)} — {style.label(cfg)}"
+            for wt, cfg in row_keys
+        ]
+        ax.set_yticks(range(n_rows))
+        ax.set_yticklabels(labels, fontsize=8)
+        ax.xaxis.set_major_formatter(DateFormatter("%H:%M"))
+        ax.xaxis.set_major_locator(AutoDateLocator(minticks=6, maxticks=12))
+        ax.set_xlabel("Time of day (UTC)")
+        run_date = x_min_dt.strftime("%Y-%m-%d")
+        ax.set_title(f"Execution timeline — Pass {run} ({run_date})")
+        ax.invert_yaxis()
+
+        handles = [
+            plt.Rectangle((0, 0), 1, 1, facecolor=style.size_colors.get(s, style.fallback_color))
+            for s in all_sizes
+        ]
+        ax.legend(
+            handles, [s.capitalize() for s in all_sizes],
+            loc="lower right", fontsize=8, title="Dataset size", title_fontsize=8,
+        )
+
+        fig.tight_layout()
+        _savefig(fig, f"execution_timeline_pass_{run}", figures_dir)
