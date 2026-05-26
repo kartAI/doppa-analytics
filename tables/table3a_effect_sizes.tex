@@ -19,7 +19,7 @@ Workload & Size & Config A & Config B & Run & Metric &  &  &  &  &  &  \\
  &  &  &  &  & network_bytes_received & 57 & 0.0000 & large & 0.0000 & 0.0000 & 0.0000 \\
  &  &  &  &  & network_bytes_sent & 57 & 0.0000 & large & 0.0048 & 0.0048 & 0.0050 \\
 \cline{1-12} \cline{2-12} \cline{3-12} \cline{4-12} \cline{5-12}
-\multirow[t]{12}{*}{knn-search} & \multirow[t]{3}{*}{large} & \multirow[t]{3}{*}{duckdb} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 24 & 1.0000 & large & 4971.8944 & 4790.9115 & 5453.4787 \\
+\multirow[t]{12}{*}{knn-search} & \multirow[t]{3}{*}{large} & \multirow[t]{3}{*}{duckdb} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 24 & 1.0000 & large & 4971.8944 & 4721.3734 & 5562.2034 \\
  &  &  &  &  & network_bytes_received & 24 & 1.0000 & large & 1.5134 & 1.5134 & 1.5134 \\
  &  &  &  &  & network_bytes_sent & 24 & 1.0000 & large & 1.1274 & 1.1274 & 1.1274 \\
 \cline{2-12} \cline{3-12} \cline{4-12} \cline{5-12}
@@ -31,13 +31,13 @@ Workload & Size & Config A & Config B & Run & Metric &  &  &  &  &  &  \\
  &  &  &  &  & network_bytes_received & 20 & 1.0000 & large & 10.7416 & 10.7340 & 10.7416 \\
  &  &  &  &  & network_bytes_sent & 20 & 1.0000 & large & 1.5478 & 1.4427 & 1.5478 \\
 \cline{3-12} \cline{4-12} \cline{5-12}
- &  & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 20 & 1.0000 & large & 14425.4261 & 13273.0092 & 15908.9534 \\
+ &  & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 20 & 1.0000 & large & 14425.4261 & 12917.6194 & 15908.9534 \\
  &  &  &  &  & network_bytes_received & 20 & 0.0000 & large & 0.0048 & 0.0048 & 0.0048 \\
  &  &  &  &  & network_bytes_sent & 20 & 0.0000 & large & 0.1720 & 0.1634 & 0.1720 \\
 \cline{1-12} \cline{2-12} \cline{3-12} \cline{4-12} \cline{5-12}
-\multirow[t]{12}{*}{point-in-polygon-lookup} & \multirow[t]{3}{*}{large} & \multirow[t]{3}{*}{duckdb} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 14 & 1.0000 & large & 9282.1067 & 8682.1934 & 10278.4941 \\
+\multirow[t]{12}{*}{point-in-polygon-lookup} & \multirow[t]{3}{*}{large} & \multirow[t]{3}{*}{duckdb} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 14 & 1.0000 & large & 9282.1067 & 8625.3816 & 10278.4941 \\
  &  &  &  &  & network_bytes_received & 14 & 1.0000 & large & 6.2605 & 6.2605 & 6.2605 \\
- &  &  &  &  & network_bytes_sent & 14 & 1.0000 & large & 1.3247 & 1.2991 & 1.3782 \\
+ &  &  &  &  & network_bytes_sent & 14 & 1.0000 & large & 1.3247 & 1.3119 & 1.4318 \\
 \cline{2-12} \cline{3-12} \cline{4-12} \cline{5-12}
  & \multirow[t]{9}{*}{small} & \multirow[t]{6}{*}{duckdb} & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{1} & elapsed_time & 38 & 1.0000 & large & 3.7766 & 3.6206 & 3.8998 \\
  &  &  &  &  & network_bytes_received & 38 & 1.0000 & large & NaN & NaN & NaN \\
@@ -45,9 +45,9 @@ Workload & Size & Config A & Config B & Run & Metric &  &  &  &  &  &  \\
 \cline{4-12} \cline{5-12}
  &  &  & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 38 & 1.0000 & large & 376.7486 & 346.9166 & 394.7750 \\
  &  &  &  &  & network_bytes_received & 38 & 1.0000 & large & 48.4956 & 48.4956 & 48.4956 \\
- &  &  &  &  & network_bytes_sent & 38 & 1.0000 & large & 1.4708 & 1.4708 & 1.5244 \\
+ &  &  &  &  & network_bytes_sent & 38 & 1.0000 & large & 1.4708 & 1.4708 & 1.5276 \\
 \cline{3-12} \cline{4-12} \cline{5-12}
- &  & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 38 & 1.0000 & large & 96.8265 & 93.4061 & 105.2822 \\
+ &  & \multirow[t]{3}{*}{local} & \multirow[t]{3}{*}{postgis} & \multirow[t]{3}{*}{1} & elapsed_time & 38 & 1.0000 & large & 96.8265 & 93.4061 & 105.1062 \\
  &  &  &  &  & network_bytes_received & 38 & 0.0000 & large & 0.0000 & 0.0000 & 0.0000 \\
  &  &  &  &  & network_bytes_sent & 38 & 0.0000 & large & 0.1071 & 0.1071 & 0.1071 \\
 \cline{1-12} \cline{2-12} \cline{3-12} \cline{4-12} \cline{5-12}

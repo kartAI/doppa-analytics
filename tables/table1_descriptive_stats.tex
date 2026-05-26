@@ -3,7 +3,7 @@
  &  &  & N & Median [95\% CI] & CV \\
 Query & Run & Metric &  &  &  \\
 \midrule
-\multirow[t]{5}{*}{bbox-filtering-duckdb-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 25 & 0.7800 [0.4500, 1.0500] & 0.716 \\
+\multirow[t]{5}{*}{bbox-filtering-duckdb-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 25 & 0.7800 [0.5400, 1.0500] & 0.716 \\
  &  & cpu_time_user_seconds & 25 & 126.5800 [117.5600, 131.7000] & 0.124 \\
  &  & elapsed_time & 25 & 33.2309 [30.6226, 35.1095] & 0.126 \\
  &  & network_bytes_received & 25 & 12.0\,KB [12.0\,KB, 12.0\,KB] & 0.002 \\
@@ -35,17 +35,17 @@ Query & Run & Metric &  &  &  \\
 \cline{1-6} \cline{2-6}
 \multirow[t]{5}{*}{knn-search-duckdb-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 24 & 0.4850 [0.4300, 0.5700] & 0.397 \\
  &  & cpu_time_user_seconds & 24 & 82.1450 [75.9800, 90.2500] & 0.126 \\
- &  & elapsed_time & 24 & 21.5107 [19.9059, 23.6576] & 0.127 \\
+ &  & elapsed_time & 24 & 21.5107 [19.8303, 23.6576] & 0.127 \\
  &  & network_bytes_received & 24 & 12.0\,KB [12.0\,KB, 12.0\,KB] & 0.022 \\
  &  & network_bytes_sent & 24 & 708\,B [708\,B, 714\,B] & 0.057 \\
 \cline{1-6} \cline{2-6}
 \multirow[t]{5}{*}{knn-search-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 35 & 0.1100 [0.1000, 0.1300] & 0.380 \\
- &  & cpu_time_user_seconds & 35 & 6.2900 [6.0700, 6.4700] & 0.126 \\
- &  & elapsed_time & 35 & 1.7015 [1.6423, 1.7583] & 0.129 \\
+ &  & cpu_time_user_seconds & 35 & 6.2900 [6.0700, 6.4300] & 0.126 \\
+ &  & elapsed_time & 35 & 1.7015 [1.6423, 1.7682] & 0.129 \\
  &  & network_bytes_received & 35 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.000 \\
  &  & network_bytes_sent & 35 & 906\,B [906\,B, 972\,B] & 0.052 \\
 \cline{1-6} \cline{2-6}
-\multirow[t]{5}{*}{knn-search-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 20 & 3.3700 [3.0800, 4.1800] & 0.564 \\
+\multirow[t]{5}{*}{knn-search-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 20 & 3.3700 [3.0800, 4.1350] & 0.564 \\
  &  & cpu_time_user_seconds & 20 & 61.9700 [59.1150, 68.2950] & 0.099 \\
  &  & elapsed_time & 20 & 66.0863 [62.1673, 72.6600] & 0.116 \\
  &  & network_bytes_received & 20 & 42\,B [42\,B, 42\,B] & 0.592 \\
@@ -64,20 +64,20 @@ Query & Run & Metric &  &  &  \\
  &  & network_bytes_sent & 2801 & 628\,B [628\,B, 628\,B] & 0.007 \\
 \cline{1-6} \cline{2-6}
 \multirow[t]{5}{*}{point-in-polygon-lookup-duckdb-large} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 14 & 0.9350 [0.8000, 1.0600] & 0.199 \\
- &  & cpu_time_user_seconds & 14 & 147.9150 [139.2800, 164.1635] & 0.099 \\
+ &  & cpu_time_user_seconds & 14 & 147.9150 [139.0450, 163.0250] & 0.099 \\
  &  & elapsed_time & 14 & 38.7127 [36.2606, 42.7056] & 0.099 \\
  &  & network_bytes_received & 14 & 12.0\,KB [12.0\,KB, 12.0\,KB] & 0.001 \\
  &  & network_bytes_sent & 14 & 816\,B [816\,B, 882\,B] & 0.051 \\
 \cline{1-6} \cline{2-6}
 \multirow[t]{5}{*}{point-in-polygon-lookup-duckdb-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 38 & 0.0500 [0.0450, 0.0600] & 0.287 \\
  &  & cpu_time_user_seconds & 38 & 5.9950 [5.7700, 6.0950] & 0.063 \\
- &  & elapsed_time & 38 & 1.5879 [1.5147, 1.6153] & 0.064 \\
+ &  & elapsed_time & 38 & 1.5879 [1.5207, 1.6168] & 0.064 \\
  &  & network_bytes_received & 38 & 93.3\,KB [93.3\,KB, 93.3\,KB] & 0.002 \\
  &  & network_bytes_sent & 38 & 906\,B [906\,B, 939\,B] & 0.055 \\
 \cline{1-6} \cline{2-6}
 \multirow[t]{5}{*}{point-in-polygon-lookup-local-small} & \multirow[t]{5}{*}{1} & cpu_time_system_seconds & 134 & 0.0000 [0.0000, 0.0000] & --- \\
- &  & cpu_time_user_seconds & 134 & 0.4100 [0.4100, 0.4200] & 0.164 \\
- &  & elapsed_time & 134 & 0.4147 [0.4074, 0.4238] & 0.163 \\
+ &  & cpu_time_user_seconds & 134 & 0.4100 [0.4050, 0.4200] & 0.164 \\
+ &  & elapsed_time & 134 & 0.4147 [0.4074, 0.4237] & 0.163 \\
  &  & network_bytes_received & 134 & 0\,B [0\,B, 0\,B] & --- \\
  &  & network_bytes_sent & 134 & 66\,B [66\,B, 66\,B] & 0.126 \\
 \cline{1-6} \cline{2-6}
