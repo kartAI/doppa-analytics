@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 # ── Tint / shade helpers ──────────────────────────────────────────────────
@@ -208,8 +209,9 @@ class StyleConfig:
         return self.workload_labels.get(w, w)
 
     def apply_rcparams(self) -> None:
-        plt.rcParams.update(
-            {
+        sns.set_theme(
+            style="ticks",
+            rc={
                 "font.family": "sans-serif",
                 "font.sans-serif": [
                     "Source Sans 3",
@@ -220,26 +222,32 @@ class StyleConfig:
                 ],
                 "mathtext.fontset": "dejavusans",
                 "font.size": 10,
-                "axes.titlesize": 13,
-                "axes.titleweight": "bold",
-                "axes.labelsize": 11,
+                "axes.titlesize": 12,
+                "axes.titleweight": "normal",
+                "axes.labelsize": 10,
                 "axes.labelcolor": PALETTE["thesisslate"],
                 "axes.spines.top": False,
                 "axes.spines.right": False,
-                "axes.grid": True,
-                "grid.alpha": 0.3,
-                "grid.linestyle": "--",
+                "axes.linewidth": 0.6,
+                "axes.grid": False,
+                "grid.alpha": 0.15,
+                "grid.linestyle": "-",
+                "grid.linewidth": 0.4,
                 "grid.color": PALETTE["thesislight"],
                 "text.color": PALETTE["thesisslate"],
                 "xtick.color": PALETTE["thesisslate"],
                 "ytick.color": PALETTE["thesisslate"],
-                "legend.framealpha": 0.9,
-                "legend.edgecolor": "0.8",
+                "xtick.major.width": 0.6,
+                "ytick.major.width": 0.6,
+                "xtick.major.size": 3,
+                "ytick.major.size": 3,
+                "legend.frameon": False,
+                "legend.fontsize": 9,
                 "figure.dpi": 150,
                 "savefig.dpi": 300,
                 "savefig.format": "png",
                 "savefig.bbox": "tight",
-            }
+            },
         )
 
 
