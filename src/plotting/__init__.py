@@ -14,6 +14,7 @@ from .charts import (
     plot_scatter,
     plot_size_scaling,
     plot_timeseries,
+    plot_variation,
     plot_violin,
 )
 from .style import DEFAULT_STYLE, StyleConfig

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, ScalarFormatter
 import numpy as np
 import pandas as pd
 from IPython.display import display
@@ -45,6 +45,19 @@ def _fmt_value(v: float, metric: str = "") -> str:
     if abs(v) >= 0.001:
         return f"{v:.4f}"
     return f"{v:.2e}"
+
+
+def _apply_plain_ticks(ax: plt.Axes, which: str = "both") -> None:
+    for name in (["x", "y"] if which == "both" else [which]):
+        axis = getattr(ax, f"{name}axis")
+        fmt = ScalarFormatter()
+        fmt.set_scientific(False)
+        fmt.set_useOffset(False)
+        axis.set_major_formatter(fmt)
+
+
+def _byte_formatter() -> FuncFormatter:
+    return FuncFormatter(lambda x, _: _fmt_value(x, "bytes"))
 
 
 # ── Coverage / failure heatmap ──────────────────────────────────────────
@@ -343,6 +356,10 @@ def plot_median_bars(
                             min(m for m in medians if m > 0) * 0.5, 1e-6
                         ),
                     )
+                if "bytes" in metric:
+                    ax.xaxis.set_major_formatter(_byte_formatter())
+                elif ax.get_xscale() != "linear":
+                    _apply_plain_ticks(ax, "x")
                 for yi, med in zip(y, medians):
                     ax.annotate(
                         _fmt_value(med, metric),
@@ -387,43 +404,43 @@ def plot_violin(
             configs = sorted(data["configuration"].unique())
             bp_data = []
             configs_present = []
-            for c in configs:
+            for cfg in configs:
                 vals = (
-                    data[data["configuration"] == c]["elapsed_time"]
+                    data[data["configuration"] == cfg]["elapsed_time"]
                     .dropna()
                     .values
                 )
                 if len(vals) > 0:
                     bp_data.append(vals)
-                    configs_present.append(c)
+                    configs_present.append(cfg)
             if not bp_data:
                 continue
 
             fig, ax = plt.subplots(
                 figsize=(max(8, 2.5 * len(configs_present)), max(5, 6))
             )
-            parts = ax.violinplot(
+            bplot = ax.boxplot(
                 bp_data,
-                positions=range(len(bp_data)),
-                showmedians=True,
-                showextrema=False,
+                patch_artist=True,
+                showfliers=True,
+                widths=0.6,
+                flierprops=dict(
+                    marker=".",
+                    markersize=4,
+                    alpha=0.4,
+                    markerfacecolor=PALETTE["thesisgray"],
+                    markeredgecolor="none",
+                ),
             )
-            for i, pc in enumerate(parts["bodies"]):
-                pc.set_facecolor(style.color(configs_present[i]))
-                pc.set_alpha(0.7)
-            parts["cmedians"].set_color(PALETTE["thesisslate"])
-            parts["cmedians"].set_linewidth(1.5)
-
-            q1s = [np.percentile(d, 25) for d in bp_data]
-            q3s = [np.percentile(d, 75) for d in bp_data]
-            ax.vlines(
-                range(len(bp_data)),
-                q1s,
-                q3s,
-                color=PALETTE["thesisslate"],
-                linewidth=3,
-                zorder=3,
-            )
+            for i, patch in enumerate(bplot["boxes"]):
+                patch.set_facecolor(style.color(configs_present[i]))
+                patch.set_alpha(0.7)
+            for element in ["whiskers", "caps"]:
+                for line in bplot[element]:
+                    line.set_color(PALETTE["thesisgray"])
+            for med in bplot["medians"]:
+                med.set_color(PALETTE["thesisslate"])
+                med.set_linewidth(1.5)
 
             all_elapsed = np.concatenate(bp_data)
             if _needs_log_scale(all_elapsed.tolist()):
@@ -433,21 +450,21 @@ def plot_violin(
                         all_elapsed[all_elapsed > 0].min() * 0.5, 1e-6
                     ),
                 )
+                _apply_plain_ticks(ax, "y")
 
             for i, d in enumerate(bp_data):
                 med = np.median(d)
                 ax.annotate(
                     _fmt_value(med, "elapsed_time"),
-                    xy=(i, med),
+                    xy=(i + 1, med),
                     xytext=(5, 5),
                     textcoords="offset points",
                     fontsize=8,
                     fontweight="bold",
                 )
 
-            ax.set_xticks(range(len(configs_present)))
             ax.set_xticklabels(
-                [style.label(c) for c in configs_present],
+                [style.label(cfg) for cfg in configs_present],
                 rotation=30,
                 ha="right",
             )
@@ -528,6 +545,7 @@ def plot_scatter(
                 )
             ax.set_xlabel(style.metric_label("elapsed_time"))
             ax.set_ylabel(style.metric_label("network_bytes_received"))
+            ax.yaxis.set_major_formatter(_byte_formatter())
             ax.set_title(
                 f"{style.workload_label(wt)} ({ds}) — Elapsed vs Network I/O"
             )
@@ -557,29 +575,18 @@ def plot_cpu_breakdown(
 
             configs = sorted(data["configuration"].unique())
             configs_present = [
-                c for c in configs if len(data[data["configuration"] == c]) > 0
+                cfg for cfg in configs
+                if len(data[data["configuration"] == cfg]) > 0
             ]
 
-            user_meds = [
-                float(
-                    np.median(
-                        data[data["configuration"] == c][
-                            "cpu_time_user_seconds"
-                        ].dropna()
-                    )
+            total_meds = []
+            for cfg in configs_present:
+                cfg_data = data[data["configuration"] == cfg]
+                total_cpu = (
+                    cfg_data["cpu_time_user_seconds"].fillna(0)
+                    + cfg_data["cpu_time_system_seconds"].fillna(0)
                 )
-                for c in configs_present
-            ]
-            sys_meds = [
-                float(
-                    np.median(
-                        data[data["configuration"] == c][
-                            "cpu_time_system_seconds"
-                        ].dropna()
-                    )
-                )
-                for c in configs_present
-            ]
+                total_meds.append(float(np.median(total_cpu)))
 
             fig_h = max(4, 1.2 * len(configs_present) + 1)
             fig, ax = plt.subplots(
@@ -588,31 +595,28 @@ def plot_cpu_breakdown(
             y = np.arange(len(configs_present))
             ax.barh(
                 y,
-                user_meds,
+                total_meds,
                 height=0.5,
-                color=[style.color(c) for c in configs_present],
+                color=[style.color(cfg) for cfg in configs_present],
                 edgecolor="white",
                 linewidth=0.5,
-                label="User",
             )
-            ax.barh(
-                y,
-                sys_meds,
-                height=0.5,
-                left=user_meds,
-                color=PALETTE["thesisgray"],
-                edgecolor="white",
-                linewidth=0.5,
-                alpha=0.8,
-                label="System",
-            )
+            for yi, val in zip(y, total_meds):
+                ax.annotate(
+                    _fmt_value(val),
+                    xy=(val, yi),
+                    xytext=(5, 0),
+                    textcoords="offset points",
+                    va="center",
+                    fontsize=8,
+                    fontweight="bold",
+                )
             ax.set_yticks(y)
-            ax.set_yticklabels([style.label(c) for c in configs_present])
+            ax.set_yticklabels([style.label(cfg) for cfg in configs_present])
             ax.set_xlabel("CPU time (s)")
             ax.set_title(
-                f"{style.workload_label(wt)} ({ds}) — CPU time (user + system)"
+                f"{style.workload_label(wt)} ({ds}) — CPU Time"
             )
-            ax.legend(loc="best", fontsize=9)
             ax.invert_yaxis()
             if all_configs is not None:
                 _annotate_missing(ax, configs_present, all_configs, style)
@@ -684,6 +688,7 @@ def plot_network_io(
                 ax.set_xticklabels(
                     bp_labels, rotation=30, ha="right", fontsize=9
                 )
+                ax.yaxis.set_major_formatter(_byte_formatter())
                 ax.set_ylabel(style.metric_label(metric))
 
             fig.suptitle(
@@ -799,6 +804,7 @@ def plot_cv_iqr(
                             )
             if use_log_cv:
                 ax.set_yscale("symlog", linthresh=0.5)
+                _apply_plain_ticks(ax, "y")
             ax.axhline(
                 y=0.10,
                 color=PALETTE["thesisbrick"],
@@ -821,6 +827,116 @@ def plot_cv_iqr(
             ax.legend(loc="best", fontsize=8)
             fig.tight_layout()
             _savefig(fig, f"{wt}_{ds}_cv", figures_dir)
+
+
+def plot_variation(
+    successful: pd.DataFrame,
+    style: StyleConfig,
+    figures_dir: Path,
+    all_configs: list[str] | None = None,
+) -> None:
+    variation_metrics = [
+        "elapsed_time",
+        "network_bytes_received",
+        "network_bytes_sent",
+    ]
+    for wt in sorted(successful["workload_type"].unique()):
+        for ds in sorted(
+            successful["dataset_size"].unique(),
+            key=lambda s: style.size_order.get(s, 99),
+        ):
+            mask = (successful["workload_type"] == wt) & (
+                successful["dataset_size"] == ds
+            )
+            if not mask.any():
+                continue
+
+            data = successful[mask]
+            configs = sorted(data["configuration"].unique())
+            metrics_present = [
+                m for m in variation_metrics if data[m].notna().any()
+            ]
+            if not metrics_present:
+                continue
+
+            n_metrics = len(metrics_present)
+            fig, axes = plt.subplots(
+                1, n_metrics, figsize=(5.5 * n_metrics, max(5, 6))
+            )
+            if n_metrics == 1:
+                axes = [axes]
+
+            for ax, metric in zip(axes, metrics_present):
+                bp_data, bp_colors, bp_labels = [], [], []
+                configs_in_metric = []
+                for cfg in configs:
+                    vals = (
+                        data[data["configuration"] == cfg][metric]
+                        .dropna()
+                        .values
+                    )
+                    if len(vals) > 0:
+                        bp_data.append(vals)
+                        bp_colors.append(style.color(cfg))
+                        bp_labels.append(style.label(cfg))
+                        configs_in_metric.append(cfg)
+
+                if not bp_data:
+                    continue
+
+                bplot = ax.boxplot(
+                    bp_data,
+                    patch_artist=True,
+                    showfliers=True,
+                    widths=0.6,
+                    flierprops=dict(
+                        marker=".",
+                        markersize=4,
+                        alpha=0.4,
+                        markerfacecolor=PALETTE["thesisgray"],
+                        markeredgecolor="none",
+                    ),
+                )
+                for i, patch in enumerate(bplot["boxes"]):
+                    patch.set_facecolor(bp_colors[i])
+                    patch.set_alpha(0.7)
+                for element in ["whiskers", "caps"]:
+                    for line in bplot[element]:
+                        line.set_color(PALETTE["thesisgray"])
+                for med in bplot["medians"]:
+                    med.set_color(PALETTE["thesisslate"])
+                    med.set_linewidth(1.5)
+
+                all_vals = np.concatenate(bp_data)
+                pos_vals = all_vals[all_vals > 0]
+                if len(pos_vals) >= 2 and pos_vals.max() / pos_vals.min() > 20:
+                    ax.set_yscale(
+                        "symlog",
+                        linthresh=max(float(pos_vals.min()) * 0.5, 1e-6),
+                    )
+
+                if "bytes" in metric:
+                    ax.yaxis.set_major_formatter(_byte_formatter())
+                elif ax.get_yscale() != "linear":
+                    _apply_plain_ticks(ax, "y")
+
+                ax.set_xticklabels(
+                    bp_labels, rotation=30, ha="right", fontsize=9
+                )
+                ax.set_ylabel(style.metric_label(metric))
+
+                if all_configs is not None:
+                    _annotate_missing(
+                        ax, configs_in_metric, all_configs, style
+                    )
+
+            fig.suptitle(
+                f"{style.workload_label(wt)} ({ds}) — Distribution",
+                fontsize=14,
+                fontweight="bold",
+            )
+            fig.tight_layout()
+            _savefig(fig, f"{wt}_{ds}_variation", figures_dir)
 
 
 # ── Cross-workload / cross-size charts ───────────────────────────────────
@@ -938,6 +1054,7 @@ def plot_cross_workload(
         )
         ax.set_ylabel(style.metric_label("elapsed_time"))
         ax.set_yscale("log")
+        _apply_plain_ticks(ax, "y")
         ax.set_title(
             f"Cross-workload Comparison ({ds}) — Median Elapsed Time (log scale)"
         )
@@ -1205,6 +1322,7 @@ def plot_size_scaling(
         )
         ax.set_ylabel(style.metric_label("elapsed_time"))
         ax.set_yscale("log")
+        _apply_plain_ticks(ax, "y")
         ax.set_title(
             f"{style.workload_label(wt)} — Median Elapsed Time by Dataset Size"
         )
@@ -1388,8 +1506,10 @@ def plot_cost_performance(
             times_arr = [p["median_elapsed"] for p in points]
             if max(costs_arr) / max(min(costs_arr), 1e-9) > 20:
                 ax.set_xscale("log")
+                _apply_plain_ticks(ax, "x")
             if max(times_arr) / max(min(times_arr), 1e-9) > 20:
                 ax.set_yscale("log")
+                _apply_plain_ticks(ax, "y")
 
             fig.tight_layout()
             tag = f"_{suffix}" if suffix else ""
