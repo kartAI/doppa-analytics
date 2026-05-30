@@ -1,7 +1,251 @@
-\begin{tabular}{lllllllll}
+\begin{tabular}{llrrrrrrr}
 \toprule
  &  & headline\_median & pass\_1\_median & pass\_2\_median & pass\_3\_median & pass\_range & pass\_range\_relative & consistent \\
 query\_id & metric &  &  &  &  &  &  &  \\
 \midrule
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-12-nodes-large} & cpu\_time\_system\_seconds & 0.0100 & 0.0100 & 0.0100 & NaN & 0.0000 & 0.0000 & True \\
+ & cpu\_time\_user\_seconds & 0.1100 & 0.0900 & 0.1300 & NaN & 0.0400 & 0.3636 & False \\
+ & driver\_collection\_time\_ms & 801.5000 & 0.0000 & 1603.0000 & NaN & 1603.0000 & 2.0000 & False \\
+ & elapsed\_time & 91.3731 & 93.0591 & 89.6871 & NaN & 3.3720 & 0.0369 & True \\
+ & executor\_input\_bytes\_read & 18269331642.0000 & 24359108856.0000 & 12179554428.0000 & NaN & 12179554428.0000 & 0.6667 & False \\
+ & executor\_run\_time\_ms & 5592096.5000 & 7476802.0000 & 3707391.0000 & NaN & 3769411.0000 & 0.6741 & False \\
+ & network\_bytes\_received & 48238.5000 & 48346.0000 & 48131.0000 & NaN & 215.0000 & 0.0045 & True \\
+ & network\_bytes\_sent & 25207.5000 & 25263.0000 & 25152.0000 & NaN & 111.0000 & 0.0044 & True \\
+ & shuffle\_read\_bytes & 19257468254.5000 & 25676616141.0000 & 12838320368.0000 & NaN & 12838295773.0000 & 0.6667 & False \\
+ & shuffle\_write\_bytes & 19256384280.5000 & 25675179421.0000 & 12837589140.0000 & NaN & 12837590281.0000 & 0.6667 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-12-nodes-medium} & cpu\_time\_system\_seconds & 0.0050 & 0.0100 & 0.0000 & NaN & 0.0100 & 2.0000 & False \\
+ & cpu\_time\_user\_seconds & 0.0800 & 0.0700 & 0.0900 & NaN & 0.0200 & 0.2500 & False \\
+ & driver\_collection\_time\_ms & 681.0000 & 1362.0000 & 0.0000 & NaN & 1362.0000 & 2.0000 & False \\
+ & elapsed\_time & 56.4795 & 50.5723 & 62.3867 & NaN & 11.8145 & 0.2092 & False \\
+ & executor\_input\_bytes\_read & 7598909595.0000 & 5065939730.0000 & 10131879460.0000 & NaN & 5065939730.0000 & 0.6667 & False \\
+ & executor\_run\_time\_ms & 3600445.0000 & 1720891.0000 & 5479999.0000 & NaN & 3759108.0000 & 1.0441 & False \\
+ & network\_bytes\_received & 44693.5000 & 41046.0000 & 48341.0000 & NaN & 7295.0000 & 0.1632 & False \\
+ & network\_bytes\_sent & 23419.5000 & 21602.0000 & 25237.0000 & NaN & 3635.0000 & 0.1552 & False \\
+ & shuffle\_read\_bytes & 8019823259.5000 & 5346548648.0000 & 10693097871.0000 & NaN & 5346549223.0000 & 0.6667 & False \\
+ & shuffle\_write\_bytes & 8018725360.0000 & 5345816662.0000 & 10691634058.0000 & NaN & 5345817396.0000 & 0.6667 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-12-nodes-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & NaN & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0650 & 0.0700 & 0.0600 & NaN & 0.0100 & 0.1538 & False \\
+ & driver\_collection\_time\_ms & 0.0000 & 0.0000 & 0.0000 & NaN & 0.0000 & NaN & False \\
+ & elapsed\_time & 15.8638 & 15.0567 & 16.6709 & NaN & 1.6142 & 0.1018 & False \\
+ & executor\_input\_bytes\_read & 986103518.0000 & 986103518.0000 & 986103518.0000 & NaN & 0.0000 & 0.0000 & True \\
+ & executor\_run\_time\_ms & 742415.5000 & 756239.0000 & 728592.0000 & NaN & 27647.0000 & 0.0372 & True \\
+ & network\_bytes\_received & 34146.0000 & 34163.0000 & 34129.0000 & NaN & 34.0000 & 0.0010 & True \\
+ & network\_bytes\_sent & 18049.0000 & 18049.0000 & 18049.0000 & NaN & 0.0000 & 0.0000 & True \\
+ & shuffle\_read\_bytes & 1052016580.5000 & 1052015569.0000 & 1052017592.0000 & NaN & 2023.0000 & 0.0000 & True \\
+ & shuffle\_write\_bytes & 1050609538.5000 & 1050607454.0000 & 1050611623.0000 & NaN & 4169.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-16-nodes-large} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & NaN & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0800 & 0.0800 & 0.0800 & NaN & 0.0000 & 0.0000 & True \\
+ & driver\_collection\_time\_ms & 1906.0000 & 2375.0000 & 1437.0000 & NaN & 938.0000 & 0.4921 & False \\
+ & elapsed\_time & 80.6417 & 71.7279 & 89.5555 & NaN & 17.8276 & 0.2211 & False \\
+ & executor\_input\_bytes\_read & 12191376086.0000 & 12191376086.0000 & 12191376086.0000 & NaN & 0.0000 & 0.0000 & True \\
+ & executor\_run\_time\_ms & 3899938.5000 & 3740564.0000 & 4059313.0000 & NaN & 318749.0000 & 0.0817 & True \\
+ & network\_bytes\_received & 48121.0000 & 48132.0000 & 48110.0000 & NaN & 22.0000 & 0.0005 & True \\
+ & network\_bytes\_sent & 25172.5000 & 25152.0000 & 25193.0000 & NaN & 41.0000 & 0.0016 & True \\
+ & shuffle\_read\_bytes & 12836893315.5000 & 12836405382.0000 & 12837381249.0000 & NaN & 975867.0000 & 0.0001 & True \\
+ & shuffle\_write\_bytes & 12836418470.5000 & 12836405382.0000 & 12836431559.0000 & NaN & 26177.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-16-nodes-medium} & cpu\_time\_system\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0100 & 0.0000 & 0.0000 & True \\
+ & cpu\_time\_user\_seconds & 0.0800 & 0.0800 & 0.1400 & 0.0800 & 0.0600 & 0.7500 & False \\
+ & driver\_collection\_time\_ms & 1634.0000 & 1761.0000 & 0.0000 & 1634.0000 & 1761.0000 & 1.0777 & False \\
+ & elapsed\_time & 39.7799 & 40.3534 & 39.5746 & 39.7799 & 0.7789 & 0.0196 & True \\
+ & executor\_input\_bytes\_read & 5065939730.0000 & 5065939730.0000 & 10131879460.0000 & 5065939730.0000 & 5065939730.0000 & 1.0000 & False \\
+ & executor\_run\_time\_ms & 1876358.0000 & 1876358.0000 & 4259860.0000 & 1829793.0000 & 2430067.0000 & 1.2951 & False \\
+ & network\_bytes\_received & 41335.0000 & 41355.0000 & 41079.0000 & 41335.0000 & 276.0000 & 0.0067 & True \\
+ & network\_bytes\_sent & 21602.0000 & 21640.0000 & 21602.0000 & 21602.0000 & 38.0000 & 0.0018 & True \\
+ & shuffle\_read\_bytes & 5347233620.0000 & 5347233620.0000 & 10694467831.0000 & 5347207666.0000 & 5347260165.0000 & 1.0000 & False \\
+ & shuffle\_write\_bytes & 5346258765.0000 & 5346258765.0000 & 10692518270.0000 & 5346258714.0000 & 5346259556.0000 & 1.0000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-16-nodes-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0600 & 0.0600 & 0.0600 & 0.0600 & 0.0000 & 0.0000 & True \\
+ & driver\_collection\_time\_ms & 1399.0000 & 0.0000 & 1903.0000 & 1399.0000 & 1903.0000 & 1.3603 & False \\
+ & elapsed\_time & 14.9220 & 15.1375 & 14.1699 & 14.9220 & 0.9676 & 0.0648 & True \\
+ & executor\_input\_bytes\_read & 493051759.0000 & 986103518.0000 & 493051759.0000 & 493051759.0000 & 493051759.0000 & 1.0000 & False \\
+ & executor\_run\_time\_ms & 452014.0000 & 898861.0000 & 452014.0000 & 436963.0000 & 461898.0000 & 1.0219 & False \\
+ & network\_bytes\_received & 34177.0000 & 34081.0000 & 34258.0000 & 34177.0000 & 177.0000 & 0.0052 & True \\
+ & network\_bytes\_sent & 18049.0000 & 18049.0000 & 18049.0000 & 18049.0000 & 0.0000 & 0.0000 & True \\
+ & shuffle\_read\_bytes & 526502825.0000 & 1053006842.0000 & 526502825.0000 & 526477002.0000 & 526529840.0000 & 1.0001 & False \\
+ & shuffle\_write\_bytes & 525550451.0000 & 1051101943.0000 & 525550451.0000 & 525550395.0000 & 525551548.0000 & 1.0000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-2-nodes-large} & cpu\_time\_system\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0250 & 0.0150 & 1.5000 & False \\
+ & cpu\_time\_user\_seconds & 0.2500 & 0.2500 & 0.2300 & 0.3100 & 0.0800 & 0.3200 & False \\
+ & driver\_collection\_time\_ms & 1160.0000 & 1430.0000 & 1160.0000 & 970.0000 & 460.0000 & 0.3966 & False \\
+ & elapsed\_time & 462.7040 & 457.3790 & 462.7040 & 512.2947 & 54.9157 & 0.1187 & False \\
+ & executor\_input\_bytes\_read & 12158311428.0000 & 12158311428.0000 & 12158311428.0000 & 18237467142.0000 & 6079155714.0000 & 0.5000 & False \\
+ & executor\_run\_time\_ms & 3536605.0000 & 3534664.0000 & 3536605.0000 & 5930860.0000 & 2396196.0000 & 0.6775 & False \\
+ & network\_bytes\_received & 139430.0000 & 139430.0000 & 139288.0000 & 146479.0000 & 7191.0000 & 0.0516 & True \\
+ & network\_bytes\_sent & 71383.0000 & 71313.0000 & 71383.0000 & 75069.0000 & 3756.0000 & 0.0526 & True \\
+ & shuffle\_read\_bytes & 12839588209.0000 & 12839588195.0000 & 12839588209.0000 & 19259382718.5000 & 6419794523.5000 & 0.5000 & False \\
+ & shuffle\_write\_bytes & 12839465942.0000 & 12839465935.0000 & 12839465942.0000 & 19259199338.5000 & 6419733403.5000 & 0.5000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-2-nodes-medium} & cpu\_time\_system\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0100 & 0.0000 & 0.0000 & True \\
+ & cpu\_time\_user\_seconds & 0.1600 & 0.1600 & 0.1800 & 0.1600 & 0.0200 & 0.1250 & False \\
+ & driver\_collection\_time\_ms & 1164.0000 & 1305.0000 & 1037.0000 & 1164.0000 & 268.0000 & 0.2302 & False \\
+ & elapsed\_time & 206.8213 & 204.2613 & 223.2284 & 206.8213 & 18.9670 & 0.0917 & True \\
+ & executor\_input\_bytes\_read & 5060052992.0000 & 5060052992.0000 & 5060052992.0000 & 5060052992.0000 & 0.0000 & 0.0000 & True \\
+ & executor\_run\_time\_ms & 1550989.0000 & 1525306.0000 & 1634583.0000 & 1550989.0000 & 109277.0000 & 0.0705 & True \\
+ & network\_bytes\_received & 76635.0000 & 76276.0000 & 83466.0000 & 76635.0000 & 7190.0000 & 0.0938 & True \\
+ & network\_bytes\_sent & 39459.0000 & 39459.0000 & 42949.0000 & 39426.0000 & 3523.0000 & 0.0893 & True \\
+ & shuffle\_read\_bytes & 5347067737.0000 & 5347067765.0000 & 5347067671.0000 & 5347067737.0000 & 94.0000 & 0.0000 & True \\
+ & shuffle\_write\_bytes & 5346946158.0000 & 5346946172.0000 & 5346946125.0000 & 5346946158.0000 & 47.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-2-nodes-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0100 & 0.0000 & 0.0100 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0700 & 0.0700 & 0.0800 & 0.0700 & 0.0100 & 0.1429 & False \\
+ & driver\_collection\_time\_ms & 1339.0000 & 1592.0000 & 1236.0000 & 1339.0000 & 356.0000 & 0.2659 & False \\
+ & elapsed\_time & 34.2592 & 34.2592 & 32.2062 & 36.4750 & 4.2688 & 0.1246 & False \\
+ & executor\_input\_bytes\_read & 493051759.0000 & 493051759.0000 & 493051759.0000 & 493051759.0000 & 0.0000 & 0.0000 & True \\
+ & executor\_run\_time\_ms & 209994.0000 & 209994.0000 & 200982.0000 & 225885.0000 & 24903.0000 & 0.1186 & False \\
+ & network\_bytes\_received & 34320.0000 & 34139.0000 & 34320.0000 & 41143.0000 & 7004.0000 & 0.2041 & False \\
+ & network\_bytes\_sent & 18090.0000 & 18090.0000 & 18048.0000 & 21603.0000 & 3555.0000 & 0.1965 & False \\
+ & shuffle\_read\_bytes & 525448668.0000 & 525448640.0000 & 525448668.0000 & 525448696.0000 & 56.0000 & 0.0000 & True \\
+ & shuffle\_write\_bytes & 525326730.0000 & 525326716.0000 & 525326730.0000 & 525326744.0000 & 28.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-4-nodes-large} & cpu\_time\_system\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0100 & 0.0000 & 0.0000 & True \\
+ & cpu\_time\_user\_seconds & 0.1900 & 0.3400 & 0.1500 & 0.1900 & 0.1900 & 1.0000 & False \\
+ & driver\_collection\_time\_ms & 1406.0000 & 1406.0000 & 1456.0000 & 1200.0000 & 256.0000 & 0.1821 & False \\
+ & elapsed\_time & 265.0532 & 304.0672 & 265.0532 & 240.5591 & 63.5081 & 0.2396 & False \\
+ & executor\_input\_bytes\_read & 12158311428.0000 & 12158311428.0000 & 12158311428.0000 & 12158311428.0000 & 0.0000 & 0.0000 & True \\
+ & executor\_run\_time\_ms & 3902217.0000 & 3902217.0000 & 4018716.0000 & 3552277.0000 & 466439.0000 & 0.1195 & False \\
+ & network\_bytes\_received & 90476.0000 & 97129.0000 & 90476.0000 & 83330.0000 & 13799.0000 & 0.1525 & False \\
+ & network\_bytes\_sent & 46467.0000 & 50007.0000 & 46467.0000 & 42906.0000 & 7101.0000 & 0.1528 & False \\
+ & shuffle\_read\_bytes & 12839707727.0000 & 12839707605.0000 & 12839707759.0000 & 12839707727.0000 & 154.0000 & 0.0000 & True \\
+ & shuffle\_write\_bytes & 12839464522.0000 & 12839464543.0000 & 12839464522.0000 & 12839464505.0000 & 38.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-4-nodes-medium} & cpu\_time\_system\_seconds & 0.0000 & 0.0100 & 0.0000 & 0.0000 & 0.0100 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0900 & 0.0900 & 0.1900 & 0.0900 & 0.1000 & 1.1111 & False \\
+ & driver\_collection\_time\_ms & 1553.0000 & 0.0000 & 1687.0000 & 1553.0000 & 1687.0000 & 1.0863 & False \\
+ & elapsed\_time & 113.9602 & 113.9602 & 107.3518 & 117.5070 & 10.1552 & 0.0891 & True \\
+ & executor\_input\_bytes\_read & 5062449148.0000 & 10124898296.0000 & 5062449148.0000 & 5062449148.0000 & 5062449148.0000 & 1.0000 & False \\
+ & executor\_run\_time\_ms & 1656403.0000 & 3193316.0000 & 1543786.0000 & 1656403.0000 & 1649530.0000 & 0.9959 & False \\
+ & network\_bytes\_received & 55176.0000 & 55226.0000 & 55176.0000 & 55118.0000 & 108.0000 & 0.0020 & True \\
+ & network\_bytes\_sent & 28745.0000 & 28745.0000 & 28745.0000 & 28744.0000 & 1.0000 & 0.0000 & True \\
+ & shuffle\_read\_bytes & 5346509623.0000 & 10693023032.0000 & 5346509563.0000 & 5346509623.0000 & 5346513469.0000 & 1.0000 & False \\
+ & shuffle\_write\_bytes & 5346265719.0000 & 10692535028.0000 & 5346265703.0000 & 5346265719.0000 & 5346269325.0000 & 1.0000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-4-nodes-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0700 & 0.0700 & 0.0800 & 0.0700 & 0.0100 & 0.1429 & False \\
+ & driver\_collection\_time\_ms & 0.0000 & 1197.0000 & 0.0000 & 0.0000 & 1197.0000 & NaN & False \\
+ & elapsed\_time & 22.6574 & 21.7522 & 22.6574 & 24.5477 & 2.7954 & 0.1234 & False \\
+ & executor\_input\_bytes\_read & 986103518.0000 & 493051759.0000 & 986103518.0000 & 986103518.0000 & 493051759.0000 & 0.5000 & False \\
+ & executor\_run\_time\_ms & 483562.0000 & 245081.0000 & 483562.0000 & 498780.0000 & 253699.0000 & 0.5246 & False \\
+ & network\_bytes\_received & 34142.0000 & 34079.0000 & 34142.0000 & 34202.0000 & 123.0000 & 0.0036 & True \\
+ & network\_bytes\_sent & 18048.0000 & 18048.0000 & 18048.0000 & 18087.0000 & 39.0000 & 0.0022 & True \\
+ & shuffle\_read\_bytes & 1050915776.0000 & 525457496.0000 & 1050916000.0000 & 1050915776.0000 & 525458504.0000 & 0.5000 & False \\
+ & shuffle\_write\_bytes & 1050432437.0000 & 525215800.0000 & 1050432548.0000 & 1050432437.0000 & 525216748.0000 & 0.5000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-8-nodes-large} & cpu\_time\_system\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0100 & 0.0000 & 0.0000 & True \\
+ & cpu\_time\_user\_seconds & 0.1200 & 0.1100 & 0.2100 & 0.1200 & 0.1000 & 0.8333 & False \\
+ & driver\_collection\_time\_ms & 1426.0000 & 1430.0000 & 1426.0000 & 0.0000 & 1430.0000 & 1.0028 & False \\
+ & elapsed\_time & 145.9968 & 145.2467 & 145.9968 & 169.9337 & 24.6870 & 0.1691 & False \\
+ & executor\_input\_bytes\_read & 12165589780.0000 & 12165589780.0000 & 12165589780.0000 & 24331179560.0000 & 12165589780.0000 & 1.0000 & False \\
+ & executor\_run\_time\_ms & 3834620.0000 & 3834620.0000 & 3794683.0000 & 9181307.0000 & 5386624.0000 & 1.4047 & False \\
+ & network\_bytes\_received & 62404.0000 & 62203.0000 & 62404.0000 & 69265.0000 & 7062.0000 & 0.1132 & False \\
+ & network\_bytes\_sent & 32294.0000 & 32294.0000 & 32252.0000 & 35803.0000 & 3551.0000 & 0.1100 & False \\
+ & shuffle\_read\_bytes & 12839398734.0000 & 12839398624.0000 & 12839398734.0000 & 25678289313.0000 & 12838890689.0000 & 1.0000 & False \\
+ & shuffle\_write\_bytes & 12838912098.0000 & 12838912088.0000 & 12838912098.0000 & 25677802786.0000 & 12838890698.0000 & 1.0000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-8-nodes-medium} & cpu\_time\_system\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0000 & 0.0100 & 1.0000 & False \\
+ & cpu\_time\_user\_seconds & 0.0800 & 0.0700 & 0.0800 & 0.0800 & 0.0100 & 0.1250 & False \\
+ & driver\_collection\_time\_ms & 0.0000 & 0.0000 & 1484.0000 & 0.0000 & 1484.0000 & NaN & False \\
+ & elapsed\_time & 65.4167 & 80.5993 & 65.4167 & 62.8222 & 17.7771 & 0.2718 & False \\
+ & executor\_input\_bytes\_read & 10131879460.0000 & 10131879460.0000 & 5065939730.0000 & 10131879460.0000 & 5065939730.0000 & 0.5000 & False \\
+ & executor\_run\_time\_ms & 3144276.0000 & 3927201.0000 & 1671732.0000 & 3144276.0000 & 2255469.0000 & 0.7173 & False \\
+ & network\_bytes\_received & 48156.0000 & 48156.0000 & 48235.0000 & 48135.0000 & 100.0000 & 0.0021 & True \\
+ & network\_bytes\_sent & 25152.0000 & 25153.0000 & 25152.0000 & 25152.0000 & 1.0000 & 0.0000 & True \\
+ & shuffle\_read\_bytes & 10691552007.0000 & 10692061277.0000 & 5346030363.0000 & 10691552007.0000 & 5346030914.0000 & 0.5000 & False \\
+ & shuffle\_write\_bytes & 10691064604.0000 & 10691086610.0000 & 5345542944.0000 & 10691064604.0000 & 5345543666.0000 & 0.5000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-broadcast-8-nodes-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0600 & 0.0600 & 0.0800 & 0.0600 & 0.0200 & 0.3333 & False \\
+ & driver\_collection\_time\_ms & 0.0000 & 0.0000 & 1453.0000 & 0.0000 & 1453.0000 & NaN & False \\
+ & elapsed\_time & 18.6129 & 18.6129 & 16.8015 & 19.8634 & 3.0619 & 0.1645 & False \\
+ & executor\_input\_bytes\_read & 986103518.0000 & 986103518.0000 & 493051759.0000 & 1479155277.0000 & 986103518.0000 & 1.0000 & False \\
+ & executor\_run\_time\_ms & 624951.0000 & 624951.0000 & 316125.0000 & 1431330.0000 & 1115205.0000 & 1.7845 & False \\
+ & network\_bytes\_received & 34222.0000 & 34338.0000 & 34146.0000 & 34222.0000 & 192.0000 & 0.0056 & True \\
+ & network\_bytes\_sent & 18090.0000 & 18048.0000 & 18090.0000 & 18090.0000 & 42.0000 & 0.0023 & True \\
+ & shuffle\_read\_bytes & 1050954530.0000 & 1050954530.0000 & 525487632.0000 & 1576463813.0000 & 1050976181.0000 & 1.0000 & False \\
+ & shuffle\_write\_bytes & 1050022128.0000 & 1050022128.0000 & 525008630.0000 & 1575027170.0000 & 1050018540.0000 & 1.0000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-partitioned-12-nodes-small} & cpu\_time\_system\_seconds & 0.0450 & 0.0400 & 0.0500 & NaN & 0.0100 & 0.2222 & False \\
+ & cpu\_time\_user\_seconds & 1.2300 & 1.2400 & 1.2200 & NaN & 0.0200 & 0.0163 & True \\
+ & driver\_collection\_time\_ms & 0.0000 & 0.0000 & 0.0000 & NaN & 0.0000 & NaN & False \\
+ & elapsed\_time & 2787.1746 & 2760.1602 & 2814.1890 & NaN & 54.0288 & 0.0194 & True \\
+ & executor\_input\_bytes\_read & 1574603889.0000 & 1574603889.0000 & 1574603889.0000 & NaN & 0.0000 & 0.0000 & True \\
+ & executor\_run\_time\_ms & 9173807.5000 & 9229238.0000 & 9118377.0000 & NaN & 110861.0000 & 0.0121 & True \\
+ & network\_bytes\_received & 680520.5000 & 673405.0000 & 687636.0000 & NaN & 14231.0000 & 0.0209 & True \\
+ & network\_bytes\_sent & 345025.0000 & 341474.0000 & 348576.0000 & NaN & 7102.0000 & 0.0206 & True \\
+ & shuffle\_read\_bytes & 4366092636.0000 & 4366049663.0000 & 4366135609.0000 & NaN & 85946.0000 & 0.0000 & True \\
+ & shuffle\_write\_bytes & 4366077421.0000 & 4366034448.0000 & 4366120394.0000 & NaN & 85946.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-partitioned-16-nodes-small} & cpu\_time\_system\_seconds & 0.0600 & 0.0500 & 0.0800 & 0.0600 & 0.0300 & 0.5000 & False \\
+ & cpu\_time\_user\_seconds & 1.5000 & 1.1800 & 1.5000 & 1.5200 & 0.3400 & 0.2267 & False \\
+ & driver\_collection\_time\_ms & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 2756.3490 & 2756.3490 & 2734.8641 & 3487.2013 & 752.3371 & 0.2729 & False \\
+ & executor\_input\_bytes\_read & 524867963.0000 & 524867963.0000 & 524867963.0000 & 1049735926.0000 & 524867963.0000 & 1.0000 & False \\
+ & executor\_run\_time\_ms & 2904858.0000 & 2904858.0000 & 2857841.0000 & 6952997.0000 & 4095156.0000 & 1.4098 & False \\
+ & network\_bytes\_received & 671744.0000 & 671744.0000 & 666394.0000 & 841264.0000 & 174870.0000 & 0.2603 & False \\
+ & network\_bytes\_sent & 341400.0000 & 341400.0000 & 337787.0000 & 426731.0000 & 88944.0000 & 0.2605 & False \\
+ & shuffle\_read\_bytes & 1455292228.0000 & 1455292228.0000 & 1455248404.0000 & 2910475887.0000 & 1455227483.0000 & 1.0000 & False \\
+ & shuffle\_write\_bytes & 1455277013.0000 & 1455277013.0000 & 1455233189.0000 & 2910475887.0000 & 1455242698.0000 & 1.0000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-partitioned-2-nodes-small} & cpu\_time\_system\_seconds & 0.1000 & 0.0500 & 0.1000 & 0.1100 & 0.0600 & 0.6000 & False \\
+ & cpu\_time\_user\_seconds & 1.4600 & 1.1600 & 1.4600 & 1.5100 & 0.3500 & 0.2397 & False \\
+ & driver\_collection\_time\_ms & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 2767.2785 & 2767.2785 & 2717.5222 & 2776.4257 & 58.9035 & 0.0213 & True \\
+ & executor\_input\_bytes\_read & 524867963.0000 & 1049735926.0000 & 524867963.0000 & 524867963.0000 & 524867963.0000 & 1.0000 & False \\
+ & executor\_run\_time\_ms & 2934125.0000 & 5770287.0000 & 2934125.0000 & 2918002.0000 & 2852285.0000 & 0.9721 & False \\
+ & network\_bytes\_received & 673588.0000 & 673588.0000 & 667517.0000 & 679504.0000 & 11987.0000 & 0.0178 & True \\
+ & network\_bytes\_sent & 341769.0000 & 341769.0000 & 338240.0000 & 345013.0000 & 6773.0000 & 0.0198 & True \\
+ & shuffle\_read\_bytes & 1457676083.0000 & 2915310691.0000 & 1457676083.0000 & 1457646156.0000 & 1457664535.0000 & 1.0000 & False \\
+ & shuffle\_write\_bytes & 1457660868.0000 & 2915295476.0000 & 1457660868.0000 & 1457630941.0000 & 1457664535.0000 & 1.0000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-partitioned-4-nodes-small} & cpu\_time\_system\_seconds & 0.0500 & 0.0500 & 0.0500 & 0.1200 & 0.0700 & 1.4000 & False \\
+ & cpu\_time\_user\_seconds & 1.2000 & 1.1900 & 1.2000 & 1.4300 & 0.2400 & 0.2000 & False \\
+ & driver\_collection\_time\_ms & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 2742.6135 & 2742.6135 & 2778.6011 & 2718.4377 & 60.1634 & 0.0219 & True \\
+ & executor\_input\_bytes\_read & 1049735926.0000 & 1049735926.0000 & 1574603889.0000 & 1049735926.0000 & 524867963.0000 & 0.5000 & False \\
+ & executor\_run\_time\_ms & 6367619.0000 & 5745811.0000 & 8558289.0000 & 6367619.0000 & 2812478.0000 & 0.4417 & False \\
+ & network\_bytes\_received & 673009.0000 & 673009.0000 & 679251.0000 & 665059.0000 & 14192.0000 & 0.0211 & True \\
+ & network\_bytes\_sent & 341389.0000 & 341389.0000 & 344912.0000 & 337955.0000 & 6957.0000 & 0.0204 & True \\
+ & shuffle\_read\_bytes & 2913686288.0000 & 2913686288.0000 & 4370598541.0000 & 2913667439.0000 & 1456931102.0000 & 0.5000 & False \\
+ & shuffle\_write\_bytes & 2913686288.0000 & 2913686288.0000 & 4370583326.0000 & 2913667439.0000 & 1456915887.0000 & 0.5000 & False \\
+\cline{1-9}
+\multirow[t]{10}{*}{national-scale-spatial-join-databricks-partitioned-8-nodes-small} & cpu\_time\_system\_seconds & 0.0900 & 0.0500 & 0.1000 & 0.0900 & 0.0500 & 0.5556 & False \\
+ & cpu\_time\_user\_seconds & 1.4400 & 1.1500 & 1.6000 & 1.4400 & 0.4500 & 0.3125 & False \\
+ & driver\_collection\_time\_ms & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 2745.4836 & 2756.2595 & 2745.4836 & 2733.2440 & 23.0155 & 0.0084 & True \\
+ & executor\_input\_bytes\_read & 524867963.0000 & 524867963.0000 & 524867963.0000 & 1049735926.0000 & 524867963.0000 & 1.0000 & False \\
+ & executor\_run\_time\_ms & 2982802.0000 & 2932229.0000 & 2982802.0000 & 5775830.0000 & 2843601.0000 & 0.9533 & False \\
+ & network\_bytes\_received & 673050.0000 & 673285.0000 & 673050.0000 & 666305.0000 & 6980.0000 & 0.0104 & True \\
+ & network\_bytes\_sent & 341474.0000 & 341474.0000 & 341483.0000 & 337880.0000 & 3603.0000 & 0.0106 & True \\
+ & shuffle\_read\_bytes & 1455655624.0000 & 1455627464.0000 & 1455655624.0000 & 2911254291.0000 & 1455626827.0000 & 1.0000 & False \\
+ & shuffle\_write\_bytes & 1455640409.0000 & 1455612249.0000 & 1455640409.0000 & 2911254291.0000 & 1455642042.0000 & 1.0000 & False \\
+\cline{1-9}
+\multirow[t]{5}{*}{national-scale-spatial-join-duckdb-medium} & cpu\_time\_system\_seconds & 1.4900 & 1.4900 & 2.2000 & 1.4800 & 0.7200 & 0.4832 & False \\
+ & cpu\_time\_user\_seconds & 5459.8900 & 5412.8100 & 6363.4500 & 5459.8900 & 950.6400 & 0.1741 & False \\
+ & elapsed\_time & 1421.8277 & 1409.6981 & 1658.0799 & 1421.8277 & 248.3818 & 0.1747 & False \\
+ & network\_bytes\_received & 22875.0000 & 22875.0000 & 22917.0000 & 22875.0000 & 42.0000 & 0.0018 & True \\
+ & network\_bytes\_sent & 3635.0000 & 3635.0000 & 3635.0000 & 3593.0000 & 42.0000 & 0.0116 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{national-scale-spatial-join-duckdb-small} & cpu\_time\_system\_seconds & 0.2100 & 0.4200 & 0.2000 & 0.2100 & 0.2200 & 1.0476 & False \\
+ & cpu\_time\_user\_seconds & 566.3200 & 790.6200 & 566.3200 & 559.3500 & 231.2700 & 0.4084 & False \\
+ & elapsed\_time & 147.7707 & 206.3780 & 147.7707 & 146.1228 & 60.2552 & 0.4078 & False \\
+ & network\_bytes\_received & 104137.0000 & 104233.0000 & 104137.0000 & 104137.0000 & 96.0000 & 0.0009 & True \\
+ & network\_bytes\_sent & 3790.0000 & 3766.0000 & 3790.0000 & 3856.0000 & 90.0000 & 0.0237 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{national-scale-spatial-join-postgis-medium} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0000 & 0.0100 & 0.0000 & 0.0000 & 0.0100 & NaN & False \\
+ & elapsed\_time & 2474.0786 & 2216.9493 & 2474.0786 & 2703.0743 & 486.1250 & 0.1965 & False \\
+ & network\_bytes\_received & 12127.0000 & 11869.0000 & 12127.0000 & 12301.0000 & 432.0000 & 0.0356 & True \\
+ & network\_bytes\_sent & 3098.0000 & 2910.0000 & 3098.0000 & 3272.0000 & 362.0000 & 0.1168 & False \\
+\cline{1-9}
+\multirow[t]{5}{*}{national-scale-spatial-join-postgis-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 13.5058 & 13.5058 & 13.4346 & 13.5581 & 0.1234 & 0.0091 & True \\
+ & network\_bytes\_received & 9514.0000 & 9514.0000 & 9514.0000 & 9514.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 875.0000 & 875.0000 & 875.0000 & 875.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
 \bottomrule
 \end{tabular}

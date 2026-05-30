@@ -1,7 +1,97 @@
-\begin{tabular}{lllllllll}
+\begin{tabular}{llrrrrrrr}
 \toprule
  &  & headline\_median & pass\_1\_median & pass\_2\_median & pass\_3\_median & pass\_range & pass\_range\_relative & consistent \\
 query\_id & metric &  &  &  &  &  &  &  \\
 \midrule
+\multirow[t]{5}{*}{bbox-filtering-duckdb-large} & cpu\_time\_system\_seconds & 0.5400 & 0.5250 & 0.5400 & 0.6050 & 0.0800 & 0.1481 & False \\
+ & cpu\_time\_user\_seconds & 89.0800 & 88.5100 & 89.0800 & 94.4450 & 5.9350 & 0.0666 & True \\
+ & elapsed\_time & 23.3599 & 23.1923 & 23.3599 & 24.7674 & 1.5751 & 0.0674 & True \\
+ & network\_bytes\_received & 11997.0000 & 12018.0000 & 11997.0000 & 11997.0000 & 21.0000 & 0.0018 & True \\
+ & network\_bytes\_sent & 774.0000 & 828.0000 & 774.0000 & 708.0000 & 120.0000 & 0.1550 & False \\
+\cline{1-9}
+\multirow[t]{5}{*}{bbox-filtering-duckdb-small} & cpu\_time\_system\_seconds & 0.0400 & 0.0400 & 0.0400 & 0.0400 & 0.0000 & 0.0000 & True \\
+ & cpu\_time\_user\_seconds & 4.0900 & 4.1450 & 4.0500 & 4.0900 & 0.0950 & 0.0232 & True \\
+ & elapsed\_time & 1.1137 & 1.1246 & 1.0999 & 1.1137 & 0.0247 & 0.0222 & True \\
+ & network\_bytes\_received & 93323.0000 & 93257.0000 & 93323.0000 & 93323.0000 & 66.0000 & 0.0007 & True \\
+ & network\_bytes\_sent & 906.0000 & 906.0000 & 906.0000 & 840.0000 & 66.0000 & 0.0728 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{bbox-filtering-local-small} & cpu\_time\_system\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0100 & 0.0000 & 0.0000 & True \\
+ & cpu\_time\_user\_seconds & 0.0600 & 0.0500 & 0.0600 & 0.0600 & 0.0100 & 0.1667 & False \\
+ & elapsed\_time & 0.0619 & 0.0554 & 0.0693 & 0.0619 & 0.0140 & 0.2256 & False \\
+ & network\_bytes\_received & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & network\_bytes\_sent & 66.0000 & 66.0000 & 66.0000 & 66.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{bbox-filtering-postgis-large} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0100 & 0.0000 & 0.0000 & True \\
+ & elapsed\_time & 0.0465 & 0.0467 & 0.0465 & 0.0452 & 0.0015 & 0.0325 & True \\
+ & network\_bytes\_received & 1858684.0000 & 1858684.0000 & 1858684.0000 & 1858684.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 14704.0000 & 13516.0000 & 14704.0000 & 17476.0000 & 3960.0000 & 0.2693 & False \\
+\cline{1-9}
+\multirow[t]{5}{*}{bbox-filtering-postgis-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0100 & 0.0100 & 0.0100 & 0.0100 & 0.0000 & 0.0000 & True \\
+ & elapsed\_time & 0.0328 & 0.0328 & 0.0391 & 0.0328 & 0.0064 & 0.1935 & False \\
+ & network\_bytes\_received & 1703441.0000 & 1703441.0000 & 1703441.0000 & 1703441.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 13384.0000 & 13384.0000 & 12196.0000 & 13978.0000 & 1782.0000 & 0.1331 & False \\
+\cline{1-9}
+\multirow[t]{5}{*}{knn-search-duckdb-large} & cpu\_time\_system\_seconds & 0.3350 & 0.3000 & 1.5150 & 0.3350 & 1.2150 & 3.6269 & False \\
+ & cpu\_time\_user\_seconds & 61.4700 & 61.2700 & 169.4550 & 61.4700 & 108.1850 & 1.7600 & False \\
+ & elapsed\_time & 16.0894 & 16.0342 & 44.4245 & 16.0894 & 28.3903 & 1.7645 & False \\
+ & network\_bytes\_received & 11997.0000 & 11997.0000 & 12039.0000 & 11997.0000 & 42.0000 & 0.0035 & True \\
+ & network\_bytes\_sent & 776.0000 & 774.0000 & 816.0000 & 776.0000 & 42.0000 & 0.0541 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{knn-search-duckdb-small} & cpu\_time\_system\_seconds & 0.0300 & 0.0300 & 0.1500 & 0.0250 & 0.1250 & 4.1667 & False \\
+ & cpu\_time\_user\_seconds & 2.8300 & 2.8200 & 7.2400 & 2.8300 & 4.4200 & 1.5618 & False \\
+ & elapsed\_time & 0.7623 & 0.7623 & 1.9542 & 0.7622 & 1.1920 & 1.5638 & False \\
+ & network\_bytes\_received & 93323.0000 & 93323.0000 & 93323.0000 & 93323.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 906.0000 & 906.0000 & 906.0000 & 906.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{knn-search-local-small} & cpu\_time\_system\_seconds & 3.7550 & 3.7550 & 4.4350 & 2.1100 & 2.3250 & 0.6192 & False \\
+ & cpu\_time\_user\_seconds & 60.8550 & 60.8550 & 70.1650 & 47.8200 & 22.3450 & 0.3672 & False \\
+ & elapsed\_time & 64.7235 & 64.7235 & 75.0948 & 49.8694 & 25.2253 & 0.3897 & False \\
+ & network\_bytes\_received & 42.0000 & 42.0000 & 42.0000 & 42.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 108.0000 & 108.0000 & 108.0000 & 108.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{knn-search-postgis-large} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 0.0036 & 0.0021 & 0.0043 & 0.0036 & 0.0022 & 0.5988 & False \\
+ & network\_bytes\_received & 7927.0000 & 7927.0000 & 7927.0000 & 7927.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 628.0000 & 628.0000 & 628.0000 & 628.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{knn-search-postgis-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 0.0045 & 0.0040 & 0.0050 & 0.0045 & 0.0010 & 0.2215 & False \\
+ & network\_bytes\_received & 8688.0000 & 8688.0000 & 8688.0000 & 8688.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 628.0000 & 628.0000 & 628.0000 & 628.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{point-in-polygon-lookup-duckdb-large} & cpu\_time\_system\_seconds & 0.6000 & 0.6000 & 0.6050 & 0.5300 & 0.0750 & 0.1250 & False \\
+ & cpu\_time\_user\_seconds & 119.5850 & 119.5850 & 121.4450 & 117.4700 & 3.9750 & 0.0332 & True \\
+ & elapsed\_time & 31.2788 & 31.2788 & 31.7648 & 30.7084 & 1.0563 & 0.0338 & True \\
+ & network\_bytes\_received & 11997.0000 & 11997.0000 & 12039.0000 & 11997.0000 & 42.0000 & 0.0035 & True \\
+ & network\_bytes\_sent & 830.0000 & 774.0000 & 830.0000 & 840.0000 & 66.0000 & 0.0795 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{point-in-polygon-lookup-duckdb-small} & cpu\_time\_system\_seconds & 0.0700 & 0.0800 & 0.0600 & 0.0700 & 0.0200 & 0.2857 & False \\
+ & cpu\_time\_user\_seconds & 6.7400 & 7.1750 & 6.7400 & 6.4300 & 0.7450 & 0.1105 & False \\
+ & elapsed\_time & 1.7881 & 1.8977 & 1.7881 & 1.7358 & 0.1619 & 0.0905 & True \\
+ & network\_bytes\_received & 93323.0000 & 93323.0000 & 93323.0000 & 93323.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 906.0000 & 906.0000 & 840.0000 & 906.0000 & 66.0000 & 0.0728 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{point-in-polygon-lookup-local-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.3600 & 0.3600 & 0.4300 & 0.3600 & 0.0700 & 0.1944 & False \\
+ & elapsed\_time & 0.3577 & 0.3561 & 0.4326 & 0.3577 & 0.0764 & 0.2137 & False \\
+ & network\_bytes\_received & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & network\_bytes\_sent & 66.0000 & 66.0000 & 66.0000 & 66.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{point-in-polygon-lookup-postgis-large} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 0.0048 & 0.0049 & 0.0048 & 0.0036 & 0.0012 & 0.2600 & False \\
+ & network\_bytes\_received & 1923.0000 & 1923.0000 & 1923.0000 & 1923.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 616.0000 & 616.0000 & 616.0000 & 616.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
+\multirow[t]{5}{*}{point-in-polygon-lookup-postgis-small} & cpu\_time\_system\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & cpu\_time\_user\_seconds & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 & NaN & False \\
+ & elapsed\_time & 0.0035 & 0.0040 & 0.0035 & 0.0034 & 0.0006 & 0.1578 & False \\
+ & network\_bytes\_received & 1923.0000 & 1923.0000 & 1923.0000 & 1923.0000 & 0.0000 & 0.0000 & True \\
+ & network\_bytes\_sent & 616.0000 & 616.0000 & 616.0000 & 616.0000 & 0.0000 & 0.0000 & True \\
+\cline{1-9}
 \bottomrule
 \end{tabular}
