@@ -3,12 +3,18 @@
  &  & median\_small & median\_medium & ratio\_medium\_vs\_small & median\_large & ratio\_large\_vs\_small \\
 workload\_type & configuration &  &  &  &  &  \\
 \midrule
-\multirow[t]{6}{*}{national-scale-spatial-join} & databricks-broadcast-4-nodes & 20.1552 & 105.5606 & 5.2374 & 239.5954 & 11.8875 \\
- & databricks-broadcast-8-nodes & 15.8147 & 57.1752 & 3.6153 & 125.8219 & 7.9560 \\
- & databricks-partitioned-4-nodes & 1102.0524 & NaN & NaN & NaN & NaN \\
- & databricks-partitioned-8-nodes & 584.8223 & NaN & NaN & NaN & NaN \\
- & duckdb & 166.2821 & 1473.5492 & 8.8617 & 4246.5380 & 25.5382 \\
- & postgis & 14.1643 & 1381.0976 & 97.5054 & NaN & NaN \\
+\multirow[t]{12}{*}{national-scale-spatial-join} & databricks-broadcast-12-nodes & 15.9592 & 57.9478 & 3.6310 & 91.3542 & 5.7242 \\
+ & databricks-broadcast-16-nodes & 14.9220 & 39.7960 & 2.6669 & 79.6701 & 5.3391 \\
+ & databricks-broadcast-2-nodes & 34.8257 & 206.8213 & 5.9388 & 462.6347 & 13.2843 \\
+ & databricks-broadcast-4-nodes & 22.6584 & 113.9602 & 5.0295 & 265.0532 & 11.6978 \\
+ & databricks-broadcast-8-nodes & 18.4321 & 65.4167 & 3.5491 & 145.9968 & 7.9208 \\
+ & databricks-partitioned-12-nodes & 2787.4135 & NaN & NaN & NaN & NaN \\
+ & databricks-partitioned-16-nodes & 2776.6310 & NaN & NaN & NaN & NaN \\
+ & databricks-partitioned-2-nodes & 2774.9143 & NaN & NaN & NaN & NaN \\
+ & databricks-partitioned-4-nodes & 2742.6135 & NaN & NaN & NaN & NaN \\
+ & databricks-partitioned-8-nodes & 2749.2873 & NaN & NaN & NaN & NaN \\
+ & duckdb & 148.9234 & 1424.5092 & 9.5654 & NaN & NaN \\
+ & postgis & 13.5058 & 2474.0786 & 183.1857 & NaN & NaN \\
 \cline{1-7}
 \bottomrule
 \end{tabular}
