@@ -209,3 +209,5 @@ __marimo__/
 
 # IDE files
 /.idea
+# Local data cache (DuckDB file)
+cache/
