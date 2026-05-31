@@ -1,0 +1,13 @@
+label,a12,ci_low,ci_high
+DuckDB vs PostGIS — Bounding-box large,1.0,,
+DuckDB vs PostGIS — Bounding-box small,1.0,,
+DuckDB vs PostGIS — kNN large,1.0,,
+DuckDB vs PostGIS — kNN small,1.0,,
+DuckDB vs PostGIS — National join medium,0.0,,
+DuckDB vs PostGIS — National join small,1.0,,
+DuckDB vs PostGIS — Point-in-polygon large,1.0,,
+DuckDB vs PostGIS — Point-in-polygon small,1.0,,
+Sedona(8N) vs DuckDB — National medium,0.0,,
+Sedona(8N) vs DuckDB — National small,0.0,,
+Sedona(8N) vs PostGIS — National medium,0.0,,
+Sedona(8N) vs PostGIS — National small,1.0,,

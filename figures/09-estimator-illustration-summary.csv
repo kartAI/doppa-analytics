@@ -1,0 +1,2 @@
+query_id,min,median,mean,mean_over_min,contamination_pct
+point-in-polygon-lookup-duckdb-small,1.327399279000005,1.5252166489999972,1.6804818922355693,1.2659957850071748,26.59957850071748

@@ -1,0 +1,16 @@
+dataset_size,workers,executor_run_s,driver_collection_s
+large,2,3552.476,1.399
+large,4,3902.217,1.406
+large,8,4631.619,1.426
+large,12,5630.668,0.8015
+large,16,3863.859,2.1965
+medium,2,1630.103,1.164
+medium,4,1656.403,1.553
+medium,8,3144.276,0.0
+medium,12,3250.608,0.681
+medium,16,1876.358,1.634
+small,2,212.094,1.339
+small,4,473.622,0.0
+small,8,567.614,0.0
+small,12,742.4155,0.0
+small,16,464.942,1.399

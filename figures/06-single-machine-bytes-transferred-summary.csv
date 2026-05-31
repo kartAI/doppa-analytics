@@ -1,0 +1,16 @@
+workload_type,dataset_size,configuration,metric,estimator,value,ci_low,ci_high,n
+point-in-polygon-lookup,small,duckdb,network_bytes_received,median,93323.0,93323.0,93323.0,1282
+point-in-polygon-lookup,small,postgis,network_bytes_received,median,1923.0,1923.0,1923.0,79186
+point-in-polygon-lookup,small,local,network_bytes_received,median,0.0,0.0,0.0,4491
+point-in-polygon-lookup,large,duckdb,network_bytes_received,median,12039.0,12039.0,12039.0,345
+point-in-polygon-lookup,large,postgis,network_bytes_received,median,1923.0,1923.0,1923.0,75052
+knn-search,small,duckdb,network_bytes_received,median,93323.0,93323.0,93323.0,2041
+knn-search,small,postgis,network_bytes_received,median,8688.0,8688.0,8688.0,76103
+knn-search,small,local,network_bytes_received,median,42.0,42.0,42.0,445
+knn-search,large,duckdb,network_bytes_received,median,11997.0,11997.0,11997.0,439
+knn-search,large,postgis,network_bytes_received,median,7927.0,7927.0,7927.0,76521
+bbox-filtering,small,duckdb,network_bytes_received,median,93323.0,93323.0,93323.0,1571
+bbox-filtering,small,postgis,network_bytes_received,median,1703441.0,1703441.0,1703441.0,30785
+bbox-filtering,small,local,network_bytes_received,median,0.0,0.0,0.0,21185
+bbox-filtering,large,duckdb,network_bytes_received,median,11997.0,11997.0,11997.0,382
+bbox-filtering,large,postgis,network_bytes_received,median,1858684.0,1858684.0,1858684.0,24805

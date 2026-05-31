@@ -1,0 +1,328 @@
+% tab:appendix-pairwise-statistics (longtable)  cols {@{}l l l r r r@{}}  (Comparison, Workload x tier, Dimension, W, p_Holm, A12)
+DuckDB vs.\ Shapefile & Bounding-box, small & Time & 3 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ Shapefile & Bounding-box, small & Bytes (recv) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ Shapefile & Bounding-box, small & Bytes (sent) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & Bounding-box, small & Time & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & Bounding-box, small & Bytes (recv) & 0 & $<0.001$ & 0.00~(L) \\
+DuckDB vs.\ PostGIS & Bounding-box, small & Bytes (sent) & 0 & $<0.001$ & 0.00~(L) \\
+Shapefile vs.\ PostGIS & Bounding-box, small & Time & 6869922 & $<0.001$ & 0.98~(L) \\
+Shapefile vs.\ PostGIS & Bounding-box, small & Bytes (recv) & 0 & $<0.001$ & 0.00~(L) \\
+Shapefile vs.\ PostGIS & Bounding-box, small & Bytes (sent) & 0 & $<0.001$ & 0.00~(L) \\
+DuckDB vs.\ PostGIS & Bounding-box, large & Time & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & Bounding-box, large & Bytes (recv) & 0 & $<0.001$ & 0.00~(L) \\
+DuckDB vs.\ PostGIS & Bounding-box, large & Bytes (sent) & 0 & $<0.001$ & 0.00~(L) \\
+DuckDB vs.\ Shapefile & kNN, small & Time & 0 & $<0.001$ & 0.00~(L) \\
+DuckDB vs.\ Shapefile & kNN, small & Bytes (recv) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ Shapefile & kNN, small & Bytes (sent) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & kNN, small & Time & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & kNN, small & Bytes (recv) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & kNN, small & Bytes (sent) & 0 & $<0.001$ & 1.00~(L) \\
+Shapefile vs.\ PostGIS & kNN, small & Time & 0 & $<0.001$ & 1.00~(L) \\
+Shapefile vs.\ PostGIS & kNN, small & Bytes (recv) & 0 & $<0.001$ & 0.00~(L) \\
+Shapefile vs.\ PostGIS & kNN, small & Bytes (sent) & 0 & $<0.001$ & 0.00~(L) \\
+DuckDB vs.\ PostGIS & kNN, large & Time & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & kNN, large & Bytes (recv) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & kNN, large & Bytes (sent) & 0 & $<0.001$ & 1.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, small & Time & 6 & 1.000 & 0.69~(M) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, small & Bytes (recv) & 5 & 1.000 & 0.36~(S) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, small & Bytes (sent) & 0 & 1.000 & 0.47~(n) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, small & Bytes (recv) & 7 & 1.000 & 0.44~(n) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, small & Bytes (sent) & 5 & 1.000 & 0.53~(n) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, small & Bytes (recv) & 9 & 1.000 & 0.56~(n) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, small & Bytes (sent) & 6 & 1.000 & 0.61~(S) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, small & Time & 1 & 0.844 & 0.06~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, small & Bytes (recv) & 0 & 1.000 & 0.17~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, small & Bytes (sent) & 6 & 1.000 & 0.62~(S) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-12N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-12N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-12N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-16N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-16N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-16N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-2N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-2N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-2N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-4N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-4N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-4N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-8N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ DuckDB & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 1.000 & 1.00~(L) \\
+Sedona broadcast-12N vs.\ PostGIS & National join, small & Time & 0 & 0.844 & 1.00~(L) \\
+Sedona broadcast-12N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 1.000 & 1.00~(L) \\
+Sedona broadcast-12N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 1.000 & 1.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, small & Bytes (recv) & 15 & 1.000 & 0.46~(n) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, small & Bytes (sent) & 11 & 1.000 & 0.48~(n) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, small & Bytes (recv) & 15 & 1.000 & 0.64~(M) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, small & Bytes (sent) & 15 & 1.000 & 0.60~(S) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, small & Bytes (recv) & 18 & 1.000 & 0.40~(S) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, small & Bytes (sent) & 19 & 1.000 & 0.51~(n) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-12N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-12N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-12N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-16N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-16N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-16N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-2N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-2N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-2N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-4N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-4N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-4N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-8N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ DuckDB & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-16N vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-16N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-16N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, small & Bytes (recv) & 13 & 1.000 & 0.62~(S) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, small & Bytes (sent) & 4 & 1.000 & 0.57~(S) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, small & Bytes (recv) & 20 & 1.000 & 0.41~(S) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, small & Bytes (sent) & 10 & 1.000 & 0.56~(S) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-12N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-12N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-12N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-16N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-16N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-16N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-2N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-2N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-2N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-4N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-4N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-4N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-8N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ DuckDB & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, small & Time & 0 & 0.258 & 0.99~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, small & Bytes (recv) & 5 & 1.000 & 0.21~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, small & Bytes (sent) & 9 & 1.000 & 0.46~(n) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-12N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-12N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-12N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-16N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-16N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-16N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-2N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-2N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-2N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-4N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-4N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-4N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-8N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ DuckDB & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-12N & National join, small & Time & 0 & 0.844 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-12N & National join, small & Bytes (recv) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-12N & National join, small & Bytes (sent) & 0 & 1.000 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-16N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-16N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-16N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-2N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-2N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-2N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-4N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-4N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-4N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-8N & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ DuckDB & National join, small & Time & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 0.258 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-8N vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-8N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-8N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-16N & National join, small & Time & 3 & 1.000 & 0.83~(L) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-16N & National join, small & Bytes (recv) & 3 & 1.000 & 0.83~(L) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-16N & National join, small & Bytes (sent) & 3 & 1.000 & 0.78~(L) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-2N & National join, small & Time & 6 & 1.000 & 0.64~(S) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-2N & National join, small & Bytes (recv) & 7 & 1.000 & 0.69~(M) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-2N & National join, small & Bytes (sent) & 8 & 1.000 & 0.61~(S) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-4N & National join, small & Time & 4 & 1.000 & 0.75~(L) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-4N & National join, small & Bytes (recv) & 2 & 1.000 & 0.72~(L) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-4N & National join, small & Bytes (sent) & 5 & 1.000 & 0.69~(M) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-8N & National join, small & Time & 4 & 1.000 & 0.78~(L) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 4 & 1.000 & 0.69~(M) \\
+Sedona partitioned-12N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 6 & 1.000 & 0.57~(S) \\
+Sedona partitioned-12N vs.\ DuckDB & National join, small & Time & 0 & 0.844 & 1.00~(L) \\
+Sedona partitioned-12N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 1.000 & 1.00~(L) \\
+Sedona partitioned-12N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 1.000 & 1.00~(L) \\
+Sedona partitioned-12N vs.\ PostGIS & National join, small & Time & 0 & 0.844 & 1.00~(L) \\
+Sedona partitioned-12N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 1.000 & 1.00~(L) \\
+Sedona partitioned-12N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 1.000 & 1.00~(L) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-2N & National join, small & Time & 12 & 1.000 & 0.57~(S) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-2N & National join, small & Bytes (recv) & 14 & 1.000 & 0.54~(n) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-2N & National join, small & Bytes (sent) & 17 & 1.000 & 0.51~(n) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-4N & National join, small & Time & 13 & 1.000 & 0.65~(M) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-4N & National join, small & Bytes (recv) & 14 & 1.000 & 0.63~(S) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-4N & National join, small & Bytes (sent) & 16 & 1.000 & 0.60~(S) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-8N & National join, small & Time & 15 & 1.000 & 0.65~(M) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 17 & 1.000 & 0.62~(S) \\
+Sedona partitioned-16N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 18 & 1.000 & 0.64~(M) \\
+Sedona partitioned-16N vs.\ DuckDB & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-16N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-16N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-16N vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-16N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-16N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-2N vs.\ Sedona partitioned-4N & National join, small & Time & 22 & 1.000 & 0.60~(S) \\
+Sedona partitioned-2N vs.\ Sedona partitioned-4N & National join, small & Bytes (recv) & 22 & 1.000 & 0.60~(S) \\
+Sedona partitioned-2N vs.\ Sedona partitioned-4N & National join, small & Bytes (sent) & 20 & 1.000 & 0.62~(S) \\
+Sedona partitioned-2N vs.\ Sedona partitioned-8N & National join, small & Time & 18 & 1.000 & 0.63~(S) \\
+Sedona partitioned-2N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 14 & 1.000 & 0.64~(M) \\
+Sedona partitioned-2N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 13 & 1.000 & 0.67~(M) \\
+Sedona partitioned-2N vs.\ DuckDB & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-2N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-2N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-2N vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-2N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-2N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-4N vs.\ Sedona partitioned-8N & National join, small & Time & 18 & 1.000 & 0.49~(n) \\
+Sedona partitioned-4N vs.\ Sedona partitioned-8N & National join, small & Bytes (recv) & 17 & 1.000 & 0.53~(n) \\
+Sedona partitioned-4N vs.\ Sedona partitioned-8N & National join, small & Bytes (sent) & 18 & 1.000 & 0.52~(n) \\
+Sedona partitioned-4N vs.\ DuckDB & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-4N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-4N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-4N vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-4N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-4N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-8N vs.\ DuckDB & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-8N vs.\ DuckDB & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-8N vs.\ DuckDB & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-8N vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-8N vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+Sedona partitioned-8N vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+DuckDB vs.\ PostGIS & National join, small & Time & 0 & 0.258 & 1.00~(L) \\
+DuckDB vs.\ PostGIS & National join, small & Bytes (recv) & 0 & 0.258 & 1.00~(L) \\
+DuckDB vs.\ PostGIS & National join, small & Bytes (sent) & 0 & 0.258 & 1.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, medium & Time & 0 & 0.188 & 1.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, medium & Bytes (recv) & 5 & 0.625 & 0.58~(S) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, medium & Bytes (sent) & 3 & 0.625 & 0.67~(M) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, medium & Time & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, medium & Bytes (recv) & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, medium & Bytes (sent) & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, medium & Time & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, medium & Bytes (recv) & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, medium & Bytes (sent) & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, medium & Time & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, medium & Bytes (recv) & 7 & 0.625 & 0.39~(S) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, medium & Bytes (sent) & 8 & 0.656 & 0.42~(S) \\
+Sedona broadcast-12N vs.\ DuckDB & National join, medium & Time & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ DuckDB & National join, medium & Bytes (recv) & 0 & 0.188 & 1.00~(L) \\
+Sedona broadcast-12N vs.\ DuckDB & National join, medium & Bytes (sent) & 0 & 0.188 & 1.00~(L) \\
+Sedona broadcast-12N vs.\ PostGIS & National join, medium & Time & 0 & 0.188 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ PostGIS & National join, medium & Bytes (recv) & 0 & 0.188 & 1.00~(L) \\
+Sedona broadcast-12N vs.\ PostGIS & National join, medium & Bytes (sent) & 0 & 0.188 & 1.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, medium & Bytes (recv) & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, medium & Bytes (sent) & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, medium & Bytes (recv) & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, medium & Bytes (sent) & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, medium & Bytes (recv) & 2 & 0.082 & 0.16~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, medium & Bytes (sent) & 3 & 0.156 & 0.21~(L) \\
+Sedona broadcast-16N vs.\ DuckDB & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ DuckDB & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-16N vs.\ DuckDB & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-16N vs.\ PostGIS & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ PostGIS & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-16N vs.\ PostGIS & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, medium & Time & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, medium & Time & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ DuckDB & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ DuckDB & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ DuckDB & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ PostGIS & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ PostGIS & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ PostGIS & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, medium & Time & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ DuckDB & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ DuckDB & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ DuckDB & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ PostGIS & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-4N vs.\ PostGIS & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ PostGIS & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-8N vs.\ DuckDB & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ DuckDB & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-8N vs.\ DuckDB & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-8N vs.\ PostGIS & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+Sedona broadcast-8N vs.\ PostGIS & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+Sedona broadcast-8N vs.\ PostGIS & National join, medium & Bytes (sent) & 0 & 0.082 & 1.00~(L) \\
+DuckDB vs.\ PostGIS & National join, medium & Time & 0 & 0.082 & 0.00~(L) \\
+DuckDB vs.\ PostGIS & National join, medium & Bytes (recv) & 0 & 0.082 & 1.00~(L) \\
+DuckDB vs.\ PostGIS & National join, medium & Bytes (sent) & 3 & 0.156 & 0.78~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, large & Time & 1 & 0.219 & 0.86~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, large & Bytes (recv) & 6 & 0.438 & 0.67~(M) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-16N & National join, large & Bytes (sent) & 3 & 0.312 & 0.57~(S) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, large & Time & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, large & Bytes (recv) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-2N & National join, large & Bytes (sent) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, large & Time & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, large & Bytes (recv) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-4N & National join, large & Bytes (sent) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, large & Time & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, large & Bytes (recv) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-12N vs.\ Sedona broadcast-8N & National join, large & Bytes (sent) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, large & Time & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, large & Bytes (recv) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-2N & National join, large & Bytes (sent) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, large & Time & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, large & Bytes (recv) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-4N & National join, large & Bytes (sent) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, large & Time & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, large & Bytes (recv) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-16N vs.\ Sedona broadcast-8N & National join, large & Bytes (sent) & 0 & 0.219 & 0.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, large & Time & 0 & 0.039 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, large & Bytes (recv) & 0 & 0.039 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-4N & National join, large & Bytes (sent) & 0 & 0.039 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, large & Time & 0 & 0.039 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, large & Bytes (recv) & 0 & 0.039 & 1.00~(L) \\
+Sedona broadcast-2N vs.\ Sedona broadcast-8N & National join, large & Bytes (sent) & 0 & 0.039 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, large & Time & 0 & 0.039 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, large & Bytes (recv) & 0 & 0.039 & 1.00~(L) \\
+Sedona broadcast-4N vs.\ Sedona broadcast-8N & National join, large & Bytes (sent) & 0 & 0.039 & 1.00~(L) \\
+DuckDB vs.\ Shapefile & Point-in-polygon, small & Time & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ Shapefile & Point-in-polygon, small & Bytes (recv) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ Shapefile & Point-in-polygon, small & Bytes (sent) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & Point-in-polygon, small & Time & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & Point-in-polygon, small & Bytes (recv) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & Point-in-polygon, small & Bytes (sent) & 0 & $<0.001$ & 1.00~(L) \\
+Shapefile vs.\ PostGIS & Point-in-polygon, small & Time & 0 & $<0.001$ & 1.00~(L) \\
+Shapefile vs.\ PostGIS & Point-in-polygon, small & Bytes (recv) & 0 & $<0.001$ & 0.00~(L) \\
+Shapefile vs.\ PostGIS & Point-in-polygon, small & Bytes (sent) & 0 & $<0.001$ & 0.00~(L) \\
+DuckDB vs.\ PostGIS & Point-in-polygon, large & Time & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & Point-in-polygon, large & Bytes (recv) & 0 & $<0.001$ & 1.00~(L) \\
+DuckDB vs.\ PostGIS & Point-in-polygon, large & Bytes (sent) & 0 & $<0.001$ & 1.00~(L) \\
