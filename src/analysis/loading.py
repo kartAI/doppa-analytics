@@ -115,34 +115,6 @@ def parse_query_id(
     raise ValueError(f"Unknown workload type in query_id: {query_id}")
 
 
-def samples_select_sql(container: str, run_id: str) -> str:
-    """SELECT statement for one run's per-iteration samples from remote parquet.
-
-    Casts the hive partition columns to INTEGER in-engine so the result needs
-    no pandas post-processing. Pass to `load_cached(..., sql=...)` so DuckDB can
-    stream the (potentially larger-than-RAM) result straight into the cache.
-    """
-    return f"""
-        SELECT * REPLACE (
-            CAST(benchmark_run AS INTEGER) AS benchmark_run,
-            CAST(iteration AS INTEGER) AS iteration
-        )
-        FROM read_parquet(
-            'az://{container}/query_id=*/run_id={run_id}/benchmark_run=*/iteration=*/data.parquet',
-            hive_partitioning = true,
-            union_by_name = true
-        )
-    """
-
-
-def load_samples(
-    db: duckdb.DuckDBPyConnection,
-    container: str,
-    run_id: str,
-) -> pd.DataFrame:
-    return db.execute(samples_select_sql(container, run_id)).fetchdf()
-
-
 def _sample_run_glob(container: str, run_id: str) -> str:
     return (
         f"az://{container}/query_id=*/run_id={run_id}/"

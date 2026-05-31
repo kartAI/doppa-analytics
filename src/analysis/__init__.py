@@ -7,7 +7,6 @@ from .loading import (
     load_costs,
     load_experiments,
     load_metadata,
-    load_samples,
     load_samples_cached,
     open_cache,
 )
