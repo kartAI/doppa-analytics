@@ -3,10 +3,13 @@ from .loading import (
     enrich_samples,
     extract_strategy,
     extract_worker_count,
+    load_cached,
     load_costs,
     load_experiments,
     load_metadata,
     load_samples,
+    load_samples_cached,
+    open_cache,
 )
 from .stats import (
     bootstrap_median_ci,
