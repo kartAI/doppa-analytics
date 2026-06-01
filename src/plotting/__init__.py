@@ -17,4 +17,24 @@ from .charts import (
     plot_variation,
     plot_violin,
 )
-from .style import DEFAULT_STYLE, StyleConfig
+from .style import (
+    DEFAULT_STYLE,
+    MONO_STACK,
+    PALETTE,
+    ROLE_COLORS,
+    SANS_STACK,
+    NodeStyle,
+    StyleConfig,
+    bottom_legend,
+    fill_style,
+    flow_arrow,
+    lightness_ramp,
+    register_fonts,
+    resolved_sans,
+    ribbon,
+    role_style,
+    rounded_node,
+    shade,
+    tint,
+    two_line_title,
+)

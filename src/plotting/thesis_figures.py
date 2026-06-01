@@ -23,11 +23,41 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.ticker import FuncFormatter
-from scipy.stats import bootstrap as _scipy_bootstrap, gaussian_kde
+from scipy.stats import bootstrap as _scipy_bootstrap, gaussian_kde, spearmanr
 
 from src.analysis.stats import classify_a12
 
-from .style import PALETTE, StyleConfig, shade, tint
+from .style import (
+    LW_BORDER,
+    LW_CONNECTOR,
+    LW_HAIRLINE,
+    LW_MARKER_EDGE,
+    LW_SERIES,
+    PALETTE,
+    StyleConfig,
+    shade,
+    tint,
+)
+
+
+def _floor_nonneg(ax, axis: str = "y") -> None:
+    """Clamp a *linear* position axis so it never dips below 0.
+
+    For position-based plots (scatter / line / box / ECDF) on a non-negative
+    metric: keep matplotlib's data-hugging upper bound but never let the visible
+    range extend below zero. A no-op on log axes (which cannot include 0) and
+    when the data already sits above 0. Per the figure-convention rule, this does
+    NOT *force* a 0 baseline — that is reserved for bar charts via ``bottom=0``.
+    """
+    get_scale = ax.get_yscale if axis == "y" else ax.get_xscale
+    if get_scale() == "log":
+        return
+    lo, hi = (ax.get_ylim() if axis == "y" else ax.get_xlim())
+    if lo < 0:
+        if axis == "y":
+            ax.set_ylim(bottom=0.0)
+        else:
+            ax.set_xlim(left=0.0)
 
 # ── shared helpers ─────────────────────────────────────────────────────────
 
@@ -166,7 +196,7 @@ def fig_warmup_distribution(
         bins=60,
         color=tint(color, 0.25),
         edgecolor=shade(color, 0.2),
-        linewidth=0.3,
+        linewidth=LW_HAIRLINE,
     )
     vmin, vmean, vmed = float(np.min(vals)), float(np.mean(vals)), float(np.median(vals))
     for x, lab, c, ls in [
@@ -174,9 +204,11 @@ def fig_warmup_distribution(
         (vmed, f"median = {vmed:.3g}", PALETTE["thesissage"], "--"),
         (vmean, f"mean = {vmean:.3g}", PALETTE["thesisbrick"], ":"),
     ]:
-        ax.axvline(x, color=c, linestyle=ls, linewidth=1.4, label=lab.replace("\\,", " "))
+        ax.axvline(x, color=c, linestyle=ls, linewidth=LW_CONNECTOR,
+                   label=lab.replace("\\,", " "))
     ax.set_xlabel("Per-iteration elapsed time (s)")
     ax.set_ylabel("Count")
+    _floor_nonneg(ax, "x")  # elapsed-time axis is non-negative
     ax.set_title(f"{style.workload_label(d['workload_type'].iloc[0])} — {style.label(cfg)}")
     ax.legend(fontsize=8)
     _save_summary(
@@ -206,12 +238,13 @@ def fig_warmup_decay(
 
     fig, ax = plt.subplots(figsize=(6.4, 3.6))
     ax.plot(x, y, marker="o", markersize=3, linewidth=0.9, color=color,
-            label="Per-iteration time")
-    ax.axhline(steady, color=PALETTE["thesisslate"], linestyle="--", linewidth=1.2,
+            markeredgewidth=LW_MARKER_EDGE, label="Per-iteration time")
+    ax.axhline(steady, color=PALETTE["thesisslate"], linestyle="--", linewidth=LW_CONNECTOR,
                label=f"steady-state min = {steady:.3g} s")
     ax.set_xlabel(f"Iteration index within pass {pass_run}")
     ax.set_ylabel("Elapsed time (s)")
     ax.set_title(f"{style.workload_label(d['workload_type'].iloc[0])} — {style.label(cfg)}")
+    _floor_nonneg(ax)  # elapsed time is non-negative; hug data above 0
     ax.legend(fontsize=8)
     _save_summary(
         pd.DataFrame({"iteration": x, "elapsed_time": y}), out_path
@@ -247,11 +280,11 @@ def fig_convergence(
 
     stop_k = next((k for k, r in zip(ks, rel) if r <= target), None)
     fig, ax = plt.subplots(figsize=(6.6, 3.8))
-    ax.plot(ks, rel, color=color, linewidth=1.3)
-    ax.axhline(target, color=PALETTE["thesisbrick"], linestyle="--", linewidth=1.2,
+    ax.plot(ks, rel, color=color, linewidth=LW_SERIES)
+    ax.axhline(target, color=PALETTE["thesisbrick"], linestyle="--", linewidth=LW_CONNECTOR,
                label=f"{target:.0%} target")
     if stop_k is not None:
-        ax.axvline(stop_k, color=PALETTE["thesisslate"], linestyle=":", linewidth=1.2,
+        ax.axvline(stop_k, color=PALETTE["thesisslate"], linestyle=":", linewidth=LW_CONNECTOR,
                    label=f"stop @ n = {stop_k}")
         ax.scatter([stop_k], [target], color=PALETTE["thesisslate"], zorder=5, s=25)
     ax.set_xlabel("Iterations accumulated")
@@ -268,39 +301,62 @@ def fig_estimator_illustration(
 ) -> Path:
     """Minimum-vs-mean estimator illustration on one representative query.
 
-    Strip of per-iteration samples (jittered) with min, median and mean marked,
-    making the rightward contamination and the robustness of the min explicit.
+    An empirical CDF of the per-iteration elapsed time on a log axis, with the
+    minimum, median and mean marked and the minimum-to-mean span shaded as the
+    one-sided contamination. The ECDF was chosen over the earlier jitter strip
+    (which read as a dense blob) and over a second histogram (the warm-up float
+    already shows one for the same cell): the curve climbs almost vertically off
+    a hard left wall and then crawls across a long, shallow right tail, so the
+    skew and the gap between the minimum and the mean are both directly legible,
+    and it reuses the ECDF idiom already used for the latency figure.
     """
     d = successful[successful["query_id"] == query_id]
     vals = d["elapsed_time"].dropna().values
+    vals = vals[vals > 0]
     cfg = d["configuration"].iloc[0]
     color = style.color(cfg)
-    lo, hi = np.percentile(vals, [0.1, 99.0])
-    shown = vals[(vals >= lo) & (vals <= hi)]
-    jitter = _RNG.uniform(-0.35, 0.35, size=len(shown))
 
-    fig, ax = plt.subplots(figsize=(7.0, 3.4))
-    ax.scatter(shown, jitter, s=6, alpha=0.25, color=color, edgecolor="none")
     vmin, vmean, vmed = float(np.min(vals)), float(np.mean(vals)), float(np.median(vals))
+    vs = np.sort(vals)
+    y = np.arange(1, len(vs) + 1) / len(vs)
+    contamination = (vmean - vmin) / vmin if vmin > 0 else np.nan
+    frac_above_min = float(np.mean(vals > vmin * 1.01))  # share past the floor
+    frac_below_mean = float(np.mean(vals <= vmean))      # ECDF height at the mean
+
+    fig, ax = plt.subplots(figsize=(7.0, 4.0))
+    # shade the minimum-to-mean span: this is the one-sided contamination
+    ax.axvspan(vmin, vmean, color=tint(PALETTE["thesisbrick"], 0.85), zorder=0)
+    ax.step(vs, y, where="post", color=color, linewidth=LW_SERIES, zorder=3,
+            label="empirical CDF")
     for x, lab, c, ls in [
         (vmin, f"minimum = {vmin:.4g} s", PALETTE["thesisslate"], "-"),
         (vmed, f"median = {vmed:.4g} s", PALETTE["thesissage"], "--"),
         (vmean, f"mean = {vmean:.4g} s", PALETTE["thesisbrick"], ":"),
     ]:
-        ax.axvline(x, color=c, linestyle=ls, linewidth=1.6, label=lab)
-    ax.set_yticks([])
-    ax.set_ylim(-1, 1)
-    ax.set_xlabel("Per-iteration elapsed time (s)")
+        ax.axvline(x, color=c, linestyle=ls, linewidth=LW_CONNECTOR, label=lab)
+    # numbers on the figure so the contamination gap is readable at a glance
+    ax.annotate(
+        f"mean is {100 * contamination:.0f}% above the minimum",
+        xy=(np.sqrt(vmin * vmean), 0.5), ha="center", va="center", fontsize=8,
+        fontstyle="italic", color=shade(PALETTE["thesisbrick"], 0.2),
+    )
+    ax.set_xscale("log")
+    ax.set_ylim(0, 1.02)
+    ax.set_xlabel("Per-iteration elapsed time (s, log)")
+    ax.set_ylabel("Empirical CDF")
     ax.set_title(
         f"Estimator choice — {style.workload_label(d['workload_type'].iloc[0])}, "
         f"{style.label(cfg)}"
     )
-    ax.legend(fontsize=8, loc="upper right")
-    contamination = (vmean - vmin) / vmin if vmin > 0 else np.nan
+    ax.legend(fontsize=8, loc="lower right")
     _save_summary(
-        pd.DataFrame([{"query_id": query_id, "min": vmin, "median": vmed,
-                       "mean": vmean, "mean_over_min": vmean / vmin,
-                       "contamination_pct": 100 * contamination}]),
+        pd.DataFrame([{"query_id": query_id, "n": int(len(vals)), "min": vmin,
+                       "median": vmed, "mean": vmean, "mean_over_min": vmean / vmin,
+                       "contamination_pct": 100 * contamination,
+                       "frac_above_min": frac_above_min,
+                       "frac_below_mean": frac_below_mean,
+                       "p95": float(np.percentile(vals, 95)),
+                       "max": float(np.max(vals))}]),
         out_path,
     )
     return _save(fig, out_path)
@@ -329,18 +385,82 @@ def fig_cv_dispersion(
         sub = cv[cv["configuration"] == cfg]
         xs = _RNG.uniform(-0.18, 0.18, len(sub)) + i
         ax.scatter(xs, sub["cv"], s=34, color=style.color(cfg),
-                   edgecolor="white", linewidth=0.5, zorder=3)
+                   edgecolor="white", linewidth=LW_MARKER_EDGE, zorder=3)
         ax.scatter([i], [sub["cv"].median()], marker="_", s=520,
-                   color=shade(style.color(cfg), 0.25), zorder=4, linewidth=2)
+                   color=shade(style.color(cfg), 0.25), zorder=4, linewidth=LW_SERIES)
     ax.axhspan(0, band, color=tint(PALETTE["thesissage"], 0.55), zorder=0)
-    ax.axhline(band, color=PALETTE["thesisbrick"], linestyle="--", linewidth=1.1,
+    ax.axhline(band, color=PALETTE["thesisbrick"], linestyle="--", linewidth=LW_CONNECTOR,
                label=f"CV = {band:.2f}")
     ax.set_xticks(range(len(configs)))
     ax.set_xticklabels([style.label(c) for c in configs], rotation=35, ha="right", fontsize=8)
     ax.set_ylabel("Coefficient of variation")
     ax.set_title(f"Run-to-run dispersion — {style.metric_label(metric)}")
+    _floor_nonneg(ax)  # CV is non-negative
     ax.legend(fontsize=8)
     _save_summary(cv, out_path)
+    return _save(fig, out_path)
+
+
+def fig_time_of_day_stability(
+    successful: pd.DataFrame, style: StyleConfig, out_path, *, scatter_cap: int = 4000
+) -> Path:
+    """Relative runtime versus start time-of-day — a noisy-neighbour check.
+
+    The 30 passes started at different wall-clock times, so each cell's timed
+    iterations are spread across the 24-hour clock. The x-axis is the recorded
+    start time-of-day (UTC, 0--24 h); the y-axis is each execution's elapsed time
+    divided by the median elapsed time of its own cell (``query_id``), so cells
+    spanning orders of magnitude are comparable on one axis centred on 1.0 (the
+    reference line). Points are coloured by system family and each system gets a
+    linear trend line (statsmodels/LOWESS is unavailable in this environment, so
+    an ordinary-least-squares line is used). A flat trend, and the rank-based
+    Spearman correlation reported alongside, is the evidence that no time-of-day
+    or noisy-neighbour effect contaminates the comparison; a slope is a finding.
+    """
+    d = successful[["started_at", "elapsed_time", "query_id", "configuration"]].copy()
+    d = d.dropna(subset=["started_at", "elapsed_time"])
+    d = d[d["elapsed_time"] > 0]
+    ts = pd.to_datetime(d["started_at"], utc=True, errors="coerce")
+    d = d[ts.notna()].copy()
+    ts = ts[ts.notna()]
+    d["hod"] = ts.dt.hour.values + ts.dt.minute.values / 60.0 + ts.dt.second.values / 3600.0
+    d["cell_med"] = d.groupby("query_id")["elapsed_time"].transform("median")
+    d = d[d["cell_med"] > 0]
+    d["rel"] = d["elapsed_time"] / d["cell_med"]
+    d["system"] = d["configuration"].map(system_of)
+
+    systems = [s for s in SYSTEM_ORDER if s in set(d["system"])]
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    xs_line = np.linspace(0, 24, 50)
+    summary = []
+    rho_all, p_all = spearmanr(d["hod"].values, d["rel"].values)
+    for sysname in systems:
+        g = d[d["system"] == sysname]
+        color = _system_color(style, sysname)
+        plot_g = g if len(g) <= scatter_cap else g.sample(scatter_cap, random_state=12345)
+        ax.scatter(plot_g["hod"], plot_g["rel"], s=7, alpha=0.18, color=color,
+                   edgecolor="none", zorder=2)
+        rho, pval = spearmanr(g["hod"].values, g["rel"].values)
+        slope, intercept = np.polyfit(g["hod"].values, g["rel"].values, 1)
+        ax.plot(xs_line, slope * xs_line + intercept, color=shade(color, 0.15),
+                linewidth=LW_SERIES, zorder=4,
+                label=f"{SYSTEM_LABEL.get(sysname, sysname)} (ρ = {rho:+.2f})")
+        summary.append({"system": sysname, "n": int(len(g)), "spearman_rho": float(rho),
+                        "spearman_p": float(pval), "ols_slope_per_hour": float(slope)})
+    ax.axhline(1.0, color=PALETTE["thesisslate"], linestyle="--", linewidth=LW_CONNECTOR,
+               zorder=3, label="cell median (1.0)")
+    ax.set_xlim(0, 24)
+    ax.set_xticks(range(0, 25, 4))
+    # relative runtime is right-skewed; clip the view to the central mass so the
+    # flat trend is legible (trend lines and Spearman use every point).
+    ax.set_ylim(0, float(np.percentile(d["rel"].values, 98)))
+    ax.set_xlabel("Start time-of-day (UTC, h)")
+    ax.set_ylabel("Relative runtime (elapsed / cell median)")
+    ax.set_title(f"Runtime versus time-of-day (overall Spearman ρ = {rho_all:+.2f})")
+    ax.legend(fontsize=7.5, loc="upper right", ncol=2)
+    summary.append({"system": "ALL", "n": int(len(d)), "spearman_rho": float(rho_all),
+                    "spearman_p": float(p_all), "ols_slope_per_hour": np.nan})
+    _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
 
@@ -380,7 +500,7 @@ def _kde_violin(ax, center, values, color, *, log, width=0.34):
     dens = dens / dens.max() * width
     ys = np.power(10.0, grid) if log else grid
     ax.fill_betweenx(ys, center, center + dens, facecolor=tint(color, 0.5),
-                     edgecolor=color, linewidth=0.6, alpha=0.9, zorder=2)
+                     edgecolor=color, linewidth=LW_BORDER, alpha=0.9, zorder=2)
     return True
 
 
@@ -409,12 +529,12 @@ def _raincloud_one(ax, center, values, color, *, kind, log, strip_cap=180):
         q1, med, q3 = np.percentile(vbox, [25, 50, 75])
         p5, p95 = np.percentile(vbox, [5, 95])
         bw = 0.11
-        ax.plot([bx, bx], [p5, q1], color=shade(color, 0.2), linewidth=0.8, zorder=3)
-        ax.plot([bx, bx], [q3, p95], color=shade(color, 0.2), linewidth=0.8, zorder=3)
+        ax.plot([bx, bx], [p5, q1], color=shade(color, 0.2), linewidth=LW_BORDER, zorder=3)
+        ax.plot([bx, bx], [q3, p95], color=shade(color, 0.2), linewidth=LW_BORDER, zorder=3)
         ax.add_patch(plt.Rectangle((bx - bw, q1), 2 * bw, q3 - q1, facecolor="white",
-                                   edgecolor=shade(color, 0.2), linewidth=0.8, zorder=3))
+                                   edgecolor=shade(color, 0.2), linewidth=LW_BORDER, zorder=3))
         ax.plot([bx - bw, bx + bw], [med, med], color=shade(color, 0.35),
-                linewidth=1.2, zorder=4)
+                linewidth=LW_CONNECTOR, zorder=4)
 
     # jittered raw strip, subsampled, to the left of the box
     s = v if len(v) <= strip_cap else _RNG.choice(v, strip_cap, replace=False)
@@ -427,8 +547,8 @@ def _raincloud_one(ax, center, values, color, *, kind, log, strip_cap=180):
     ax.errorbar(center, point, yerr=[[max(point - lo, 0)], [max(hi - point, 0)]],
                 fmt="D" if kind == "min" else "o", ms=4.5,
                 color=PALETTE["thesisslate"], ecolor=PALETTE["thesisslate"],
-                elinewidth=1.0, capsize=2.5, markeredgecolor="white",
-                markeredgewidth=0.5, zorder=6)
+                elinewidth=LW_CONNECTOR, capsize=2.5, markeredgecolor="white",
+                markeredgewidth=LW_MARKER_EDGE, zorder=6)
     return {"estimator": kind, "value": point, "ci_low": lo, "ci_high": hi,
             "n": int(len(v))}
 
@@ -560,7 +680,7 @@ def fig_rq1_bytes_vs_time(successful, workloads, configs, tiers, style, out_path
                 tt, bb = float(np.min(t)), float(np.median(b))
                 ax.scatter(tt, max(bb, 1), s=60, color=style.color(cf),
                            marker=marker.get(ds, "o"), edgecolor="white",
-                           linewidth=0.6, zorder=3)
+                           linewidth=LW_MARKER_EDGE, zorder=3)
                 summary.append({"workload_type": wt, "dataset_size": ds,
                                 "configuration": cf, "min_time": tt, "median_bytes": bb})
     ax.set_xscale("log")
@@ -603,7 +723,7 @@ def fig_rq1_operational_cost(cost_summary, workloads, configs, tiers, style, out
             vals = np.array([float(r[term]) for _, _, r in bars])
             ax.bar(x, vals, bottom=bottom, width=0.7,
                    color=style.cost_category_colors[term], edgecolor="white",
-                   linewidth=0.4, label=_COST_LABELS[term])
+                   linewidth=LW_HAIRLINE, label=_COST_LABELS[term])
             bottom += vals
         for xi, (cf, ds, r) in enumerate(bars):
             summary.append({"workload_type": wt, "configuration": cf, "dataset_size": ds,
@@ -614,6 +734,7 @@ def fig_rq1_operational_cost(cost_summary, workloads, configs, tiers, style, out
                            rotation=35, ha="right", fontsize=7)
         ax.set_title(style.workload_label(wt), fontsize=9.5)
         ax.set_ylabel("Cost (USD)" if ax is axes[0] else "")
+        ax.set_ylim(bottom=0)  # stacked bars baseline at 0
     axes[0].legend(fontsize=7.5, loc="upper left")
     fig.suptitle("Operational cost per single-machine configuration", fontsize=12, y=1.02)
     fig.tight_layout()
@@ -622,7 +743,15 @@ def fig_rq1_operational_cost(cost_summary, workloads, configs, tiers, style, out
 
 
 def fig_cpu_decomposition(successful, workloads, configs, tiers, style, out_path):
-    """Stacked user vs system CPU seconds (median) per config, workload x tier."""
+    """User vs system CPU seconds (median) per config, workload x tier.
+
+    A log CPU-time axis is required (PostGIS sits ~3 decades below DuckDB), and a
+    bar has no valid baseline on a log scale, so this is drawn as a dumbbell: per
+    cell and configuration a filled marker is the median *user* CPU time and an
+    open marker the median *system* CPU time, joined by a thin stem. Lower is
+    less CPU; the user/system split that the old stacked bar carried is preserved
+    by the two markers without resting either segment on an arbitrary floor.
+    """
     tiers = _tier_order(style, tiers)
     cells = [(wt, ds) for wt in workloads for ds in tiers]
     fig, ax = plt.subplots(figsize=(max(8, 0.5 * len(cells) * len(configs)), 4.4))
@@ -630,37 +759,45 @@ def fig_cpu_decomposition(successful, workloads, configs, tiers, style, out_path
     width = 0.8 / max(len(configs), 1)
     x = np.arange(len(cells))
     for j, cf in enumerate(configs):
-        user, syst = [], []
-        for wt, ds in cells:
+        off = (j - len(configs) / 2 + 0.5) * width
+        base = style.color(cf)
+        for ci, (wt, ds) in enumerate(cells):
             v = successful[(successful["workload_type"] == wt)
                            & (successful["dataset_size"] == ds)
                            & (successful["configuration"] == cf)]
             u = v["cpu_time_user_seconds"].dropna().values
             s = v["cpu_time_system_seconds"].dropna().values
-            uu = float(np.median(u)) if len(u) else 0.0
-            ss = float(np.median(s)) if len(s) else 0.0
-            user.append(uu)
-            syst.append(ss)
-            if len(u) or len(s):
-                summary.append({"workload_type": wt, "dataset_size": ds, "configuration": cf,
-                                "cpu_user_s": uu, "cpu_system_s": ss})
-        off = (j - len(configs) / 2 + 0.5) * width
-        base = style.color(cf)
-        ax.bar(x + off, user, width * 0.9, color=base, edgecolor="white", linewidth=0.4,
-               label=f"{style.label(cf)} — user" if j == 0 else None)
-        ax.bar(x + off, syst, width * 0.9, bottom=user, color=tint(base, 0.55),
-               edgecolor="white", linewidth=0.4,
-               label=f"{style.label(cf)} — system" if j == 0 else None)
+            if not (len(u) or len(s)):
+                continue
+            uu = float(np.median(u)) if len(u) else np.nan
+            ss = float(np.median(s)) if len(s) else np.nan
+            xp = ci + off
+            pts = [p for p in (uu, ss) if p is not None and not np.isnan(p) and p > 0]
+            if len(pts) == 2:  # stem joining the user/system pair
+                ax.plot([xp, xp], [min(pts), max(pts)], color=shade(base, 0.1),
+                        linewidth=LW_CONNECTOR, zorder=2)
+            if uu and not np.isnan(uu) and uu > 0:
+                ax.scatter([xp], [uu], s=34, color=base, marker="o", zorder=4,
+                           edgecolor="white", linewidth=LW_MARKER_EDGE)
+            if ss and not np.isnan(ss) and ss > 0:
+                ax.scatter([xp], [ss], s=30, facecolor="white", marker="o", zorder=4,
+                           edgecolor=base, linewidth=LW_BORDER)
+            summary.append({"workload_type": wt, "dataset_size": ds, "configuration": cf,
+                            "cpu_user_s": uu, "cpu_system_s": ss})
     ax.set_yscale("log")
     ax.set_xticks(x)
     ax.set_xticklabels([f"{style.workload_label(wt)[:10]}\n{ds}" for wt, ds in cells],
                        rotation=0, fontsize=7)
     ax.set_ylabel("CPU time (s, log)")
-    # legend: config colors + user/system shade convention
-    handles = [plt.Rectangle((0, 0), 1, 1, color=style.color(c)) for c in configs]
-    handles += [plt.Rectangle((0, 0), 1, 1, color=PALETTE["thesisgray"]),
-                plt.Rectangle((0, 0), 1, 1, color=tint(PALETTE["thesisgray"], 0.55))]
-    labels = [style.label(c) for c in configs] + ["user (solid)", "system (light)"]
+    # legend: config colors + user/system marker convention
+    handles = [plt.Line2D([], [], marker="o", linestyle="", color=style.color(c),
+                          markeredgecolor="white", markeredgewidth=LW_MARKER_EDGE)
+               for c in configs]
+    handles += [plt.Line2D([], [], marker="o", linestyle="", color=PALETTE["thesisgray"],
+                           markeredgecolor="white"),
+                plt.Line2D([], [], marker="o", linestyle="", markerfacecolor="white",
+                           markeredgecolor=PALETTE["thesisgray"], markeredgewidth=LW_BORDER)]
+    labels = [style.label(c) for c in configs] + ["user (filled)", "system (open)"]
     ax.legend(handles, labels, fontsize=7, ncol=2)
     ax.set_title("CPU-time decomposition (user vs system, median)")
     _save_summary(pd.DataFrame(summary), out_path)
@@ -688,15 +825,15 @@ def fig_rq1_latency_ecdf(successful, workload, tier, configs, style, out_path):
         vs = np.sort(v)
         y = np.arange(1, len(vs) + 1) / len(vs)
         color = style.color(cf)
-        ax.step(vs, y, where="post", color=color, linewidth=1.7,
+        ax.step(vs, y, where="post", color=color, linewidth=LW_SERIES,
                 label=style.label(cf), zorder=3)
         qs = np.percentile(v, [100 * lv for lv in levels])
         ax.scatter(qs, levels, color=shade(color, 0.2), s=24, zorder=5,
-                   edgecolor="white", linewidth=0.5)
+                   edgecolor="white", linewidth=LW_MARKER_EDGE)
         summary.append({"configuration": cf, "n": int(len(v)),
                         "p50": float(qs[0]), "p95": float(qs[1]), "p99": float(qs[2])})
     for lv in levels:
-        ax.axhline(lv, color=PALETTE["thesislight"], linewidth=0.8, zorder=0)
+        ax.axhline(lv, color=PALETTE["thesislight"], linewidth=LW_BORDER, zorder=0)
         ax.annotate(f"p{int(lv * 100)}", xy=(0.0, lv), xycoords=("axes fraction", "data"),
                     xytext=(2, 1), textcoords="offset points", fontsize=7,
                     va="bottom", color=PALETTE["thesisgray"])
@@ -733,11 +870,12 @@ def fig_speedup(scaling: pd.DataFrame, style: StyleConfig, out_path) -> Path:
     w0 = scaling["worker_count"].min()
     wmax = scaling["worker_count"].max()
     ideal = np.array([w0, wmax])
-    ax.plot(ideal, ideal / w0, linestyle="--", color=PALETTE["thesisslate"], linewidth=1.1,
-            label="ideal (linear)")
+    ax.plot(ideal, ideal / w0, linestyle="--", color=PALETTE["thesisslate"],
+            linewidth=LW_CONNECTOR, label="ideal (linear)")
     ax.set_xlabel("Worker count")
     ax.set_ylabel("Speedup $S(n) = T_2 / T_n$")
     ax.set_title("Speedup of the distributed join")
+    _floor_nonneg(ax)  # speedup is non-negative
     ax.legend(fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
@@ -760,11 +898,12 @@ def fig_efficiency(scaling: pd.DataFrame, style: StyleConfig, out_path) -> Path:
         for w, ev in zip(g["worker_count"], e):
             summary.append({"strategy": strat, "dataset_size": ds, "workers": int(w),
                             "efficiency": float(ev)})
-    ax.axhline(1.0, linestyle="--", color=PALETTE["thesisslate"], linewidth=1.1,
+    ax.axhline(1.0, linestyle="--", color=PALETTE["thesisslate"], linewidth=LW_CONNECTOR,
                label="ideal (E = 1)")
     ax.set_xlabel("Worker count")
     ax.set_ylabel("Parallel efficiency $E(n)$")
     ax.set_title("Parallel efficiency of the distributed join")
+    _floor_nonneg(ax)  # efficiency is non-negative
     ax.legend(fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
@@ -784,7 +923,7 @@ def fig_wall_clock_vs_workers(scaling, single_node, failed, style, out_path) -> 
             summary.append({"kind": "distributed", "strategy": strat, "dataset_size": ds,
                             "workers": int(w), "min_time_s": float(p)})
     for _, row in single_node.iterrows():
-        ax.axhline(row["point"], linestyle="--", linewidth=1.4,
+        ax.axhline(row["point"], linestyle="--", linewidth=LW_CONNECTOR,
                    color=style.color(row["configuration"]),
                    label=f"{style.label(row['configuration'])} ({row['dataset_size']})")
         summary.append({"kind": "single_node", "configuration": row["configuration"],
@@ -816,7 +955,7 @@ def fig_phase_time(phase_df: pd.DataFrame, style: StyleConfig, out_path) -> Path
     for col, lab, color in phases:
         vals = (pdf[col].values / 1000.0)
         ax.bar(x, vals, bottom=bottom, width=0.7, color=color, edgecolor="white",
-               linewidth=0.4, label=lab)
+               linewidth=LW_HAIRLINE, label=lab)
         bottom += vals
     for xi in range(len(pdf)):
         row = pdf.iloc[xi]
@@ -826,6 +965,7 @@ def fig_phase_time(phase_df: pd.DataFrame, style: StyleConfig, out_path) -> Path
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=7)
     ax.set_ylabel("Phase time (s)")
+    ax.set_ylim(bottom=0)  # stacked bars baseline at 0
     ax.set_title("Execution-phase wall-clock time (broadcast)")
     ax.legend(fontsize=8)
     _save_summary(pd.DataFrame(summary), out_path)
@@ -841,13 +981,14 @@ def fig_shuffle_bytes(phase_df: pd.DataFrame, style: StyleConfig, out_path) -> P
     rd = pdf["shuffle_read_bytes"].values
     wr = pdf["shuffle_write_bytes"].values
     ax.bar(x, rd, width=0.7, color=style.strategy_colors["broadcast"], edgecolor="white",
-           linewidth=0.4, label="Shuffle read")
+           linewidth=LW_HAIRLINE, label="Shuffle read")
     ax.bar(x, wr, bottom=rd, width=0.7, color=tint(style.strategy_colors["broadcast"], 0.45),
-           edgecolor="white", linewidth=0.4, label="Shuffle write")
+           edgecolor="white", linewidth=LW_HAIRLINE, label="Shuffle write")
     ax.yaxis.set_major_formatter(_bytes_fmt())
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=7)
     ax.set_ylabel("Shuffle bytes")
+    ax.set_ylim(bottom=0)  # stacked bars baseline at 0
     ax.set_title("Shuffle bytes (broadcast)")
     ax.legend(fontsize=8)
     _save_summary(
@@ -865,7 +1006,7 @@ def fig_cost_pareto(pareto_df: pd.DataFrame, style: StyleConfig, out_path) -> Pa
     for (strat, ds), g in pareto_df.groupby(["strategy", "dataset_size"]):
         color = style.strategy_colors.get(strat, PALETTE["thesisgray"])
         ax.scatter(g["cost"], g["time"], s=46, color=color, edgecolor="white",
-                   linewidth=0.5, zorder=3, label=f"{strat.capitalize()} ({ds})")
+                   linewidth=LW_MARKER_EDGE, zorder=3, label=f"{strat.capitalize()} ({ds})")
         for _, row in g.iterrows():
             ax.annotate(f"{int(row['worker_count'])}", xy=(row["cost"], row["time"]),
                         xytext=(3, 3), textcoords="offset points", fontsize=6)
@@ -878,7 +1019,7 @@ def fig_cost_pareto(pareto_df: pd.DataFrame, style: StyleConfig, out_path) -> Pa
             best = tm
     if frontier:
         fx, fy = zip(*frontier)
-        ax.plot(fx, fy, color=PALETTE["thesisslate"], linewidth=1.3, linestyle="-",
+        ax.plot(fx, fy, color=PALETTE["thesisslate"], linewidth=LW_SERIES, linestyle="-",
                 zorder=2, label="non-dominated frontier")
     for _, row in pareto_df.iterrows():
         summary.append({"strategy": row["strategy"], "dataset_size": row["dataset_size"],
@@ -912,7 +1053,7 @@ def fig_winners_matrix(winners: pd.DataFrame, style: StyleConfig, out_path) -> P
                 continue
             ax.add_patch(plt.Rectangle((ci, ri), 1, 1,
                                        facecolor=tint(_system_color(style, sysname), 0.15),
-                                       edgecolor="white", linewidth=2))
+                                       edgecolor="white", linewidth=LW_CONNECTOR))
             ax.text(ci + 0.5, ri + 0.5, SYSTEM_LABEL.get(sysname, sysname).split(" ")[0],
                     ha="center", va="center", fontsize=8, fontweight="bold",
                     color=shade(_system_color(style, sysname), 0.35))
@@ -947,8 +1088,8 @@ def fig_ranking_stability(rank_long: pd.DataFrame, style: StyleConfig, out_path)
             xs = [i for i, t in enumerate(tiers) if not pd.isna(g.loc[t, "rank"])]
             ys = [g.loc[t, "rank"] for t in tiers if not pd.isna(g.loc[t, "rank"])]
             col = _name_color(style, cf)
-            ax.plot(xs, ys, marker="o", color=col, linewidth=1.8, markersize=7,
-                    label=_name_label(style, cf))
+            ax.plot(xs, ys, marker="o", color=col, linewidth=LW_SERIES, markersize=7,
+                    markeredgewidth=LW_MARKER_EDGE, label=_name_label(style, cf))
             if xs:
                 ax.annotate(_name_label(style, cf).split(" ")[0], xy=(xs[-1], ys[-1]),
                             xytext=(6, 0), textcoords="offset points", va="center",
@@ -978,10 +1119,12 @@ def fig_cliques(mean_ranks: dict, nonsig_pairs: list, style: StyleConfig, out_pa
     cfgs = [c for c, _ in items]
     ranks = [r for _, r in items]
     fig, ax = plt.subplots(figsize=(7.0, 2.4 + 0.35 * len(cfgs)))
-    ax.hlines(0, min(ranks) - 0.3, max(ranks) + 0.3, color=PALETTE["thesisslate"], linewidth=1)
+    ax.hlines(0, min(ranks) - 0.3, max(ranks) + 0.3, color=PALETTE["thesisslate"],
+              linewidth=LW_BORDER)
     for c, r in items:
         col = _name_color(style, c)
-        ax.scatter(r, 0, s=60, color=col, zorder=4, edgecolor="white")
+        ax.scatter(r, 0, s=60, color=col, zorder=4, edgecolor="white",
+                   linewidth=LW_MARKER_EDGE)
         ax.annotate(f"{_name_label(style, c)}\n({r:.2f})", xy=(r, 0), xytext=(0, 12),
                     textcoords="offset points", ha="center", fontsize=7.5,
                     color=shade(col, 0.2))
@@ -990,7 +1133,7 @@ def fig_cliques(mean_ranks: dict, nonsig_pairs: list, style: StyleConfig, out_pa
     for a, b in nonsig_pairs:
         if a in mean_ranks and b in mean_ranks and (a, b) not in drawn:
             ax.plot([mean_ranks[a], mean_ranks[b]], [level, level],
-                    color=PALETTE["thesisbrick"], linewidth=2.4, zorder=3)
+                    color=PALETTE["thesisbrick"], linewidth=1.8, zorder=3)
             level -= 0.035
             drawn.add((a, b))
     ax.set_ylim(level - 0.05, 0.18)
@@ -1016,15 +1159,17 @@ def fig_a12_forest(forest_df: pd.DataFrame, style: StyleConfig, out_path) -> Pat
         y = n - i - 1
         a12 = row["a12"]
         color = PALETTE["thesisteal"] if a12 >= 0.5 else PALETTE["thesiscoral"]
-        ax.scatter(a12, y, s=46, color=color, zorder=4, edgecolor="white")
+        ax.scatter(a12, y, s=46, color=color, zorder=4, edgecolor="white",
+                   linewidth=LW_MARKER_EDGE)
         if not pd.isna(row.get("ci_low", np.nan)):
-            ax.plot([row["ci_low"], row["ci_high"]], [y, y], color=color, linewidth=1.4, zorder=3)
+            ax.plot([row["ci_low"], row["ci_high"]], [y, y], color=color,
+                    linewidth=LW_CONNECTOR, zorder=3)
     # arcuri magnitude bands (reflected around 0.5)
     for thr, lab in [(0.56, "small"), (0.64, "medium"), (0.71, "large")]:
         for xx in (thr, 1 - thr):
-            ax.axvline(xx, color=PALETTE["thesislight"], linewidth=0.8, zorder=0)
-    ax.axvline(0.5, color=PALETTE["thesisslate"], linestyle="--", linewidth=1.2, zorder=1,
-               label="no effect (0.5)")
+            ax.axvline(xx, color=PALETTE["thesislight"], linewidth=LW_BORDER, zorder=0)
+    ax.axvline(0.5, color=PALETTE["thesisslate"], linestyle="--", linewidth=LW_CONNECTOR,
+               zorder=1, label="no effect (0.5)")
     ax.set_yticks(range(n))
     ax.set_yticklabels(list(forest_df["label"])[::-1], fontsize=7.5)
     ax.set_xlim(0, 1)
@@ -1061,12 +1206,12 @@ def fig_rq3_parallel_coords(axes_df, style, out_path) -> Path:
 
     fig, ax = plt.subplots(figsize=(7.8, 4.8))
     for xi in x:
-        ax.axvline(xi, color=PALETTE["thesislight"], linewidth=1.0, zorder=0)
+        ax.axvline(xi, color=PALETTE["thesislight"], linewidth=LW_BORDER, zorder=0)
     for sysname in norm.index:
         color = _system_color(style, sysname)
         ax.plot(x, norm.loc[sysname, cols].values, marker="o", markersize=6,
-                linewidth=2.0, color=color, markeredgecolor="white",
-                markeredgewidth=0.6, zorder=3,
+                linewidth=LW_SERIES, color=color, markeredgecolor="white",
+                markeredgewidth=LW_MARKER_EDGE, zorder=3,
                 label=SYSTEM_LABEL.get(sysname, sysname))
 
     def _fmt(col, val):
@@ -1105,8 +1250,14 @@ def fig_rq3_parallel_coords(axes_df, style, out_path) -> Path:
 
 def fig_cell_grid(successful, cost_summary, cells, configs, style, out_path) -> Path:
     """Combined per-(workload x tier) grid: a small multiples panel per cell with
-    median/min bars, network I/O and cost. One composite image (thesis float
-    expects a single ``09-cell-grid.png``)."""
+    the minimum wall-clock time by configuration. One composite image (thesis
+    float expects a single ``09-cell-grid.png``).
+
+    The minimum time spans several decades across configurations, so the y-axis
+    is logarithmic; a bar has no valid baseline there, so each configuration is a
+    point (minimum estimator) with its 95% bootstrap CI as a whisker rather than
+    a bar.
+    """
     n = len(cells)
     ncols = 3
     nrows = (n + ncols - 1) // ncols
@@ -1118,19 +1269,25 @@ def fig_cell_grid(successful, cost_summary, cells, configs, style, out_path) -> 
         cell = successful[(successful["workload_type"] == wt) & (successful["dataset_size"] == ds)]
         present = [c for c in configs if c in cell["configuration"].unique()]
         x = np.arange(len(present))
-        times = [float(np.min(cell[cell["configuration"] == c]["elapsed_time"].dropna()))
-                 if len(cell[cell["configuration"] == c]) else np.nan for c in present]
-        ax.bar(x, times, width=0.6, color=[style.color(c) for c in present],
-               edgecolor="white", linewidth=0.4)
+        for xi, c in zip(x, present):
+            v = cell[cell["configuration"] == c]["elapsed_time"].dropna().values
+            if len(v) == 0:
+                continue
+            point, lo, hi = estimate_ci(v, kind="min")
+            color = style.color(c)
+            ax.errorbar(xi, point, yerr=[[max(point - lo, 0)], [max(hi - point, 0)]],
+                        fmt="D", ms=5, color=color, ecolor=color,
+                        elinewidth=LW_CONNECTOR, capsize=2.5, markeredgecolor="white",
+                        markeredgewidth=LW_MARKER_EDGE, zorder=3)
+            summary.append({"workload_type": wt, "dataset_size": ds, "configuration": c,
+                            "min_time_s": point, "ci_low": lo, "ci_high": hi})
         ax.set_yscale("log")
+        ax.set_xlim(-0.6, len(present) - 0.4)
         ax.set_xticks(x)
         ax.set_xticklabels([style.label(c).split(" ")[0] for c in present], rotation=30,
                            ha="right", fontsize=6.5)
         ax.set_title(f"{style.workload_label(wt)} ({ds})", fontsize=8.5)
-        ax.set_ylabel("min time (s)", fontsize=7)
-        for c, t in zip(present, times):
-            summary.append({"workload_type": wt, "dataset_size": ds, "configuration": c,
-                            "min_time_s": t})
+        ax.set_ylabel("min time (s, log)", fontsize=7)
     for j in range(n, nrows * ncols):
         axes[j // ncols][j % ncols].set_visible(False)
     fig.suptitle("Per-cell summary grid — minimum wall-clock time by configuration",

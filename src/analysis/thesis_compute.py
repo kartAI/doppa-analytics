@@ -205,6 +205,102 @@ def rq3_winners(sysvals):
     return pd.DataFrame(data).T.reindex(labels)
 
 
+def _rep_config(successful, wt, ds, system, metric, kind):
+    """Configuration within *system* achieving that system's best (lowest) value
+    in the cell — the representative config for a system-level significance lookup
+    (trivially the config itself for single-node systems)."""
+    cell = successful[(successful["workload_type"] == wt)
+                      & (successful["dataset_size"] == ds)]
+    cell = cell[cell["configuration"].map(system_of) == system]
+    best_cfg, best_val = None, np.inf
+    for cfg, g in cell.groupby("configuration"):
+        v = g[metric].dropna().values
+        if len(v) == 0:
+            continue
+        val = float(np.min(v)) if kind == "min" else float(np.median(v))
+        if val < best_val:
+            best_cfg, best_val = cfg, val
+    return best_cfg
+
+
+def rq3_winners_export(sysvals, pooled, successful, tie_threshold=0.05):
+    """Decision-quadrant support data (NOT a figure): per (workload x tier x
+    outcome) the winning system, the runner-up, the relative margin, and whether
+    the win is statistically backed.
+
+    Outcomes: Time (min elapsed), Bytes (median received), Cost (min modeled
+    total); lower wins on each. Significance for Time/Bytes is read off the
+    pooled Holm-adjusted Wilcoxon table (``pooled``) between the winner's and
+    runner-up's representative configurations on that metric in that cell. Cost is
+    a single modeled value with no inferential test, so its decision is by margin
+    only. ``decision`` is one of: ``significant`` (Holm-significant win),
+    ``n.s.`` (tested, not significant — a statistical tie), ``tie`` (margin below
+    ``tie_threshold`` and not significance-tested, e.g. Cost or an untestable
+    cell), ``clear`` (Cost win above the margin threshold), ``single-config``
+    (only one system ran the cell), or ``untested`` (margin above threshold but no
+    pairwise test available). This is the table the hand-drawn Discussion decision
+    quadrant should be redrawn from.
+    """
+    from src.plotting.style import StyleConfig
+    size_order = StyleConfig().size_order
+    metric_of = {"Time": ("elapsed_time", "min"),
+                 "Bytes": ("network_bytes_received", "median"),
+                 "Cost": (None, None)}
+
+    def holm_sig(wt, ds, metric, ca, cb):
+        if pooled is None or pooled.empty or ca is None or cb is None:
+            return None, np.nan
+        a, b = sorted([ca, cb])
+        r = pooled[(pooled["workload_type"] == wt) & (pooled["dataset_size"] == ds)
+                   & (pooled["metric"] == metric) & (pooled["config_a"] == a)
+                   & (pooled["config_b"] == b)]
+        if len(r):
+            return bool(r["significant"].iloc[0]), float(r["p_value_holm"].iloc[0])
+        return None, np.nan
+
+    rows = []
+    for (wt, ds), cell in sysvals.groupby(["workload_type", "dataset_size"]):
+        d = cell.set_index("system")
+        for oc in ["Time", "Bytes", "Cost"]:
+            s = d[oc].dropna().sort_values()
+            rec = {"workload_type": wt, "tier": ds, "wt_tier": f"{WL_SHORT[wt]} ({ds})",
+                   "outcome": oc, "winner": "", "winner_value": np.nan,
+                   "runner_up": "", "runner_up_value": np.nan, "rel_margin_pct": np.nan,
+                   "holm_p": np.nan, "decision": ""}
+            if len(s) == 0:
+                rec["decision"] = "none"
+                rows.append(rec)
+                continue
+            winner = s.index[0]
+            rec["winner"], rec["winner_value"] = winner, float(s.iloc[0])
+            if len(s) == 1:
+                rec["decision"] = "single-config"
+                rows.append(rec)
+                continue
+            runner = s.index[1]
+            rec["runner_up"], rec["runner_up_value"] = runner, float(s.iloc[1])
+            margin = (s.iloc[1] - s.iloc[0]) / s.iloc[0] if s.iloc[0] > 0 else np.nan
+            rec["rel_margin_pct"] = 100.0 * margin if not pd.isna(margin) else np.nan
+            metric, kind = metric_of[oc]
+            if metric is None:  # Cost: modeled, margin-only
+                rec["decision"] = "tie" if (not pd.isna(margin) and margin < tie_threshold) else "clear"
+            else:
+                ca = _rep_config(successful, wt, ds, winner, metric, kind)
+                cb = _rep_config(successful, wt, ds, runner, metric, kind)
+                sig, p = holm_sig(wt, ds, metric, ca, cb)
+                rec["holm_p"] = p
+                if sig is True:
+                    rec["decision"] = "significant"
+                elif sig is False:
+                    rec["decision"] = "n.s."
+                else:  # no pairwise test available
+                    rec["decision"] = "tie" if (not pd.isna(margin) and margin < tie_threshold) else "untested"
+            rows.append(rec)
+    out = pd.DataFrame(rows)
+    out["_o"] = out["tier"].map(lambda t: size_order.get(t, 9))
+    return out.sort_values(["workload_type", "_o", "outcome"]).drop(columns="_o").reset_index(drop=True)
+
+
 def rq3_ranks(sysvals):
     rows = []
     for (wt, ds), cell in sysvals.groupby(["workload_type", "dataset_size"]):

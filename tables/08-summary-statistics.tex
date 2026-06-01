@@ -1,0 +1,18 @@
+% tab:appendix-summary-statistics  cols {@{}l l l S S S S S S@{}}  (Workload, Config, Tier, n, Min s, Median s, IQR s, CV, CI half-width %); grouped by workload. NO float exists yet -- see report.
+Point-in-polygon & DuckDB + GeoParquet & Small & 1282 & 1.327 & 1.525 & 0.4071 & 0.265 & 0.45 \\
+Point-in-polygon & DuckDB + GeoParquet & Large & 345 & 29.919 & 36.873 & 10.035 & 0.167 & 0.45 \\
+Point-in-polygon & PostGIS & Small & 79186 & 0.0016 & 0.0037 & 0.0010 & 0.407 & 1.25 \\
+Point-in-polygon & PostGIS & Large & 75052 & 0.0015 & 0.0039 & 0.0011 & 0.494 & 2.49 \\
+Point-in-polygon & GeoPandas + Shapefile & Small & 4491 & 0.3427 & 0.3741 & 0.0751 & 0.220 & 0.13 \\
+\addlinespace
+kNN & DuckDB + GeoParquet & Small & 2041 & 0.7460 & 0.8044 & 0.1664 & 0.229 & 0.06 \\
+kNN & DuckDB + GeoParquet & Large & 439 & 15.736 & 17.679 & 6.249 & 0.409 & 0.19 \\
+kNN & PostGIS & Small & 76103 & 0.0017 & 0.0042 & 0.0011 & 0.495 & 1.43 \\
+kNN & PostGIS & Large & 76521 & 0.0016 & 0.0039 & 0.0011 & 0.470 & 2.86 \\
+kNN & GeoPandas + Shapefile & Small & 445 & 47.816 & 60.810 & 19.397 & 0.286 & 0.41 \\
+\addlinespace
+Bounding-box & DuckDB + GeoParquet & Small & 1571 & 1.055 & 1.139 & 0.2134 & 0.165 & 0.28 \\
+Bounding-box & DuckDB + GeoParquet & Large & 382 & 22.826 & 27.703 & 8.035 & 0.181 & 0.21 \\
+Bounding-box & PostGIS & Small & 30785 & 0.0273 & 0.0341 & 0.0039 & 0.386 & 0.64 \\
+Bounding-box & PostGIS & Large & 24805 & 0.0389 & 0.0462 & 0.0045 & 0.368 & 0.46 \\
+Bounding-box & GeoPandas + Shapefile & Small & 21185 & 0.0521 & 0.0588 & 0.0089 & 0.443 & 0.33 \\

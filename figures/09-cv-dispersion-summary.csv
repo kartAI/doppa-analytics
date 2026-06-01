@@ -34,7 +34,7 @@ national-scale-spatial-join,small,databricks-partitioned-8-nodes,0.0321827291181
 national-scale-spatial-join,small,duckdb,0.17105302300249062
 national-scale-spatial-join,small,postgis,0.006357403921221296
 point-in-polygon-lookup,large,duckdb,0.16723953892310436
-point-in-polygon-lookup,large,postgis,0.4940920878931796
+point-in-polygon-lookup,large,postgis,0.4940920878931795
 point-in-polygon-lookup,small,duckdb,0.2652135664400491
 point-in-polygon-lookup,small,local,0.21980845210599578
 point-in-polygon-lookup,small,postgis,0.40736725371925436

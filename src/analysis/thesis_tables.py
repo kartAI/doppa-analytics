@@ -69,6 +69,14 @@ def _fmt_cost(v) -> str:
     return "---" if _nan(v) else f"{v:.4f}"
 
 
+def _fmt_cv(v) -> str:
+    return "---" if _nan(v) else f"{v:.3f}"
+
+
+def _fmt_pct(v) -> str:
+    return "---" if _nan(v) else f"{v:.2f}"
+
+
 def _fmt_int(v) -> str:
     return "---" if _nan(v) else str(int(round(v)))
 
@@ -142,6 +150,55 @@ def emit_achieved_n(successful, metadata_df, experiments, out_path) -> pd.DataFr
     _write(rows, out_path,
            "tab:results-achieved-n  cols {@{}l l l r r r l@{}}  (Config, Workload, "
            "Tier, Achieved n, Min s, CI half-width, Stop reason)")
+    return pd.DataFrame(recs)
+
+
+def emit_summary_statistics(successful, experiments, out_path) -> pd.DataFrame:
+    """tab:appendix-summary-statistics — fuller dispersion companion to the lean
+    body achieved-n table (``tab:results-achieved-n``).
+
+    One row per single-machine (config x workload x tier) cell that ran: achieved
+    n, minimum, median, IQR, CV, and the relative bootstrap-CI half-width (%).
+    Dispersion is reported as IQR and CV rather than the standard deviation: the
+    per-iteration timings are right-skewed and one-sidedly contaminated, so a
+    symmetric std would overstate and misplace the spread. IQR is the single
+    Q3 - Q1 width (not the Q1--Q3 pair) so each dispersion measure is one
+    siunitx ``S`` column. Rows are grouped by workload (an ``\\addlinespace``
+    separates groups). The CI half-width uses the same minimum estimator and
+    percentile bootstrap as the figures (``estimate_ci``).
+    Scope mirrors the achieved-n table (the three single-machine engines over the
+    three single-machine query patterns); distributed-join dispersion lives in
+    Table~\\ref{tab:distributed-join-descriptive-statistics}.
+    """
+    rows, recs = [], []
+    for wi, wt in enumerate(RQ1_WORKLOADS):
+        if wi:
+            rows.append(r"\addlinespace")
+        for cfg in RQ1_CONFIGS:
+            for ds in ["small", "large"]:
+                qid = f"{wt}-{cfg}-{ds}"
+                if qid not in experiments:
+                    continue  # did not run by design (e.g. Shapefile beyond small)
+                v = successful[successful["query_id"] == qid]["elapsed_time"].dropna().values
+                if len(v) == 0:
+                    continue
+                mn = float(np.min(v))
+                med = float(np.median(v))
+                iqr = float(np.percentile(v, 75) - np.percentile(v, 25))
+                cv = float(np.std(v, ddof=1) / np.mean(v)) if np.mean(v) > 0 else np.nan
+                point, lo, hi = estimate_ci(v, kind="min")
+                ci_pct = 100.0 * ((hi - lo) / 2.0) / point if point > 0 else np.nan
+                rows.append(
+                    f"{WL_SHORT[wt]} & {CFG_LONG[cfg]} & {ds.capitalize()} & "
+                    f"{len(v)} & {_fmt_sec(mn)} & {_fmt_sec(med)} & {_fmt_sec(iqr)} & "
+                    f"{_fmt_cv(cv)} & {_fmt_pct(ci_pct)} \\\\")
+                recs.append({"workload_type": wt, "configuration": cfg, "dataset_size": ds,
+                             "n": int(len(v)), "min_s": mn, "median_s": med, "iqr_s": iqr,
+                             "cv": cv, "ci_halfwidth_pct": ci_pct})
+    _write(rows, out_path,
+           "tab:appendix-summary-statistics  cols {@{}l l l S S S S S S@{}}  "
+           "(Workload, Config, Tier, n, Min s, Median s, IQR s, CV, CI half-width %); "
+           "grouped by workload. NO float exists yet -- see report.")
     return pd.DataFrame(recs)
 
 
