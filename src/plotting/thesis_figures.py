@@ -104,6 +104,67 @@ def _save_summary(df: pd.DataFrame, out_path: str | Path) -> Path:
     return csv
 
 
+# ── bottom-legend convention ────────────────────────────────────────────────
+# Every thesis figure that carries a legend places it *below* the axes, centred
+# and spanning the figure width (one row per legend, ``ncol`` = number of
+# entries). The legend is separated from the axes block by a uniform gap, fixed
+# in inches and measured off the *rendered* bottom of the axes (tick labels,
+# axis labels and titles included), so the spacing is identical across every
+# figure regardless of its height or x-axis decorations. ``_save`` writes with
+# ``bbox_inches="tight"``, which crops to include the legend.
+
+_LEGEND_GAP_IN = 0.22       # uniform gap (inches) between the axes block and the legend
+_LEGEND_ROW_GAP_IN = 0.08   # gap (inches) between stacked legend rows
+
+
+def _axes_bottom_frac(fig: plt.Figure) -> float:
+    """Figure-fraction y of the lowest rendered point of every visible axes
+    (tick labels, axis labels and titles included)."""
+    fig.draw_without_rendering()
+    r = fig.canvas.get_renderer()
+    ys = []
+    for ax in fig.axes:
+        if not ax.get_visible():
+            continue
+        bb = ax.get_tightbbox(r)
+        if bb is not None:
+            ys.append(bb.y0)
+    y0_disp = min(ys) if ys else 0.0
+    return float(fig.transFigure.inverted().transform((0.0, y0_disp))[1])
+
+
+def _legend_below(fig, handles, labels=None, *, ncol=None, fontsize=8,
+                  title=None, **kw):
+    """Centred legend below the figure, spanning the width, uniform gap above."""
+    if labels is None:
+        labels = [h.get_label() for h in handles]
+    y = _axes_bottom_frac(fig) - _LEGEND_GAP_IN / fig.get_figheight()
+    return fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, y),
+                      ncol=ncol or max(len(handles), 1), frameon=False,
+                      fontsize=fontsize, title=title, **kw)
+
+
+def _legend_below_stacked(fig, groups, *, fontsize=8, **kw):
+    """Stack several centred legends below the figure — for figures whose colour
+    and glyph encodings carry distinct meanings and keep their own titles. The
+    top legend holds the uniform gap above; the rest follow at a small uniform
+    row gap so the block reads as one unit."""
+    y = _axes_bottom_frac(fig) - _LEGEND_GAP_IN / fig.get_figheight()
+    row_gap = _LEGEND_ROW_GAP_IN / fig.get_figheight()
+    legs = []
+    for g in groups:
+        handles = g["handles"]
+        labels = g.get("labels") or [h.get_label() for h in handles]
+        leg = fig.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, y),
+                         ncol=g.get("ncol") or max(len(handles), 1), frameon=False,
+                         fontsize=fontsize, title=g.get("title"), **kw)
+        legs.append(leg)
+        fig.draw_without_rendering()
+        bb = leg.get_window_extent(fig.canvas.get_renderer())
+        y -= bb.height / fig.bbox.height + row_gap
+    return legs
+
+
 def estimate_ci(
     values, kind: str = "median", n_resamples: int = 10_000, cap: int = _CI_CAP
 ) -> tuple[float, float, float]:
@@ -225,7 +286,7 @@ def fig_warmup_distribution(
     ax.set_ylabel("Count")
     _floor_nonneg(ax, "x")  # elapsed-time axis is non-negative
     ax.set_title(f"{style.workload_label(d['workload_type'].iloc[0])} — {style.label(cfg)}")
-    ax.legend(fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(
         pd.DataFrame([{"query_id": query_id, "n": len(vals), "min": vmin,
                        "median": vmed, "mean": vmean,
@@ -260,7 +321,7 @@ def fig_warmup_decay(
     ax.set_ylabel("Elapsed time (s)")
     ax.set_title(f"{style.workload_label(d['workload_type'].iloc[0])} — {style.label(cfg)}")
     _floor_nonneg(ax)  # elapsed time is non-negative; hug data above 0
-    ax.legend(fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(
         pd.DataFrame({"iteration": x, "elapsed_time": y}), out_path
     )
@@ -306,7 +367,7 @@ def fig_convergence(
     ax.set_ylabel("Relative CI half-width")
     ax.set_ylim(0, min(0.5, max(rel) * 1.1 if rel else 0.5))
     ax.set_title(f"Sequential-stopping convergence — {style.label(cfg)}")
-    ax.legend(fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(pd.DataFrame({"n": ks, "rel_ci_halfwidth": rel}), out_path)
     return _save(fig, out_path)
 
@@ -363,7 +424,7 @@ def fig_estimator_illustration(
         f"Estimator choice — {style.workload_label(d['workload_type'].iloc[0])}, "
         f"{style.label(cfg)}"
     )
-    ax.legend(fontsize=8, loc="lower right")
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(
         pd.DataFrame([{"query_id": query_id, "n": int(len(vals)), "min": vmin,
                        "median": vmed, "mean": vmean, "mean_over_min": vmean / vmin,
@@ -411,7 +472,7 @@ def fig_cv_dispersion(
     ax.set_ylabel("Coefficient of variation")
     ax.set_title(f"Run-to-run dispersion — {style.metric_label(metric)}")
     _floor_nonneg(ax)  # CV is non-negative
-    ax.legend(fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(cv, out_path)
     return _save(fig, out_path)
 
@@ -472,7 +533,7 @@ def fig_time_of_day_stability(
     ax.set_xlabel("Start time-of-day (UTC, h)")
     ax.set_ylabel("Relative runtime (elapsed / cell median)")
     ax.set_title(f"Runtime versus time-of-day (overall Spearman ρ = {rho_all:+.2f})")
-    ax.legend(fontsize=7.5, loc="upper right", ncol=2)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7.5)
     summary.append({"system": "ALL", "n": int(len(d)), "spearman_rho": float(rho_all),
                     "spearman_p": float(p_all), "ols_slope_per_hour": np.nan})
     _save_summary(pd.DataFrame(summary), out_path)
@@ -647,10 +708,9 @@ def _rq1_dist_grid(successful, workloads, configs, tiers, style, *, metric, kind
                               color=tint(PALETTE["thesisgray"], 0.4),
                               markeredgecolor=PALETTE["thesisgray"],
                               label="per-iteration distribution (violin · box · points)")
-    fig.legend(handles=[est_handle, cloud_handle], loc="lower center", ncol=2,
-               fontsize=8, frameon=False, bbox_to_anchor=(0.5, -0.01))
     fig.suptitle(title, fontsize=12, y=1.0)
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.tight_layout()
+    _legend_below(fig, [est_handle, cloud_handle], fontsize=8)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -708,10 +768,11 @@ def fig_rq1_bytes_vs_time(successful, workloads, configs, tiers, style, out_path
                    if c in successful["configuration"].unique()]
     size_handles = [plt.Line2D([], [], marker=marker[s], linestyle="", color=PALETTE["thesisgray"],
                                label=s.capitalize()) for s in tiers]
-    leg1 = ax.legend(handles=cfg_handles, fontsize=7.5, loc="upper left", title="Engine")
-    ax.add_artist(leg1)
-    ax.legend(handles=size_handles, fontsize=7.5, loc="lower right", title="Tier")
     ax.set_title("Bytes transferred versus wall-clock time")
+    _legend_below_stacked(fig, [
+        {"handles": cfg_handles, "title": "Engine"},
+        {"handles": size_handles, "title": "Tier"},
+    ], fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -750,9 +811,9 @@ def fig_rq1_operational_cost(cost_summary, workloads, configs, tiers, style, out
         ax.set_title(style.workload_label(wt), fontsize=9.5)
         ax.set_ylabel("Cost (USD)" if ax is axes[0] else "")
         ax.set_ylim(bottom=0)  # stacked bars baseline at 0
-    axes[0].legend(fontsize=7.5, loc="upper left")
     fig.suptitle("Operational cost per single-machine configuration", fontsize=12, y=1.02)
     fig.tight_layout()
+    _legend_below(fig, *axes[0].get_legend_handles_labels(), fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -813,8 +874,8 @@ def fig_cpu_decomposition(successful, workloads, configs, tiers, style, out_path
                 plt.Line2D([], [], marker="o", linestyle="", markerfacecolor="white",
                            markeredgecolor=PALETTE["thesisgray"], markeredgewidth=LW_BORDER)]
     labels = [style.label(c) for c in configs] + ["user (filled)", "system (open)"]
-    ax.legend(handles, labels, fontsize=7, ncol=2)
     ax.set_title("CPU-time decomposition (user vs system, median)")
+    _legend_below(fig, handles, labels, fontsize=7)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -857,7 +918,7 @@ def fig_rq1_latency_ecdf(successful, workload, tier, configs, style, out_path):
     ax.set_xlabel("Per-iteration elapsed time (s, log)")
     ax.set_ylabel("Empirical CDF")
     ax.set_title(f"Latency distribution — {style.workload_label(workload)} ({tier} tier)")
-    ax.legend(fontsize=8, loc="lower right", title="Configuration")
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8, title="Configuration")
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -891,7 +952,7 @@ def fig_speedup(scaling: pd.DataFrame, style: StyleConfig, out_path) -> Path:
     ax.set_ylabel("Speedup $S(n) = T_2 / T_n$")
     ax.set_title("Speedup of the distributed join")
     _floor_nonneg(ax)  # speedup is non-negative
-    ax.legend(fontsize=7.5)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -919,7 +980,7 @@ def fig_efficiency(scaling: pd.DataFrame, style: StyleConfig, out_path) -> Path:
     ax.set_ylabel("Parallel efficiency $E(n)$")
     ax.set_title("Parallel efficiency of the distributed join")
     _floor_nonneg(ax)  # efficiency is non-negative
-    ax.legend(fontsize=7.5)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -952,7 +1013,7 @@ def fig_wall_clock_vs_workers(scaling, single_node, failed, style, out_path) -> 
     ax.set_xlabel("Worker count")
     ax.set_ylabel("Wall-clock time (s, log; minimum estimator)")
     ax.set_title("Distributed wall-clock time versus single-node baselines")
-    ax.legend(fontsize=7, ncol=2)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -982,7 +1043,7 @@ def fig_phase_time(phase_df: pd.DataFrame, style: StyleConfig, out_path) -> Path
     ax.set_ylabel("Phase time (s)")
     ax.set_ylim(bottom=0)  # stacked bars baseline at 0
     ax.set_title("Execution-phase wall-clock time (broadcast)")
-    ax.legend(fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1005,7 +1066,7 @@ def fig_shuffle_bytes(phase_df: pd.DataFrame, style: StyleConfig, out_path) -> P
     ax.set_ylabel("Shuffle bytes")
     ax.set_ylim(bottom=0)  # stacked bars baseline at 0
     ax.set_title("Shuffle bytes (broadcast)")
-    ax.legend(fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(
         pd.DataFrame({"dataset_size": pdf["dataset_size"], "workers": pdf["worker_count"],
                       "shuffle_read_bytes": rd, "shuffle_write_bytes": wr}),
@@ -1045,7 +1106,7 @@ def fig_cost_pareto(pareto_df: pd.DataFrame, style: StyleConfig, out_path) -> Pa
     ax.set_xlabel("Cost per run (USD, log)")
     ax.set_ylabel("Wall-clock time (s, log)")
     ax.set_title("Cost-time tradeoff of the distributed join")
-    ax.legend(fontsize=7)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1133,34 +1194,50 @@ def fig_cliques(mean_ranks: dict, nonsig_pairs: list, style: StyleConfig, out_pa
     items = sorted(mean_ranks.items(), key=lambda kv: kv[1])
     cfgs = [c for c, _ in items]
     ranks = [r for _, r in items]
-    span = (max(ranks) - min(ranks)) or 1.0
-    # Configurations that share (nearly) the same mean rank would otherwise have
-    # their labels drawn at one x position and overplotted; group such ties so the
-    # labels can be stacked vertically instead of colliding.
-    tol = 0.04 * span
+    label_y0, label_dy = 0.05, 0.075
+
+    def _clabel(c, r):
+        return f"{_name_label(style, c)}\n({r:.2f})"
+
+    # Configurations whose labels would overlap *horizontally* are stacked
+    # vertically instead of overplotted. The two-line config labels are far wider
+    # than the rank gaps between near-tied configs, so the decision is made on
+    # measured label width (data units), not a fixed rank tolerance. Widths are
+    # measured on a provisional figure — the axis width is fixed by the 7.0"
+    # figure, so only the height grows with the stack depth.
+    fig, ax = plt.subplots(figsize=(7.0, 2.4 + 0.35 * len(cfgs)))
+    ax.set_xlim(min(ranks) - 0.3, max(ranks) + 0.3)
+    fig.draw_without_rendering()
+    _inv, _rend = ax.transData.inverted(), fig.canvas.get_renderer()
+    label_w = {}
+    for c, r in items:
+        t = ax.text(r, label_y0, _clabel(c, r), ha="center", va="bottom", fontsize=7.5)
+        bb = t.get_window_extent(_rend)
+        label_w[c] = abs(_inv.transform((bb.x1, 0))[0] - _inv.transform((bb.x0, 0))[0])
+        t.remove()
     clusters: list[list[tuple]] = []
     for c, r in items:
-        if clusters and abs(r - clusters[-1][-1][1]) <= tol:
-            clusters[-1].append((c, r))
-        else:
-            clusters.append([(c, r)])
+        if clusters:
+            pc, pr = clusters[-1][-1]
+            if (r - pr) < 0.5 * (label_w[pc] + label_w[c]):
+                clusters[-1].append((c, r))
+                continue
+        clusters.append([(c, r)])
     max_stack = max(len(cl) for cl in clusters)
+    if max_stack > 1:  # give the stacked labels vertical room
+        fig.set_size_inches(7.0, 2.4 + 0.35 * len(cfgs) + 0.55 * (max_stack - 1))
 
-    fig, ax = plt.subplots(
-        figsize=(7.0, 2.4 + 0.35 * len(cfgs) + 0.55 * (max_stack - 1)))
     ax.hlines(0, min(ranks) - 0.3, max(ranks) + 0.3, color=PALETTE["thesisslate"],
               linewidth=LW_BORDER)
     for c, r in items:
         col = _name_color(style, c)
         ax.scatter(r, 0, s=60, color=col, zorder=4, edgecolor="white",
                    linewidth=LW_MARKER_EDGE)
-    label_y0, label_dy = 0.05, 0.075
     for cluster in clusters:
         for k, (c, r) in enumerate(cluster):
             col = _name_color(style, c)
-            ax.annotate(f"{_name_label(style, c)}\n({r:.2f})",
-                        xy=(r, label_y0 + k * label_dy), ha="center", va="bottom",
-                        fontsize=7.5, color=shade(col, 0.2))
+            ax.annotate(_clabel(c, r), xy=(r, label_y0 + k * label_dy),
+                        ha="center", va="bottom", fontsize=7.5, color=shade(col, 0.2))
     level = -0.04
     drawn = set()
     for a, b in nonsig_pairs:
@@ -1219,7 +1296,7 @@ def fig_a12_forest(forest_df: pd.DataFrame, style: StyleConfig, out_path) -> Pat
     ax.set_ylim(-0.6, n - 0.4)
     ax.set_xlabel(r"$\hat{A}_{12}$")
     ax.set_title("Vargha–Delaney effect-size forest")
-    ax.legend(fontsize=8, loc="lower right")
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(forest_df, out_path)
     return _save(fig, out_path)
 
@@ -1281,8 +1358,7 @@ def fig_rq3_parallel_coords(axes_df, style, out_path) -> Path:
         ax.spines[sp].set_visible(False)
     ax.tick_params(axis="y", length=0)
     ax.set_title("Per-system outcomes across dimensions (parallel coordinates)")
-    ax.legend(fontsize=8, loc="upper center", ncol=max(len(norm.index), 1),
-              bbox_to_anchor=(0.5, -0.09), frameon=False)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
     _save_summary(axes_df.reset_index().rename(columns={"index": "system"}), out_path)
     return _save(fig, out_path)
 
@@ -1392,7 +1468,7 @@ def _dir_bars(ax, pairs, summary, *, annotate_local, linthresh=1000.0):
     ax.tick_params(axis="x", labelsize=7)
 
 
-def _dir_legend(fig, y=-0.02):
+def _dir_legend(fig):
     """Shared received/sent/CI legend for the diverging-bar figures."""
     recv_h = plt.Line2D([], [], marker="s", linestyle="", markersize=8,
                         color=tint(PALETTE["thesisgray"], 0.0),
@@ -1402,8 +1478,7 @@ def _dir_legend(fig, y=-0.02):
                         markeredgecolor="white", label="sent (left)")
     ci_h = plt.Line2D([], [], color=PALETTE["thesisslate"], linewidth=LW_CONNECTOR,
                       label="95% bootstrap CI (median)")
-    fig.legend(handles=[recv_h, sent_h, ci_h], loc="lower center", ncol=3,
-               fontsize=8, frameon=False, bbox_to_anchor=(0.5, y))
+    _legend_below(fig, [recv_h, sent_h, ci_h], fontsize=8)
 
 
 def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path):
@@ -1480,7 +1555,7 @@ def fig_distributed_client_boundary(successful, style, out_path,
                      & (successful["configuration"] == sedona_cfg)]
     sed_tiers = _tier_order(style, sed["dataset_size"].unique())
     fig, ax = plt.subplots(figsize=(7.5, 0.9 * max(len(sed_tiers), 1) + 2.2))
-    fig.subplots_adjust(bottom=0.34, top=0.86)
+    fig.subplots_adjust(bottom=0.18, top=0.86)
     summary = []
     pairs = []
     for ds in sed_tiers:
@@ -1496,7 +1571,7 @@ def fig_distributed_client_boundary(successful, style, out_path,
                         "panel": "sedona-client-boundary"})
     ax.set_xlabel("← sent        bytes (symlog)        received →", fontsize=8.5)
     ax.set_ylabel("size tier", fontsize=9)
-    _dir_legend(fig, y=0.01)
+    _dir_legend(fig)
     fig.suptitle(f"Distributed client boundary — {style.label(sedona_cfg)} "
                  "(national-scale join)", fontsize=12, y=0.98)
     _save_summary(pd.DataFrame(summary), out_path)
@@ -1593,12 +1668,12 @@ def fig_cost_time_quadrant(cost_summary, successful, workloads, configs, tiers, 
     tier_h = [plt.Line2D([], [], marker="o", linestyle="", color=style.size_colors[t],
                          markeredgecolor=shade(style.size_colors[t], 0.35), label=t.capitalize())
               for t in tiers]
-    fig.legend(handles=cfg_h, loc="lower center", ncol=len(cfg_h), fontsize=7.5,
-               frameon=False, bbox_to_anchor=(0.5, -0.04), title="Configuration")
-    fig.legend(handles=tier_h, loc="lower center", ncol=len(tier_h), fontsize=7.5,
-               frameon=False, bbox_to_anchor=(0.5, -0.10), title="Tier")
     fig.suptitle("Single-machine cost–time decision quadrant", fontsize=12, y=1.0)
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.tight_layout()
+    _legend_below_stacked(fig, [
+        {"handles": cfg_h, "title": "Configuration"},
+        {"handles": tier_h, "title": "Tier"},
+    ], fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1664,10 +1739,11 @@ def fig_bytes_vs_cardinality(successful, configs, style, out_path,
     wl_h = [plt.Line2D([], [], marker=wl_marker[w], linestyle="", color=PALETTE["thesisgray"],
                        markeredgecolor="white", label=style.workload_label(w))
             for w in workloads]
-    leg1 = ax.legend(handles=cfg_h, fontsize=7.5, loc="upper left", title="Configuration")
-    ax.add_artist(leg1)
-    ax.legend(handles=wl_h, fontsize=7.5, loc="lower right", title="Pattern")
     ax.set_title("Network transfer versus result cardinality")
+    _legend_below_stacked(fig, [
+        {"handles": cfg_h, "title": "Configuration"},
+        {"handles": wl_h, "title": "Pattern"},
+    ], fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1751,10 +1827,10 @@ def fig_distributed_strategy_contrast(successful, cost_summary, style, out_path,
     axes[1].set_title("Operational cost", fontsize=10)
     for ax in axes:
         ax.set_xticks([2, 4, 8, 12, 16])
-        ax.legend(fontsize=8, title="Strategy")
     fig.suptitle(f"Broadcast versus partitioned join at the {tier} tier (national-scale join)",
                  fontsize=12, y=1.02)
     fig.tight_layout()
+    _legend_below(fig, *axes[0].get_legend_handles_labels(), fontsize=8, title="Strategy")
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1827,10 +1903,9 @@ def fig_cross_pattern(successful, workloads, configs, tiers, style, out_path):
             ax.set_ylabel("Wall-clock minimum (s, log)")
     cfg_h = [plt.Line2D([], [], marker="s", linestyle="", color=style.color(c),
                         markeredgecolor="white", label=style.label(c)) for c in configs]
-    fig.legend(handles=cfg_h, loc="lower center", ncol=len(cfg_h), fontsize=8, frameon=False,
-               bbox_to_anchor=(0.5, -0.02))
     fig.suptitle("Cross-pattern single-machine comparison by tier", fontsize=12, y=1.02)
-    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    fig.tight_layout()
+    _legend_below(fig, cfg_h, fontsize=8)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1886,10 +1961,9 @@ def fig_rank_portability(geomean, style, out_path):
     axR.set_ylabel(r"Geomean-normalized magnitude ($\times$, log)")
     axR.set_title("Absolute magnitude", fontsize=10)
     handles, labels = axR.get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=min(len(labels), 5), fontsize=8,
-               frameon=False, bbox_to_anchor=(0.5, -0.03))
     fig.suptitle("Rank portability versus absolute magnitude", fontsize=12, y=1.02)
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    fig.tight_layout()
+    _legend_below(fig, handles, labels, fontsize=8)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1946,8 +2020,8 @@ def fig_cpu_wall_ratio(successful, workloads, configs, tiers, style, out_path):
                           markeredgecolor="white", label=style.label(c)) for c in configs]
     handles.append(plt.Line2D([], [], color=PALETTE["thesisbrick"], linestyle="--",
                               linewidth=LW_CONNECTOR, label="1.0 (one busy core)"))
-    ax.legend(handles=handles, fontsize=7.5, ncol=2)
     ax.set_title("CPU-to-wall-clock ratio per configuration")
+    _legend_below(fig, handles, fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -2159,6 +2233,6 @@ def fig_reproducibility(successful, style, out_path, cells=None):
     ax.set_xlabel("Benchmark pass (1–30)")
     ax.set_ylabel("Per-pass minimum elapsed (s, log)")
     ax.set_title("Run-to-run reproducibility: between-pass minima vs within-pass CI")
-    ax.legend(fontsize=7.5, loc="upper right", ncol=2)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7.5)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)

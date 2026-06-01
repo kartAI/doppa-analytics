@@ -1,4 +1,4 @@
 configuration,mean_rank
 postgis,1.0
-duckdb,2.3333333333333335
 local,2.3333333333333335
+duckdb,2.6666666666666665

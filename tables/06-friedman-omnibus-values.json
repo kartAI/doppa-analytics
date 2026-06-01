@@ -1,10 +1,26 @@
 {
-  "workload": "point-in-polygon-lookup",
-  "tier": "small",
   "metric": "elapsed_time",
-  "chi2": 2564.0,
-  "p": 0.0,
+  "chi2": 4.666666666666664,
+  "p": 0.09697196786440515,
   "df": 2,
   "k_configs": 3,
-  "n_blocks": 1282
+  "n_blocks": 3,
+  "blocking": "workload\u00d7tier cells",
+  "included_configs": [
+    "duckdb",
+    "postgis",
+    "local"
+  ],
+  "included_cells": [
+    "Bounding-box, small",
+    "kNN, small",
+    "Point-in-polygon, small"
+  ],
+  "excluded_cells": {
+    "Bounding-box, large": "incomplete block (ran: duckdb, postgis)",
+    "kNN, large": "incomplete block (ran: duckdb, postgis)",
+    "Point-in-polygon, large": "incomplete block (ran: duckdb, postgis)"
+  },
+  "scope": "single-machine RQ1 cells only; the national-scale join and Apache Sedona are excluded because Sedona ran the join alone, so no complete \u22653-treatment block spans them with the single-machine engines",
+  "note": "Complete-block restriction leaves only 3 cells (Shapefile ran the small tier only), so the omnibus is low-powered and spans query patterns at the small tier rather than across tiers; reported as a limitation rather than overclaimed. Tier-wise consistency is carried by the ranking-stability and rank-portability figures."
 }

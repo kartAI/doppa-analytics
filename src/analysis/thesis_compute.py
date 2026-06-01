@@ -391,23 +391,117 @@ def format_pairwise_for_table(pooled):
     return df.sort_values(["workload_type", "_o", "config_a", "config_b", "metric"]).drop(columns="_o")
 
 
-def rq1_cliques(successful, pooled, configs=("duckdb", "postgis", "local")):
-    """Mean rank (by min time over RQ1 cells) + Holm-non-significant pairs."""
+def rq3_rank_matrix(successful, configs=("duckdb", "postgis", "local"),
+                    metric="elapsed_time", kind="min"):
+    """Complete-block rank matrix shared by the RQ3 omnibus and the cliques figure.
+
+    Blocks are single-machine workload×tier cells; treatments are the
+    configurations; each entry is the per-cell point estimate (minimum for
+    run-time, the elapsed-time convention). Friedman's omnibus needs *complete*
+    blocks — every treatment present in every block — but the Shapefile/local
+    path ran the small tier only, so the only design with three or more
+    treatments that is complete is {DuckDB, PostGIS, Shapefile} over the
+    small-tier RQ1 cells. Cells where a treatment is absent are recorded as
+    excluded (with the reason), never silently dropped.
+
+    Returns ``(matrix, meta)``: ``matrix`` is a complete-block DataFrame with
+    ``workload_type``/``dataset_size`` plus one column of point estimates per
+    config; ``meta`` documents the in/out configs and cells.
+    """
     configs = list(configs)
-    cell_ranks = {c: [] for c in configs}
+    stat = np.min if kind == "min" else np.median
     rq1 = successful[successful["workload_type"] != RQ2_WORKLOAD]
+    cell_vals = {}
     for (wt, ds), g in rq1.groupby(["workload_type", "dataset_size"]):
-        mins = {}
+        vals = {}
         for c in configs:
-            v = g[g["configuration"] == c]["elapsed_time"].dropna().values
+            v = g[g["configuration"] == c][metric].dropna().values
             if len(v):
-                mins[c] = float(np.min(v))
+                vals[c] = float(stat(v))
+        cell_vals[(wt, ds)] = vals
+    complete = {cell: v for cell, v in cell_vals.items() if all(c in v for c in configs)}
+    incomplete = {cell: sorted(v) for cell, v in cell_vals.items() if cell not in complete}
+    matrix = pd.DataFrame([{"workload_type": wt, "dataset_size": ds, **v}
+                           for (wt, ds), v in complete.items()])
+    meta = {
+        "metric": metric,
+        "estimator": kind,
+        "blocking": "workload×tier cells",
+        "included_configs": configs,
+        "included_cells": [f"{WL_SHORT[wt]}, {ds}" for (wt, ds) in complete],
+        "excluded_cells": {f"{WL_SHORT[wt]}, {ds}":
+                           f"incomplete block (ran: {', '.join(ran)})"
+                           for (wt, ds), ran in incomplete.items()},
+        "scope": ("single-machine RQ1 cells only; the national-scale join and "
+                  "Apache Sedona are excluded because Sedona ran the join alone, "
+                  "so no complete ≥3-treatment block spans them with the "
+                  "single-machine engines"),
+    }
+    return matrix, meta
+
+
+def rq3_friedman_omnibus(matrix, meta):
+    """Friedman omnibus across workload×tier cells (treatments = configurations).
+
+    ``scipy.stats.friedmanchisquare`` ranks the configurations within each
+    complete block (cell) by their per-cell point estimate. ``df`` = k−1 and
+    ``n_blocks`` is the number of cells (a small number — the units across which
+    RQ3 judges ranking consistency), *not* an iteration count. The returned dict
+    is written verbatim to ``tables/06-friedman-omnibus-values.json``.
+    """
+    configs = meta["included_configs"]
+    if matrix is None or matrix.empty or len(configs) < 3 or len(matrix) < 2:
+        return {}
+    chi2, p = friedmanchisquare(*[matrix[c].values for c in configs])
+    n_blocks = int(len(matrix))
+    out = {
+        "metric": meta["metric"],
+        "chi2": float(chi2),
+        "p": float(p),
+        "df": len(configs) - 1,
+        "k_configs": len(configs),
+        "n_blocks": n_blocks,
+        "blocking": meta["blocking"],
+        "included_configs": configs,
+        "included_cells": meta["included_cells"],
+        "excluded_cells": meta["excluded_cells"],
+        "scope": meta["scope"],
+    }
+    if n_blocks < 5:
+        out["note"] = (
+            f"Complete-block restriction leaves only {n_blocks} cells "
+            f"(Shapefile ran the small tier only), so the omnibus is low-powered "
+            f"and spans query patterns at the small tier rather than across tiers; "
+            f"reported as a limitation rather than overclaimed. Tier-wise "
+            f"consistency is carried by the ranking-stability and rank-portability "
+            f"figures.")
+    return out
+
+
+def rq1_cliques(successful, pooled, configs=("duckdb", "postgis", "local")):
+    """Mean rank + Holm-non-significant pairs for the cliques figure.
+
+    Uses the same complete-block cells and configurations as the Friedman
+    omnibus (:func:`rq3_rank_matrix`), so the omnibus and its post-hoc cliques
+    describe the same comparison: identical configs, identical rank matrix. The
+    non-significant connectors come from the Holm-adjusted Wilcoxon pairwise
+    tests on those same cells (a more powerful per-iteration post-hoc than
+    Nemenyi, by design — see ``fig_cliques``)."""
+    configs = list(configs)
+    matrix, _ = rq3_rank_matrix(successful, configs=configs)
+    cell_keys = set()
+    cell_ranks = {c: [] for c in configs}
+    for _, row in matrix.iterrows():
+        cell_keys.add((row["workload_type"], row["dataset_size"]))
+        mins = {c: float(row[c]) for c in configs}
         for rank, (c, _) in enumerate(sorted(mins.items(), key=lambda kv: kv[1]), 1):
             cell_ranks[c].append(rank)
     mean_ranks = {c: float(np.mean(v)) for c, v in cell_ranks.items() if v}
     nonsig = []
     if pooled is not None and not pooled.empty:
-        f = pooled[(pooled["metric"] == "elapsed_time") & (pooled["workload_type"] != RQ2_WORKLOAD)]
+        in_cells = pooled.apply(
+            lambda r: (r["workload_type"], r["dataset_size"]) in cell_keys, axis=1)
+        f = pooled[(pooled["metric"] == "elapsed_time") & in_cells]
         for (ca, cb), g in f.groupby(["config_a", "config_b"]):
             if ca in mean_ranks and cb in mean_ranks and g["p_value_holm"].median() >= 0.05:
                 nonsig.append((ca, cb))
@@ -462,17 +556,9 @@ def cardinality_agreement(successful):
     return df
 
 
-def friedman_summary(pooled, workload="point-in-polygon-lookup", tier="small",
-                     metric="elapsed_time"):
-    """Representative Friedman omnibus (k configs as treatments) for the prose sentence."""
-    if pooled is None or pooled.empty:
-        return {}
-    sub = pooled[(pooled["workload_type"] == workload) & (pooled["dataset_size"] == tier)
-                 & (pooled["metric"] == metric)]
-    if sub.empty or sub["friedman_stat"].isna().all():
-        return {}
-    k = len(set(sub["config_a"]).union(sub["config_b"]))
-    return {"workload": workload, "tier": tier, "metric": metric,
-            "chi2": float(sub["friedman_stat"].iloc[0]),
-            "p": float(sub["friedman_p"].iloc[0]), "df": k - 1, "k_configs": k,
-            "n_blocks": int(sub["n_paired"].median())}
+_FRIEDMAN_SUMMARY_REPLACED = (
+    "friedman_summary() was removed: it ran Friedman on per-iteration timings "
+    "within a single workload×tier cell (1282 iterations as blocks), which only "
+    "tested whether configs differ within that one cell and was massively "
+    "overpowered. RQ3's omnibus is rq3_friedman_omnibus(), blocked by "
+    "workload×tier cell — see rq3_rank_matrix().")
