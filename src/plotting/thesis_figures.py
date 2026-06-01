@@ -17,6 +17,7 @@ Method conventions honored here:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -25,6 +26,7 @@ import pandas as pd
 from matplotlib.ticker import FuncFormatter
 from scipy.stats import bootstrap as _scipy_bootstrap, gaussian_kde, spearmanr
 
+from src.analysis.loading import extract_strategy, extract_worker_count
 from src.analysis.stats import classify_a12
 
 from .style import (
@@ -35,6 +37,7 @@ from .style import (
     LW_SERIES,
     PALETTE,
     StyleConfig,
+    lightness_ramp,
     shade,
     tint,
 )
@@ -1293,5 +1296,801 @@ def fig_cell_grid(successful, cost_summary, cells, configs, style, out_path) -> 
     fig.suptitle("Per-cell summary grid — minimum wall-clock time by configuration",
                  fontsize=12, y=1.0)
     fig.tight_layout()
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 06 — additional RQ1 single-node figures
+# ════════════════════════════════════════════════════════════════════════════
+
+
+def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path,
+                          sedona_cfg="databricks-broadcast-8-nodes"):
+    """Directional network transfer: bytes received vs sent, mirrored diverging bars.
+
+    Companion to the received-only bytes grid: for each configuration in a
+    workload x tier cell a pair of horizontal bars diverges from a central zero —
+    bytes RECEIVED extend right, bytes SENT extend left — on a symmetric-log axis,
+    so the (large) download/(small) upload asymmetry is legible without clipping
+    the small side. The median estimator (transfer convention) and its 95%
+    bootstrap CI are drawn on each bar. The Shapefile/local path reads from the
+    local filesystem, so both directions are ~0 and are annotated "local FS, not
+    like-for-like" rather than plotted as a comparable transfer. A bottom panel
+    shows the same received/sent split at the Sedona client boundary (the
+    distributed national-scale join, driver process), a different data path shown
+    for context only — sent has never been plotted elsewhere.
+    """
+    tiers = _tier_order(style, tiers)
+    nrows, ncols = len(workloads), len(tiers)
+    fig = plt.figure(figsize=(3.8 * ncols + 1.0, 2.5 * nrows + 2.0))
+    gs = fig.add_gridspec(nrows + 1, ncols, height_ratios=[1.0] * nrows + [0.95],
+                          hspace=0.6, wspace=0.4)
+    summary = []
+    linthresh = 1000.0
+
+    def _dir_bars(ax, pairs, *, annotate_local):
+        """pairs: list of (label, cfg, recv_array, sent_array, color)."""
+        ypos, ylabels = [], []
+        for i, (lab, cf, recv, sent, color) in enumerate(pairs):
+            rp, rlo, rhi = estimate_ci(recv, kind="median") if len(recv) else (0.0, 0.0, 0.0)
+            sp, slo, shi = estimate_ci(sent, kind="median") if len(sent) else (0.0, 0.0, 0.0)
+            ypos.append(i)
+            ylabels.append(lab)
+            if annotate_local and cf == "local" and max(rp, sp) < 1024:
+                ax.annotate("local FS\n(not like-for-like)", xy=(0, i), ha="center",
+                            va="center", fontsize=6.0, fontstyle="italic",
+                            color=PALETTE["thesisbrick"], zorder=6)
+            else:
+                ax.barh(i, max(rp, 0), height=0.6, color=color, edgecolor="white",
+                        linewidth=LW_HAIRLINE, zorder=3)
+                ax.barh(i, -max(sp, 0), height=0.6, color=tint(color, 0.5),
+                        edgecolor="white", linewidth=LW_HAIRLINE, zorder=3)
+                if rhi > rlo:
+                    ax.plot([rlo, rhi], [i, i], color=PALETTE["thesisslate"],
+                            linewidth=LW_CONNECTOR, zorder=5)
+                if shi > slo:
+                    ax.plot([-shi, -slo], [i, i], color=PALETTE["thesisslate"],
+                            linewidth=LW_CONNECTOR, zorder=5)
+            summary.append({"cfg": cf, "received_median": rp, "sent_median": sp,
+                            "n_recv": int(len(recv)), "n_sent": int(len(sent))})
+        ax.axvline(0, color=PALETTE["thesisslate"], linewidth=LW_BORDER, zorder=2)
+        ax.set_xscale("symlog", linthresh=linthresh)
+        ax.xaxis.set_major_formatter(_bytes_fmt())
+        # symlog crowds the first decade on each side around 0; show only 0 and
+        # the >= 1k decade ticks (>= linthresh) so the labels do not collide.
+        xl = ax.get_xlim()
+        cand = [0.0] + [s * 10.0 ** k for k in range(3, 8) for s in (-1, 1)]
+        ax.set_xticks([t for t in sorted(cand) if xl[0] <= t <= xl[1]])
+        ax.set_yticks(ypos)
+        ax.set_yticklabels(ylabels, fontsize=7.5)
+        ax.set_ylim(-0.6, len(pairs) - 0.4)
+        ax.tick_params(axis="x", labelsize=7)
+
+    for r, wt in enumerate(workloads):
+        for c, ds in enumerate(tiers):
+            ax = fig.add_subplot(gs[r, c])
+            cell = successful[(successful["workload_type"] == wt)
+                              & (successful["dataset_size"] == ds)]
+            present = [cf for cf in configs if cf in cell["configuration"].unique()]
+            pairs = []
+            for cf in present:
+                sub = cell[cell["configuration"] == cf]
+                pairs.append((style.label(cf).split(" ")[0], cf,
+                              sub["network_bytes_received"].dropna().values,
+                              sub["network_bytes_sent"].dropna().values,
+                              style.color(cf)))
+            n0 = len(summary)
+            if pairs:
+                _dir_bars(ax, pairs, annotate_local=True)
+                for rec in summary[n0:]:
+                    rec.update({"workload_type": wt, "dataset_size": ds, "panel": "single-machine"})
+            else:
+                ax.text(0.5, 0.5, "did not run\nby design", ha="center", va="center",
+                        transform=ax.transAxes, fontsize=8, fontstyle="italic",
+                        color=PALETTE["thesisbrick"])
+                ax.set_xticks([])
+                ax.set_yticks([])
+            if r == 0:
+                ax.set_title(ds.capitalize(), fontsize=10, fontweight="bold")
+            if c == ncols - 1 and pairs:
+                ax.annotate(style.workload_label(wt), xy=(1.02, 0.5),
+                            xycoords="axes fraction", rotation=270, va="center",
+                            ha="left", fontsize=8.5, color=PALETTE["thesisslate"])
+
+    # bottom Sedona client-boundary panel: received/sent by tier for one broadcast config
+    axS = fig.add_subplot(gs[nrows, :])
+    sed = successful[(successful["workload_type"] == "national-scale-spatial-join")
+                     & (successful["configuration"] == sedona_cfg)]
+    sed_tiers = _tier_order(style, sed["dataset_size"].unique())
+    spairs = []
+    for ds in sed_tiers:
+        sub = sed[sed["dataset_size"] == ds]
+        spairs.append((ds.capitalize(), sedona_cfg,
+                       sub["network_bytes_received"].dropna().values,
+                       sub["network_bytes_sent"].dropna().values,
+                       _system_color(style, "sedona")))
+    n0 = len(summary)
+    if spairs:
+        _dir_bars(axS, spairs, annotate_local=False)
+        for rec in summary[n0:]:
+            rec.update({"workload_type": "national-scale-spatial-join",
+                        "dataset_size": "(per row)", "panel": "sedona-client-boundary"})
+    axS.set_title(f"Sedona client boundary — {style.label(sedona_cfg)} (national-scale join)",
+                  fontsize=9, color=PALETTE["thesisslate"])
+    axS.set_xlabel("← sent        bytes (symlog)        received →", fontsize=8.5)
+
+    recv_h = plt.Line2D([], [], marker="s", linestyle="", markersize=8,
+                        color=tint(PALETTE["thesisgray"], 0.0),
+                        markeredgecolor="white", label="received (right)")
+    sent_h = plt.Line2D([], [], marker="s", linestyle="", markersize=8,
+                        color=tint(PALETTE["thesisgray"], 0.5),
+                        markeredgecolor="white", label="sent (left)")
+    ci_h = plt.Line2D([], [], color=PALETTE["thesisslate"], linewidth=LW_CONNECTOR,
+                      label="95% bootstrap CI (median)")
+    fig.legend(handles=[recv_h, sent_h, ci_h], loc="lower center", ncol=3,
+               fontsize=8, frameon=False, bbox_to_anchor=(0.5, -0.02))
+    fig.suptitle("Directional network transfer — bytes received versus sent", fontsize=12, y=1.0)
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+def fig_cost_time_quadrant(cost_summary, successful, workloads, configs, tiers, style,
+                           out_path, sedona_prefix="databricks-broadcast"):
+    """Single-machine cost-vs-time decision quadrant (analogue of the distributed Pareto).
+
+    One scatter panel per workload pattern: x = total operational cost (USD, log),
+    y = wall-clock minimum (s, log). Marker glyph encodes the configuration and
+    colour encodes the size tier; per-panel median cross-hairs split the plane
+    into the four labelled decision quadrants (fast+cheap, slow+cheap, fast+costly,
+    slow+costly). The national-scale panel additionally anchors the best-worker
+    Sedona point (lowest-time broadcast worker count) as a star, for context with
+    the single-machine engines.
+    """
+    tiers = _tier_order(style, tiers)
+    cs = cost_summary.reset_index()
+    glyph = {"duckdb": "o", "postgis": "s", "local": "^"}
+    ncols = min(len(workloads), 2)
+    nrows = (len(workloads) + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(4.7 * ncols, 3.9 * nrows), squeeze=False)
+    summary = []
+    for idx, wt in enumerate(workloads):
+        ax = axes[idx // ncols][idx % ncols]
+        pts = []
+        for cf in configs:
+            for ds in tiers:
+                sub = successful[(successful["workload_type"] == wt)
+                                 & (successful["dataset_size"] == ds)
+                                 & (successful["configuration"] == cf)]
+                t = sub["elapsed_time"].dropna().values
+                row = cs[(cs["workload_type"] == wt) & (cs["dataset_size"] == ds)
+                         & (cs["configuration"] == cf)]
+                if len(t) == 0 or len(row) == 0:
+                    continue
+                tt, cc = float(np.min(t)), float(row["total_cost"].iloc[0])
+                if cc <= 0 or tt <= 0:
+                    continue
+                tcol = style.size_colors.get(ds, PALETTE["thesisgray"])
+                ax.scatter(cc, tt, s=72, color=tcol, marker=glyph.get(cf, "o"),
+                           edgecolor=shade(tcol, 0.35), linewidth=LW_BORDER, zorder=4)
+                pts.append((cc, tt))
+                summary.append({"workload_type": wt, "configuration": cf, "dataset_size": ds,
+                                "cost_usd": cc, "min_time_s": tt, "marker": "config"})
+        # Sedona best-worker anchor (only where broadcast ran this workload)
+        sed = successful[(successful["workload_type"] == wt)
+                         & successful["configuration"].str.startswith(sedona_prefix)]
+        bcfg, bds, bt, bcost = None, None, np.inf, np.nan
+        for (cfg, ds), g in sed.groupby(["configuration", "dataset_size"]):
+            v = g["elapsed_time"].dropna().values
+            r = cs[(cs["workload_type"] == wt) & (cs["dataset_size"] == ds)
+                   & (cs["configuration"] == cfg)]
+            if len(v) == 0 or len(r) == 0:
+                continue
+            m = float(np.min(v))
+            if m < bt:
+                bcfg, bds, bt, bcost = cfg, ds, m, float(r["total_cost"].iloc[0])
+        if bcfg and bcost > 0:
+            ax.scatter(bcost, bt, marker="*", s=260, color=_system_color(style, "sedona"),
+                       edgecolor="white", linewidth=LW_MARKER_EDGE, zorder=6)
+            ax.annotate(f"Sedona\nbest worker", xy=(bcost, bt), xytext=(5, 4),
+                        textcoords="offset points", fontsize=6.5,
+                        color=shade(_system_color(style, "sedona"), 0.2))
+            summary.append({"workload_type": wt, "configuration": bcfg, "dataset_size": bds,
+                            "cost_usd": bcost, "min_time_s": bt, "marker": "sedona-anchor"})
+        if len(pts) >= 1:
+            cx, cy = float(np.median([p[0] for p in pts])), float(np.median([p[1] for p in pts]))
+            ax.axvline(cx, color=PALETTE["thesisgray"], linestyle=":", linewidth=LW_BORDER, zorder=1)
+            ax.axhline(cy, color=PALETTE["thesisgray"], linestyle=":", linewidth=LW_BORDER, zorder=1)
+            for fx, fy, txt, ha, va in [
+                (0.02, 0.02, "fast · cheap", "left", "bottom"),
+                (0.02, 0.98, "slow · cheap", "left", "top"),
+                (0.98, 0.02, "fast · costly", "right", "bottom"),
+                (0.98, 0.98, "slow · costly", "right", "top"),
+            ]:
+                ax.annotate(txt, xy=(fx, fy), xycoords="axes fraction", ha=ha, va=va,
+                            fontsize=6.5, fontstyle="italic", color=PALETTE["thesisgray"])
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xlabel("Operational cost (USD, log)", fontsize=8.5)
+        if idx % ncols == 0:
+            ax.set_ylabel("Wall-clock minimum (s, log)", fontsize=8.5)
+        ax.set_title(style.workload_label(wt), fontsize=9.5)
+    for j in range(len(workloads), nrows * ncols):
+        axes[j // ncols][j % ncols].set_visible(False)
+    cfg_h = [plt.Line2D([], [], marker=glyph.get(c, "o"), linestyle="", color=PALETTE["thesisgray"],
+                        markeredgecolor="white", label=style.label(c).split(" ")[0])
+             for c in configs if c in glyph]
+    cfg_h.append(plt.Line2D([], [], marker="*", linestyle="", color=_system_color(style, "sedona"),
+                            markeredgecolor="white", markersize=11, label="Sedona (best worker)"))
+    tier_h = [plt.Line2D([], [], marker="o", linestyle="", color=style.size_colors[t],
+                         markeredgecolor=shade(style.size_colors[t], 0.35), label=t.capitalize())
+              for t in tiers]
+    fig.legend(handles=cfg_h, loc="lower center", ncol=len(cfg_h), fontsize=7.5,
+               frameon=False, bbox_to_anchor=(0.5, -0.04), title="Configuration")
+    fig.legend(handles=tier_h, loc="lower center", ncol=len(tier_h), fontsize=7.5,
+               frameon=False, bbox_to_anchor=(0.5, -0.10), title="Tier")
+    fig.suptitle("Single-machine cost–time decision quadrant", fontsize=12, y=1.0)
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+def fig_bytes_vs_cardinality(successful, configs, style, out_path,
+                             ref_rates=(100, 1_000, 10_000, 100_000)):
+    """Network bytes received versus result cardinality (log-log scatter).
+
+    One marker per (workload x tier x configuration) cell: x = median result
+    cardinality (rows; the not-recorded -1 of the local Shapefile path is
+    excluded), y = median network bytes received. Colour encodes configuration
+    and marker glyph the query pattern. Faint diagonal guidelines mark constant
+    bytes-per-result-row rates, so cells of equal cardinality align vertically and
+    the per-row transfer cost can be read off. Promotes result cardinality out of
+    the appendix agreement table into a transfer-efficiency view.
+    """
+    wl_marker = {"point-in-polygon-lookup": "o", "knn-search": "s",
+                 "bbox-filtering": "^", "national-scale-spatial-join": "D"}
+    fig, ax = plt.subplots(figsize=(7.2, 5.0))
+    summary, xs_all, ys_all = [], [], []
+    workloads = [w for w in wl_marker if w in successful["workload_type"].unique()]
+    tiers = _tier_order(style, successful["dataset_size"].unique())
+    for cf in configs:
+        for wt in workloads:
+            for ds in tiers:
+                sub = successful[(successful["workload_type"] == wt)
+                                 & (successful["dataset_size"] == ds)
+                                 & (successful["configuration"] == cf)]
+                card = sub["result_cardinality"].dropna().values
+                card = card[card > 0]  # drop the -1 not-recorded sentinel (and 0)
+                recv = sub["network_bytes_received"].dropna().values
+                recv = recv[recv > 0]
+                if len(card) == 0 or len(recv) == 0:
+                    continue
+                x, y = float(np.median(card)), float(np.median(recv))
+                ax.scatter(x, y, s=64, color=_name_color(style, cf),
+                           marker=wl_marker.get(wt, "o"), edgecolor="white",
+                           linewidth=LW_MARKER_EDGE, zorder=4)
+                xs_all.append(x)
+                ys_all.append(y)
+                summary.append({"workload_type": wt, "dataset_size": ds, "configuration": cf,
+                                "median_cardinality": x, "median_bytes_received": y,
+                                "bytes_per_row": y / x})
+    if xs_all:
+        xlo, xhi = min(xs_all) * 0.6, max(xs_all) * 1.6
+        xr = np.array([xlo, xhi])
+        for k in ref_rates:
+            ax.plot(xr, k * xr, color=PALETTE["thesislight"], linewidth=LW_HAIRLINE,
+                    linestyle="-", zorder=0)
+            kf = _bytes_fmt()(k, None)
+            ax.annotate(f"{kf}/row", xy=(xhi, k * xhi), xytext=(-2, 2),
+                        textcoords="offset points", ha="right", va="bottom",
+                        fontsize=6.0, color=PALETTE["thesisgray"], zorder=0)
+        ax.set_xlim(xlo, xhi)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.yaxis.set_major_formatter(_bytes_fmt())
+    ax.set_xlabel("Result cardinality (rows, log)")
+    ax.set_ylabel("Network bytes received (median, log)")
+    cfg_h = [plt.Line2D([], [], marker="o", linestyle="", color=_name_color(style, c),
+                        markeredgecolor="white", label=style.label(c))
+             for c in configs]
+    wl_h = [plt.Line2D([], [], marker=wl_marker[w], linestyle="", color=PALETTE["thesisgray"],
+                       markeredgecolor="white", label=style.workload_label(w))
+            for w in workloads]
+    leg1 = ax.legend(handles=cfg_h, fontsize=7.5, loc="upper left", title="Configuration")
+    ax.add_artist(leg1)
+    ax.legend(handles=wl_h, fontsize=7.5, loc="lower right", title="Pattern")
+    ax.set_title("Network transfer versus result cardinality")
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 06 — additional RQ2 distributed figure
+# ════════════════════════════════════════════════════════════════════════════
+
+
+def fig_distributed_strategy_contrast(successful, cost_summary, style, out_path,
+                                      tier="small", oom_tiers=("medium", "large")):
+    """Broadcast vs partitioned join strategy at the small tier (two panels).
+
+    Panel (a) wall-clock minimum (log) and panel (b) total operational cost,
+    both against worker count {2,4,8,12,16}, with one line per strategy. The cache
+    holds partitioned rows for the SMALL tier only; the medium/large partitioned
+    runs did not complete (executor OOM). Those failures are NOT in the cache as
+    failed rows, so the medium/large partitioned absence is rendered as an
+    editorial annotation sourced from the descriptive-statistics table, not from
+    data. The figure's quantitative content is the small-tier broadcast-vs-
+    partitioned magnitude gap.
+    """
+    d = successful[(successful["workload_type"] == "national-scale-spatial-join")
+                   & successful["configuration"].str.startswith("databricks")
+                   & (successful["dataset_size"] == tier)].copy()
+    d["strat"] = d["configuration"].map(extract_strategy)
+    d["wc"] = d["configuration"].map(extract_worker_count)
+    cs = cost_summary.reset_index()
+    strat_list = ["broadcast", "partitioned"]
+    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.4))
+    summary = []
+    for strat in strat_list:
+        g = d[d["strat"] == strat]
+        rows = []
+        for w, gg in g.groupby("wc"):
+            v = gg["elapsed_time"].dropna().values
+            if len(v):
+                p, lo, hi = estimate_ci(v, kind="min")
+                rows.append((int(w), p, lo, hi))
+        rows.sort()
+        if rows:
+            ws = [r[0] for r in rows]
+            ps = [r[1] for r in rows]
+            yerr = [[r[1] - r[2] for r in rows], [r[3] - r[1] for r in rows]]
+            axes[0].errorbar(ws, ps, yerr=yerr, marker="o", ms=5, capsize=2.5,
+                             color=style.strategy_colors[strat], linewidth=LW_SERIES,
+                             ecolor=style.strategy_colors[strat], elinewidth=LW_CONNECTOR,
+                             label=strat.capitalize())
+            for w, p, lo, hi in rows:
+                summary.append({"strategy": strat, "dataset_size": tier, "workers": w,
+                                "metric": "min_time_s", "value": p, "ci_low": lo, "ci_high": hi})
+    for strat in strat_list:
+        rows = []
+        for w in sorted(d[d["strat"] == strat]["wc"].unique()):
+            cfg = f"databricks-{strat}-{int(w)}-nodes"
+            r = cs[(cs["workload_type"] == "national-scale-spatial-join")
+                   & (cs["dataset_size"] == tier) & (cs["configuration"] == cfg)]
+            if len(r):
+                rows.append((int(w), float(r["total_cost"].iloc[0])))
+        rows.sort()
+        if rows:
+            axes[1].plot([r[0] for r in rows], [r[1] for r in rows], marker="o", ms=5,
+                         color=style.strategy_colors[strat], linewidth=LW_SERIES,
+                         label=strat.capitalize())
+            for w, c in rows:
+                summary.append({"strategy": strat, "dataset_size": tier, "workers": w,
+                                "metric": "total_cost_usd", "value": c, "ci_low": np.nan,
+                                "ci_high": np.nan})
+    oom = " / ".join(oom_tiers)
+    axes[0].annotate(
+        f"Partitioned {oom} tiers: did not complete\n(executor OOM — see descriptive-statistics table)",
+        xy=(0.5, 0.97), xycoords="axes fraction", ha="center", va="top", fontsize=7,
+        fontstyle="italic", color=PALETTE["thesisbrick"])
+    axes[0].set_yscale("log")
+    axes[0].set_xlabel("Worker count")
+    axes[0].set_ylabel("Wall-clock minimum (s, log)")
+    axes[0].set_title("Wall-clock time", fontsize=10)
+    axes[1].set_xlabel("Worker count")
+    axes[1].set_ylabel("Total operational cost (USD)")
+    axes[1].set_ylim(bottom=0)
+    axes[1].set_title("Operational cost", fontsize=10)
+    for ax in axes:
+        ax.set_xticks([2, 4, 8, 12, 16])
+        ax.legend(fontsize=8, title="Strategy")
+    fig.suptitle(f"Broadcast versus partitioned join at the {tier} tier (national-scale join)",
+                 fontsize=12, y=1.02)
+    fig.tight_layout()
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 06 — additional RQ3 synthesis figures
+# ════════════════════════════════════════════════════════════════════════════
+
+
+def fig_cross_pattern(successful, workloads, configs, tiers, style, out_path):
+    """Cross-pattern single-machine comparison at fixed tier (grouped bars + CI).
+
+    One panel per size tier: x = workload pattern, grouped bars per configuration,
+    y = wall-clock minimum (s, log) with the 95% bootstrap CI as a whisker.
+    Patterns or configurations that did not run at a tier by design (kNN and
+    Shapefile at the large tier) are labelled did-not-run-by-design rather than
+    drawn as a zero bar. The cross-pattern view exposes whether a configuration's
+    lead is pattern-portable or pattern-specific.
+    """
+    tiers = _tier_order(style, tiers)
+    fig, axes = plt.subplots(1, len(tiers), figsize=(4.4 * len(tiers) + 0.5, 4.4),
+                             squeeze=False, sharey=True)
+    axes = axes[0]
+    summary = []
+    width = 0.8 / max(len(configs), 1)
+    for ax, ds in zip(axes, tiers):
+        x = np.arange(len(workloads))
+        for j, cf in enumerate(configs):
+            off = (j - len(configs) / 2 + 0.5) * width
+            for xi, wt in enumerate(workloads):
+                v = successful[(successful["workload_type"] == wt)
+                               & (successful["dataset_size"] == ds)
+                               & (successful["configuration"] == cf)]["elapsed_time"].dropna().values
+                if len(v) == 0:
+                    continue
+                p, lo, hi = estimate_ci(v, kind="min")
+                ax.bar(xi + off, p, width * 0.9, color=style.color(cf), edgecolor="white",
+                       linewidth=LW_HAIRLINE, zorder=3)
+                ax.errorbar(xi + off, p, yerr=[[max(p - lo, 0)], [max(hi - p, 0)]],
+                            fmt="none", ecolor=PALETTE["thesisslate"], elinewidth=LW_CONNECTOR,
+                            capsize=2, zorder=5)
+                summary.append({"dataset_size": ds, "workload_type": wt, "configuration": cf,
+                                "min_time_s": p, "ci_low": lo, "ci_high": hi})
+        # mark did-not-run-by-design cells
+        for xi, wt in enumerate(workloads):
+            ran = successful[(successful["workload_type"] == wt)
+                             & (successful["dataset_size"] == ds)
+                             & (successful["configuration"].isin(configs))]
+            if ran.empty:
+                ax.annotate("did not run\nby design", xy=(xi, 0.5), xycoords=("data", "axes fraction"),
+                            ha="center", va="center", fontsize=6.5, fontstyle="italic",
+                            color=PALETTE["thesisbrick"])
+        # configurations absent from this whole tier (e.g. Shapefile at large):
+        # name them as did-not-run-by-design rather than leaving a silent gap.
+        present_cfgs = set(successful[(successful["dataset_size"] == ds)
+                                      & successful["workload_type"].isin(workloads)
+                                      & successful["configuration"].isin(configs)]["configuration"].unique())
+        missing = [c for c in configs if c not in present_cfgs]
+        if missing:
+            ax.annotate("; ".join(f"{style.label(c)}" for c in missing)
+                        + ":\nsmall tier only (by design)",
+                        xy=(0.03, 0.97), xycoords="axes fraction", ha="left", va="top",
+                        fontsize=6.5, fontstyle="italic", color=PALETTE["thesisbrick"])
+        ax.set_yscale("log")
+        ax.set_xticks(range(len(workloads)))
+        ax.set_xticklabels([style.workload_label(w) for w in workloads], rotation=20,
+                           ha="right", fontsize=7.5)
+        ax.set_title(ds.capitalize(), fontsize=10, fontweight="bold")
+        if ax is axes[0]:
+            ax.set_ylabel("Wall-clock minimum (s, log)")
+    cfg_h = [plt.Line2D([], [], marker="s", linestyle="", color=style.color(c),
+                        markeredgecolor="white", label=style.label(c)) for c in configs]
+    fig.legend(handles=cfg_h, loc="lower center", ncol=len(cfg_h), fontsize=8, frameon=False,
+               bbox_to_anchor=(0.5, -0.02))
+    fig.suptitle("Cross-pattern single-machine comparison by tier", fontsize=12, y=1.02)
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+def fig_rank_portability(geomean, style, out_path):
+    """Rank portability versus absolute magnitude (two panels).
+
+    Both panels share the same systems and the three outcome dimensions (Time,
+    Bytes, Cost). Left: each system's RANK on each dimension (1 = best), drawn as
+    a slopegraph — near-flat lines mean the ordering is portable across
+    dimensions. Right: the same systems' ABSOLUTE geometric-mean-normalized
+    magnitude per dimension (log; 1.0 = the dimension's best), where wide vertical
+    spread means the magnitudes do not carry even where the order does. Backs the
+    "orderings carry, magnitudes do not" external-validity claim; distinct from the
+    rank-vs-tier ranking-stability figure.
+    """
+    dims = [c for c in ["Time", "Bytes", "Cost"] if c in geomean.columns]
+    systems = list(geomean.index)
+    ranks = {d: geomean[d].rank(method="min") for d in dims}
+    x = np.arange(len(dims))
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.0, 4.6))
+    summary = []
+    for sysname in systems:
+        color = _system_color(style, sysname)
+        short = SYSTEM_LABEL.get(sysname, sysname).split(" ")[0]
+        ys_rank = [float(ranks[d][sysname]) for d in dims]
+        axL.plot(x, ys_rank, marker="o", ms=7, color=color, linewidth=LW_SERIES,
+                 markeredgewidth=LW_MARKER_EDGE, markeredgecolor="white")
+        axL.annotate(short, xy=(x[-1], ys_rank[-1]), xytext=(6, 0),
+                     textcoords="offset points", va="center", fontsize=7, color=shade(color, 0.2))
+        ys_mag = [float(geomean.loc[sysname, d]) for d in dims]
+        axR.plot(x, ys_mag, marker="o", ms=7, color=color, linewidth=LW_SERIES,
+                 markeredgewidth=LW_MARKER_EDGE, markeredgecolor="white",
+                 label=SYSTEM_LABEL.get(sysname, sysname))
+        axR.annotate(short, xy=(x[-1], ys_mag[-1]), xytext=(6, 0),
+                     textcoords="offset points", va="center", fontsize=7, color=shade(color, 0.2))
+        for d in dims:
+            summary.append({"system": sysname, "dimension": d, "rank": float(ranks[d][sysname]),
+                            "geomean_norm": float(geomean.loc[sysname, d])})
+    axL.invert_yaxis()
+    axL.set_yticks(range(1, len(systems) + 1))
+    axL.set_xticks(x)
+    axL.set_xticklabels(dims)
+    axL.set_xlim(-0.3, len(dims) - 0.7)
+    axL.set_ylabel("Rank (1 = best)")
+    axL.set_title("Per-dimension rank", fontsize=10)
+    axR.axhline(1.0, color=PALETTE["thesisslate"], linestyle="--", linewidth=LW_CONNECTOR,
+                zorder=1, label="dimension best (1.0)")
+    axR.set_yscale("log")
+    axR.set_xticks(x)
+    axR.set_xticklabels(dims)
+    axR.set_xlim(-0.3, len(dims) - 0.7)
+    axR.set_ylabel(r"Geomean-normalized magnitude ($\times$, log)")
+    axR.set_title("Absolute magnitude", fontsize=10)
+    handles, labels = axR.get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=min(len(labels), 5), fontsize=8,
+               frameon=False, bbox_to_anchor=(0.5, -0.03))
+    fig.suptitle("Rank portability versus absolute magnitude", fontsize=12, y=1.02)
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 09 — appendix supplementary figures
+# ════════════════════════════════════════════════════════════════════════════
+
+
+def fig_cpu_wall_ratio(successful, workloads, configs, tiers, style, out_path):
+    """CPU-to-wall-clock ratio per cell (compute-bound vs transfer-bound diagnostic).
+
+    Grouped bars of (cpu_user + cpu_system) / elapsed across workload x tier cells,
+    one bar per configuration, with a reference line at 1.0 (one fully-busy core).
+    To be robust to the sub-millisecond per-iteration CPU counter resolution
+    (many per-iteration values round to 0), the ratio is computed from per-cell
+    SUMS of CPU and wall time — the time-average number of busy cores. A ratio
+    well above 1.0 is multi-core compute-bound; well below 1.0 is transfer- or
+    IO-bound (or idle waiting).
+    """
+    tiers = _tier_order(style, tiers)
+    cells = [(wt, ds) for wt in workloads for ds in tiers]
+    fig, ax = plt.subplots(figsize=(max(8, 0.55 * len(cells) * len(configs)), 4.4))
+    width = 0.8 / max(len(configs), 1)
+    x = np.arange(len(cells))
+    summary = []
+    for j, cf in enumerate(configs):
+        off = (j - len(configs) / 2 + 0.5) * width
+        for ci, (wt, ds) in enumerate(cells):
+            sub = successful[(successful["workload_type"] == wt)
+                             & (successful["dataset_size"] == ds)
+                             & (successful["configuration"] == cf)]
+            if sub.empty:
+                continue
+            u = float(np.nansum(sub["cpu_time_user_seconds"].values))
+            s = float(np.nansum(sub["cpu_time_system_seconds"].values))
+            e = float(np.nansum(sub["elapsed_time"].values))
+            if e <= 0:
+                continue
+            ratio = (u + s) / e
+            ax.bar(ci + off, ratio, width * 0.9, color=style.color(cf), edgecolor="white",
+                   linewidth=LW_HAIRLINE, zorder=3)
+            summary.append({"workload_type": wt, "dataset_size": ds, "configuration": cf,
+                            "cpu_user_s": u, "cpu_system_s": s, "elapsed_s": e,
+                            "cpu_wall_ratio": ratio})
+    ax.axhline(1.0, color=PALETTE["thesisbrick"], linestyle="--", linewidth=LW_CONNECTOR,
+               zorder=4, label="1.0 (one fully-busy core)")
+    ax.set_xticks(x)
+    ax.set_xticklabels([f"{style.workload_label(wt)[:10]}\n{ds}" for wt, ds in cells],
+                       fontsize=7)
+    ax.set_ylabel("CPU-to-wall ratio  (cpu$_{user}$+cpu$_{sys}$)/elapsed")
+    ax.set_ylim(bottom=0)
+    handles = [plt.Line2D([], [], marker="s", linestyle="", color=style.color(c),
+                          markeredgecolor="white", label=style.label(c)) for c in configs]
+    handles.append(plt.Line2D([], [], color=PALETTE["thesisbrick"], linestyle="--",
+                              linewidth=LW_CONNECTOR, label="1.0 (one busy core)"))
+    ax.legend(handles=handles, fontsize=7.5, ncol=2)
+    ax.set_title("CPU-to-wall-clock ratio per configuration")
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+def fig_size_scaling_slope(successful, workloads, configs, style, out_path):
+    """Same-engine size-scaling slopegraph (small -> large), one panel per pattern.
+
+    Within each workload panel, one line per engine traces the wall-clock minimum
+    (log) across size tiers, annotated with its growth factor (largest tier /
+    smallest tier). The Shapefile/local path ran the small tier only, so it
+    appears as a single small-tier point rather than a slope. Restyles the older
+    grouped-bar size-scaling chart into the thesis slopegraph idiom.
+    """
+    fig, axes = plt.subplots(1, len(workloads), figsize=(3.6 * len(workloads) + 0.5, 4.4),
+                             squeeze=False, sharey=True)
+    axes = axes[0]
+    summary = []
+    all_tiers = _tier_order(style, successful["dataset_size"].unique())
+    for ax, wt in zip(axes, workloads):
+        wdata = successful[successful["workload_type"] == wt]
+        for cf in configs:
+            pts = []
+            for ds in all_tiers:
+                v = wdata[(wdata["configuration"] == cf)
+                          & (wdata["dataset_size"] == ds)]["elapsed_time"].dropna().values
+                if len(v) == 0:
+                    continue
+                p, lo, hi = estimate_ci(v, kind="min")
+                pts.append((style.size_order.get(ds, 99), ds, p, lo, hi))
+            if not pts:
+                continue
+            pts.sort()
+            xs = [p[0] for p in pts]
+            ys = [p[2] for p in pts]
+            color = style.color(cf)
+            # min-estimator bootstrap CI lies at/above the point (resampled minima
+            # are >= the full-sample min), so clamp the lower arm at 0 like the
+            # other minimum-estimator figures in this module.
+            lo_err = [max(p[2] - p[3], 0.0) for p in pts]
+            hi_err = [max(p[4] - p[2], 0.0) for p in pts]
+            if len(pts) == 1:
+                ax.errorbar(xs, ys, yerr=[[lo_err[0]], [hi_err[0]]],
+                            fmt="^", ms=7, color=color, ecolor=color, capsize=2.5,
+                            markeredgecolor="white", markeredgewidth=LW_MARKER_EDGE, zorder=4)
+                ax.annotate(f"{style.label(cf).split(' ')[0]}\n(small only)", xy=(xs[0], ys[0]),
+                            xytext=(6, 0), textcoords="offset points", va="center",
+                            fontsize=6.5, color=shade(color, 0.2))
+            else:
+                ax.errorbar(xs, ys, yerr=[lo_err, hi_err], marker="o", ms=5, color=color,
+                            ecolor=color, capsize=2.5, elinewidth=LW_CONNECTOR,
+                            linewidth=LW_SERIES, markeredgecolor="white",
+                            markeredgewidth=LW_MARKER_EDGE, zorder=4)
+                growth = ys[-1] / ys[0] if ys[0] > 0 else np.nan
+                ax.annotate(f"{style.label(cf).split(' ')[0]}  ×{growth:.0f}",
+                            xy=(xs[-1], ys[-1]), xytext=(6, 0), textcoords="offset points",
+                            va="center", fontsize=6.5, color=shade(color, 0.2))
+            for o, ds, p, lo, hi in pts:
+                summary.append({"workload_type": wt, "configuration": cf, "dataset_size": ds,
+                                "min_time_s": p, "ci_low": lo, "ci_high": hi})
+        ax.set_yscale("log")
+        ax.set_xticks([style.size_order[t] for t in all_tiers])
+        ax.set_xticklabels([t.capitalize() for t in all_tiers])
+        ax.set_xlim(-0.3, len(all_tiers) - 0.4)
+        ax.set_title(style.workload_label(wt), fontsize=9.5)
+        if ax is axes[0]:
+            ax.set_ylabel("Wall-clock minimum (s, log)")
+    fig.suptitle("Same-engine size scaling (minimum estimator, with growth factor)",
+                 fontsize=12, y=1.02)
+    fig.tight_layout()
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+def fig_spark_stage_profile(successful, style, out_path, strategy="broadcast", tier="large"):
+    """Spark per-stage duration profile by worker count (small multiples).
+
+    Parses the per-iteration ``stage_durations_ms`` JSON array (distributed runs
+    only) for the chosen strategy and tier, and shows one small panel per worker
+    count {2,4,8,12,16}. Each panel is a horizontal profile of the median duration
+    of each Spark stage (stage index on the y-axis), shading stages with a
+    lightness ramp of the strategy colour. This is a finer view than the coarse
+    three-phase split (executor read / shuffle / driver collection).
+    """
+    d = successful[successful["configuration"].str.startswith(f"databricks-{strategy}")
+                   & (successful["dataset_size"] == tier)].copy()
+    d = d[d["stage_durations_ms"].notna()]
+    d["wc"] = d["configuration"].map(extract_worker_count)
+
+    def _parse(v):
+        if isinstance(v, str):
+            try:
+                return [float(z) for z in json.loads(v)]
+            except Exception:
+                return None
+        try:
+            return [float(z) for z in v]
+        except Exception:
+            return None
+
+    workers = sorted(int(w) for w in d["wc"].dropna().unique())
+    per_worker, maxstages = {}, 0
+    for w in workers:
+        arrs = [a for a in (_parse(v) for v in d[d["wc"] == w]["stage_durations_ms"]) if a]
+        per_worker[w] = arrs
+        maxstages = max(maxstages, max((len(a) for a in arrs), default=0))
+    medians = {}
+    for w in workers:
+        if not per_worker[w]:
+            medians[w] = np.zeros(maxstages)
+            continue
+        padded = np.array([a + [0.0] * (maxstages - len(a)) for a in per_worker[w]], dtype=float)
+        medians[w] = np.median(padded, axis=0) / 1000.0  # ms -> s
+
+    # Spark logs a long tail of ~0-duration stages; trim to the last stage whose
+    # median exceeds 1% of the global maximum so the per-worker profile is legible.
+    xmax_full = max((medians[w].max() for w in workers), default=1.0)
+    thresh = 0.01 * xmax_full
+    active = 0
+    for w in workers:
+        nz = np.nonzero(medians[w] > thresh)[0]
+        if len(nz):
+            active = max(active, int(nz.max()))
+    nstages = active + 1
+    medians = {w: medians[w][:nstages] for w in workers}
+
+    ramp = lightness_ramp(style.strategy_colors.get(strategy, PALETTE["thesissteel"]),
+                          max(nstages, 1))
+    fig, axes = plt.subplots(1, len(workers), figsize=(2.2 * len(workers) + 0.6, 4.2),
+                             squeeze=False, sharex=True)
+    axes = axes[0]
+    summary = []
+    xmax = max((medians[w].max() for w in workers), default=1.0)
+    for ax, w in zip(axes, workers):
+        vals = medians[w]
+        ys = np.arange(len(vals))
+        ax.barh(ys, vals, color=[ramp[i] for i in range(len(vals))], edgecolor="white",
+                linewidth=LW_HAIRLINE, zorder=3)
+        ax.set_title(f"{w}N", fontsize=9, fontweight="bold")
+        ax.invert_yaxis()
+        ax.set_xlim(0, xmax * 1.05)
+        if ax is axes[0]:
+            ax.set_yticks(ys)
+            ax.set_yticklabels([f"S{i}" for i in ys], fontsize=7)
+            ax.set_ylabel("Spark stage")
+        else:
+            ax.set_yticks(ys)
+            ax.set_yticklabels([])
+        ax.tick_params(axis="x", labelsize=7)
+        for i, vv in enumerate(vals):
+            summary.append({"worker_count": w, "stage_index": i, "median_duration_s": float(vv)})
+    fig.supxlabel("Median stage duration (s)", fontsize=9)
+    fig.suptitle(f"Spark per-stage duration profile — {strategy}, {tier} tier", fontsize=12, y=1.02)
+    fig.tight_layout()
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+def fig_reproducibility(successful, style, out_path, cells=None):
+    """Run-to-run reproducibility across the 30 benchmark passes.
+
+    For a few representative cells, the line traces each pass's minimum elapsed
+    time across ``benchmark_run`` 1--30 (between-run reproducibility), while the
+    band shaded behind it is that pass's within-run bootstrap CI half-width on the
+    minimum (within-run repeatability). A line that stays flat with a thin band is
+    both reproducible between passes and repeatable within a pass. The y-axis is
+    logarithmic because the representative cells span several decades.
+    """
+    if cells is None:
+        cells = [
+            ("point-in-polygon-lookup", "duckdb", "small"),
+            ("knn-search", "postgis", "small"),
+            ("bbox-filtering", "local", "small"),
+            ("national-scale-spatial-join", "databricks-broadcast-8-nodes", "large"),
+        ]
+    fig, ax = plt.subplots(figsize=(7.6, 4.6))
+    summary = []
+    for wt, cf, ds in cells:
+        sub = successful[(successful["workload_type"] == wt)
+                         & (successful["dataset_size"] == ds)
+                         & (successful["configuration"] == cf)]
+        if sub.empty:
+            continue
+        runs = sorted(int(r) for r in sub["benchmark_run"].dropna().unique())
+        xs, mins, hws = [], [], []
+        for r in runs:
+            v = sub[sub["benchmark_run"] == r]["elapsed_time"].dropna().values
+            v = v[v > 0]
+            if len(v) == 0:
+                continue
+            p, lo, hi = estimate_ci(v, kind="min")
+            xs.append(r)
+            mins.append(p)
+            hws.append((hi - lo) / 2.0)
+        if not xs:
+            continue
+        color = _name_color(style, cf)
+        mins = np.array(mins)
+        hws = np.array(hws)
+        ax.fill_between(xs, np.maximum(mins - hws, 1e-12), mins + hws, color=tint(color, 0.6),
+                        alpha=0.55, linewidth=0, zorder=2)
+        lab = f"{_name_label(style, cf).split(' ')[0]} · {style.workload_label(wt)[:8]} ({ds})"
+        ax.plot(xs, mins, marker="o", ms=3, color=color, linewidth=LW_SERIES, zorder=3, label=lab)
+        between_cv = float(np.std(mins, ddof=1) / np.mean(mins)) if len(mins) > 1 and np.mean(mins) > 0 else np.nan
+        summary.append({"workload_type": wt, "configuration": cf, "dataset_size": ds,
+                        "n_passes": len(xs), "between_run_cv": between_cv,
+                        "mean_within_run_halfwidth_s": float(np.mean(hws)),
+                        "median_min_s": float(np.median(mins))})
+    ax.set_yscale("log")
+    ax.set_xlabel("Benchmark pass (1–30)")
+    ax.set_ylabel("Per-pass minimum elapsed (s, log)")
+    ax.set_title("Run-to-run reproducibility: between-pass minima vs within-pass CI")
+    ax.legend(fontsize=7.5, loc="upper right", ncol=2)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)

@@ -1,0 +1,19 @@
+cfg,received_median,sent_median,n_recv,n_sent,workload_type,dataset_size,panel
+duckdb,93323.0,906.0,1282,1282,point-in-polygon-lookup,small,single-machine
+postgis,1923.0,616.0,79186,79186,point-in-polygon-lookup,small,single-machine
+local,0.0,66.0,4491,4491,point-in-polygon-lookup,small,single-machine
+duckdb,12039.0,816.0,345,345,point-in-polygon-lookup,large,single-machine
+postgis,1923.0,616.0,75052,75052,point-in-polygon-lookup,large,single-machine
+duckdb,93323.0,906.0,2041,2041,knn-search,small,single-machine
+postgis,8688.0,628.0,76103,76103,knn-search,small,single-machine
+local,42.0,108.0,445,445,knn-search,small,single-machine
+duckdb,11997.0,774.0,439,439,knn-search,large,single-machine
+postgis,7927.0,628.0,76521,76521,knn-search,large,single-machine
+duckdb,93323.0,906.0,1571,1571,bbox-filtering,small,single-machine
+postgis,1703441.0,13648.0,30785,30785,bbox-filtering,small,single-machine
+local,0.0,66.0,21185,21185,bbox-filtering,small,single-machine
+duckdb,11997.0,774.0,382,382,bbox-filtering,large,single-machine
+postgis,1858684.0,14770.0,24805,24805,bbox-filtering,large,single-machine
+databricks-broadcast-8-nodes,34263.0,18090.0,9,9,national-scale-spatial-join,(per row),sedona-client-boundary
+databricks-broadcast-8-nodes,48156.0,25152.0,9,9,national-scale-spatial-join,(per row),sedona-client-boundary
+databricks-broadcast-8-nodes,62415.0,32321.0,9,9,national-scale-spatial-join,(per row),sedona-client-boundary
