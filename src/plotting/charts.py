@@ -20,6 +20,12 @@ _ANNOTATION_FACE = tint(PALETTE["thesisamber"], 0.7)
 
 def _savefig(fig: plt.Figure, name: str, figures_dir: Path) -> None:
     fig.savefig(figures_dir / f"{name}.png", bbox_inches="tight", pad_inches=0.15)
+    # Also emit a vector PDF for print (matplotlib's PDF backend is vector by
+    # default; same geometry as the PNG). Fonts embed as TrueType via
+    # StyleConfig.apply_rcparams (pdf.fonttype=42).
+    fig.savefig(
+        figures_dir / f"{name}.pdf", format="pdf", bbox_inches="tight", pad_inches=0.15
+    )
     plt.show()
     plt.close(fig)
 

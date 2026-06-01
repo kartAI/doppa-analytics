@@ -80,6 +80,18 @@ def _save(fig: plt.Figure, out_path: str | Path) -> Path:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=300, bbox_inches="tight", pad_inches=0.15)
+    # Also emit a vector PDF for print (the thesis is printed as a book; vector
+    # stays sharp at any resolution). Same geometry as the PNG; matplotlib's PDF
+    # backend is vector by default, so axes/text/lines stay vector. dpi only
+    # affects any embedded raster layers (none here). Font embedding is TrueType
+    # (pdf.fonttype=42) via StyleConfig.apply_rcparams.
+    fig.savefig(
+        out_path.with_suffix(".pdf"),
+        format="pdf",
+        dpi=300,
+        bbox_inches="tight",
+        pad_inches=0.15,
+    )
     plt.show()
     plt.close(fig)
     return out_path

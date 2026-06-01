@@ -62,3 +62,8 @@ savefig.format:     png
 savefig.bbox:       tight
 figure.facecolor:   white
 savefig.facecolor:  white
+
+# ── Vector PDF/PS font embedding (TrueType, not Type 3) ─────────────────────
+# Required for print: some book printers reject Type 3 fonts.
+pdf.fonttype:       42
+ps.fonttype:        42

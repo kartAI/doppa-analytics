@@ -335,6 +335,10 @@ class StyleConfig:
                 "savefig.dpi": 300,
                 "savefig.format": "png",
                 "savefig.bbox": "tight",
+                # Embed fonts as TrueType (42), not Type 3, in vector PDF/PS
+                # output — required for print (some book printers reject Type 3).
+                "pdf.fonttype": 42,
+                "ps.fonttype": 42,
             },
         )
 
