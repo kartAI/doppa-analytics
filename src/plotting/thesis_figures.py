@@ -1133,16 +1133,34 @@ def fig_cliques(mean_ranks: dict, nonsig_pairs: list, style: StyleConfig, out_pa
     items = sorted(mean_ranks.items(), key=lambda kv: kv[1])
     cfgs = [c for c, _ in items]
     ranks = [r for _, r in items]
-    fig, ax = plt.subplots(figsize=(7.0, 2.4 + 0.35 * len(cfgs)))
+    span = (max(ranks) - min(ranks)) or 1.0
+    # Configurations that share (nearly) the same mean rank would otherwise have
+    # their labels drawn at one x position and overplotted; group such ties so the
+    # labels can be stacked vertically instead of colliding.
+    tol = 0.04 * span
+    clusters: list[list[tuple]] = []
+    for c, r in items:
+        if clusters and abs(r - clusters[-1][-1][1]) <= tol:
+            clusters[-1].append((c, r))
+        else:
+            clusters.append([(c, r)])
+    max_stack = max(len(cl) for cl in clusters)
+
+    fig, ax = plt.subplots(
+        figsize=(7.0, 2.4 + 0.35 * len(cfgs) + 0.55 * (max_stack - 1)))
     ax.hlines(0, min(ranks) - 0.3, max(ranks) + 0.3, color=PALETTE["thesisslate"],
               linewidth=LW_BORDER)
     for c, r in items:
         col = _name_color(style, c)
         ax.scatter(r, 0, s=60, color=col, zorder=4, edgecolor="white",
                    linewidth=LW_MARKER_EDGE)
-        ax.annotate(f"{_name_label(style, c)}\n({r:.2f})", xy=(r, 0), xytext=(0, 12),
-                    textcoords="offset points", ha="center", fontsize=7.5,
-                    color=shade(col, 0.2))
+    label_y0, label_dy = 0.05, 0.075
+    for cluster in clusters:
+        for k, (c, r) in enumerate(cluster):
+            col = _name_color(style, c)
+            ax.annotate(f"{_name_label(style, c)}\n({r:.2f})",
+                        xy=(r, label_y0 + k * label_dy), ha="center", va="bottom",
+                        fontsize=7.5, color=shade(col, 0.2))
     level = -0.04
     drawn = set()
     for a, b in nonsig_pairs:
@@ -1151,7 +1169,8 @@ def fig_cliques(mean_ranks: dict, nonsig_pairs: list, style: StyleConfig, out_pa
                     color=PALETTE["thesisbrick"], linewidth=1.8, zorder=3)
             level -= 0.035
             drawn.add((a, b))
-    ax.set_ylim(level - 0.05, 0.18)
+    top = label_y0 + (max_stack - 1) * label_dy + 0.14
+    ax.set_ylim(level - 0.05, top)
     ax.set_yticks([])
     ax.set_xlabel("Mean rank (lower = faster)")
     for s in ["top", "left", "right"]:
@@ -1169,7 +1188,8 @@ def fig_a12_forest(forest_df: pd.DataFrame, style: StyleConfig, out_path) -> Pat
     """Vargha-Delaney A12 forest: one row per key comparison, with arcuri bands."""
     forest_df = forest_df.reset_index(drop=True)
     n = len(forest_df)
-    fig, ax = plt.subplots(figsize=(7.2, 0.42 * n + 1.4))
+    labels = list(forest_df["label"])
+    fig, ax = plt.subplots(figsize=(5.2, 0.46 * n + 1.3))
     for i, row in forest_df.iterrows():
         y = n - i - 1
         a12 = row["a12"]
@@ -1186,8 +1206,17 @@ def fig_a12_forest(forest_df: pd.DataFrame, style: StyleConfig, out_path) -> Pat
     ax.axvline(0.5, color=PALETTE["thesisslate"], linestyle="--", linewidth=LW_CONNECTOR,
                zorder=1, label="no effect (0.5)")
     ax.set_yticks(range(n))
-    ax.set_yticklabels(list(forest_df["label"])[::-1], fontsize=7.5)
-    ax.set_xlim(0, 1)
+    ax.set_yticklabels(labels[::-1], fontsize=8.5, ha="left")
+    # Left-align the long comparison labels in the left margin so they neither
+    # overrun the plot nor get truncated: pad the tick labels past the longest
+    # string so every label's left edge lines up to the left of the axis.
+    pad = 6 + 5.0 * max(len(s) for s in labels)
+    ax.tick_params(axis="y", length=0, pad=pad)
+    # Pad the x-limits so markers and CIs at the A12 extremes (0 and 1) are not
+    # clipped by the spines.
+    ax.set_xlim(-0.04, 1.04)
+    ax.set_xticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    ax.set_ylim(-0.6, n - 0.4)
     ax.set_xlabel(r"$\hat{A}_{12}$")
     ax.set_title("Vargha–Delaney effect-size forest")
     ax.legend(fontsize=8, loc="lower right")
