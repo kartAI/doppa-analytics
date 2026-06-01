@@ -1317,67 +1317,85 @@ def fig_cell_grid(successful, cost_summary, cells, configs, style, out_path) -> 
 # ════════════════════════════════════════════════════════════════════════════
 
 
-def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path,
-                          sedona_cfg="databricks-broadcast-8-nodes"):
+def _dir_bars(ax, pairs, summary, *, annotate_local, linthresh=1000.0):
+    """Draw mirrored received/sent diverging bars on ``ax`` and append per-row
+    records to ``summary``.
+
+    pairs: list of (label, cfg, recv_array, sent_array, color). Bytes RECEIVED
+    extend right, bytes SENT extend left, from a central zero on a symmetric-log
+    axis; the median estimator (transfer convention) and its 95% bootstrap CI are
+    drawn on each bar.
+    """
+    ypos, ylabels = [], []
+    for i, (lab, cf, recv, sent, color) in enumerate(pairs):
+        rp, rlo, rhi = estimate_ci(recv, kind="median") if len(recv) else (0.0, 0.0, 0.0)
+        sp, slo, shi = estimate_ci(sent, kind="median") if len(sent) else (0.0, 0.0, 0.0)
+        ypos.append(i)
+        ylabels.append(lab)
+        if annotate_local and cf == "local" and max(rp, sp) < 1024:
+            ax.annotate("local FS\n(not like-for-like)", xy=(0, i), ha="center",
+                        va="center", fontsize=6.0, fontstyle="italic",
+                        color=PALETTE["thesisbrick"], zorder=6)
+        else:
+            ax.barh(i, max(rp, 0), height=0.6, color=color, edgecolor="white",
+                    linewidth=LW_HAIRLINE, zorder=3)
+            ax.barh(i, -max(sp, 0), height=0.6, color=tint(color, 0.5),
+                    edgecolor="white", linewidth=LW_HAIRLINE, zorder=3)
+            if rhi > rlo:
+                ax.plot([rlo, rhi], [i, i], color=PALETTE["thesisslate"],
+                        linewidth=LW_CONNECTOR, zorder=5)
+            if shi > slo:
+                ax.plot([-shi, -slo], [i, i], color=PALETTE["thesisslate"],
+                        linewidth=LW_CONNECTOR, zorder=5)
+        summary.append({"cfg": cf, "received_median": rp, "sent_median": sp,
+                        "n_recv": int(len(recv)), "n_sent": int(len(sent))})
+    ax.axvline(0, color=PALETTE["thesisslate"], linewidth=LW_BORDER, zorder=2)
+    ax.set_xscale("symlog", linthresh=linthresh)
+    ax.xaxis.set_major_formatter(_bytes_fmt())
+    # symlog crowds the first decade on each side around 0; show only 0 and
+    # the >= 1k decade ticks (>= linthresh) so the labels do not collide.
+    xl = ax.get_xlim()
+    cand = [0.0] + [s * 10.0 ** k for k in range(3, 8) for s in (-1, 1)]
+    ax.set_xticks([t for t in sorted(cand) if xl[0] <= t <= xl[1]])
+    ax.set_yticks(ypos)
+    ax.set_yticklabels(ylabels, fontsize=7.5)
+    ax.set_ylim(-0.6, len(pairs) - 0.4)
+    ax.tick_params(axis="x", labelsize=7)
+
+
+def _dir_legend(fig, y=-0.02):
+    """Shared received/sent/CI legend for the diverging-bar figures."""
+    recv_h = plt.Line2D([], [], marker="s", linestyle="", markersize=8,
+                        color=tint(PALETTE["thesisgray"], 0.0),
+                        markeredgecolor="white", label="received (right)")
+    sent_h = plt.Line2D([], [], marker="s", linestyle="", markersize=8,
+                        color=tint(PALETTE["thesisgray"], 0.5),
+                        markeredgecolor="white", label="sent (left)")
+    ci_h = plt.Line2D([], [], color=PALETTE["thesisslate"], linewidth=LW_CONNECTOR,
+                      label="95% bootstrap CI (median)")
+    fig.legend(handles=[recv_h, sent_h, ci_h], loc="lower center", ncol=3,
+               fontsize=8, frameon=False, bbox_to_anchor=(0.5, y))
+
+
+def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path):
     """Directional network transfer: bytes received vs sent, mirrored diverging bars.
 
-    Companion to the received-only bytes grid: for each configuration in a
-    workload x tier cell a pair of horizontal bars diverges from a central zero —
-    bytes RECEIVED extend right, bytes SENT extend left — on a symmetric-log axis,
-    so the (large) download/(small) upload asymmetry is legible without clipping
-    the small side. The median estimator (transfer convention) and its 95%
-    bootstrap CI are drawn on each bar. The Shapefile/local path reads from the
-    local filesystem, so both directions are ~0 and are annotated "local FS, not
-    like-for-like" rather than plotted as a comparable transfer. A bottom panel
-    shows the same received/sent split at the Sedona client boundary (the
-    distributed national-scale join, driver process), a different data path shown
-    for context only — sent has never been plotted elsewhere.
+    Companion to the received-only bytes grid, for the single-machine (RQ1)
+    configurations only: for each configuration in a workload x tier cell a pair
+    of horizontal bars diverges from a central zero — bytes RECEIVED extend right,
+    bytes SENT extend left — on a symmetric-log axis, so the (large) download /
+    (small) upload asymmetry is legible without clipping the small side. The
+    median estimator (transfer convention) and its 95% bootstrap CI are drawn on
+    each bar. The Shapefile/local path reads from the local filesystem, so both
+    directions are ~0 and are annotated "local FS, not like-for-like" rather than
+    plotted as a comparable transfer. The distributed Sedona client boundary is a
+    different data path and belongs to RQ2 — see ``fig_distributed_client_boundary``.
     """
     tiers = _tier_order(style, tiers)
     nrows, ncols = len(workloads), len(tiers)
-    fig = plt.figure(figsize=(3.8 * ncols + 1.0, 2.5 * nrows + 2.0))
-    gs = fig.add_gridspec(nrows + 1, ncols, height_ratios=[1.0] * nrows + [0.95],
-                          hspace=0.6, wspace=0.4)
+    fig = plt.figure(figsize=(3.8 * ncols + 1.0, 2.5 * nrows + 1.0))
+    gs = fig.add_gridspec(nrows, ncols, hspace=0.6, wspace=0.4)
     summary = []
-    linthresh = 1000.0
-
-    def _dir_bars(ax, pairs, *, annotate_local):
-        """pairs: list of (label, cfg, recv_array, sent_array, color)."""
-        ypos, ylabels = [], []
-        for i, (lab, cf, recv, sent, color) in enumerate(pairs):
-            rp, rlo, rhi = estimate_ci(recv, kind="median") if len(recv) else (0.0, 0.0, 0.0)
-            sp, slo, shi = estimate_ci(sent, kind="median") if len(sent) else (0.0, 0.0, 0.0)
-            ypos.append(i)
-            ylabels.append(lab)
-            if annotate_local and cf == "local" and max(rp, sp) < 1024:
-                ax.annotate("local FS\n(not like-for-like)", xy=(0, i), ha="center",
-                            va="center", fontsize=6.0, fontstyle="italic",
-                            color=PALETTE["thesisbrick"], zorder=6)
-            else:
-                ax.barh(i, max(rp, 0), height=0.6, color=color, edgecolor="white",
-                        linewidth=LW_HAIRLINE, zorder=3)
-                ax.barh(i, -max(sp, 0), height=0.6, color=tint(color, 0.5),
-                        edgecolor="white", linewidth=LW_HAIRLINE, zorder=3)
-                if rhi > rlo:
-                    ax.plot([rlo, rhi], [i, i], color=PALETTE["thesisslate"],
-                            linewidth=LW_CONNECTOR, zorder=5)
-                if shi > slo:
-                    ax.plot([-shi, -slo], [i, i], color=PALETTE["thesisslate"],
-                            linewidth=LW_CONNECTOR, zorder=5)
-            summary.append({"cfg": cf, "received_median": rp, "sent_median": sp,
-                            "n_recv": int(len(recv)), "n_sent": int(len(sent))})
-        ax.axvline(0, color=PALETTE["thesisslate"], linewidth=LW_BORDER, zorder=2)
-        ax.set_xscale("symlog", linthresh=linthresh)
-        ax.xaxis.set_major_formatter(_bytes_fmt())
-        # symlog crowds the first decade on each side around 0; show only 0 and
-        # the >= 1k decade ticks (>= linthresh) so the labels do not collide.
-        xl = ax.get_xlim()
-        cand = [0.0] + [s * 10.0 ** k for k in range(3, 8) for s in (-1, 1)]
-        ax.set_xticks([t for t in sorted(cand) if xl[0] <= t <= xl[1]])
-        ax.set_yticks(ypos)
-        ax.set_yticklabels(ylabels, fontsize=7.5)
-        ax.set_ylim(-0.6, len(pairs) - 0.4)
-        ax.tick_params(axis="x", labelsize=7)
 
     for r, wt in enumerate(workloads):
         for c, ds in enumerate(tiers):
@@ -1394,7 +1412,7 @@ def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path
                               style.color(cf)))
             n0 = len(summary)
             if pairs:
-                _dir_bars(ax, pairs, annotate_local=True)
+                _dir_bars(ax, pairs, summary, annotate_local=True)
                 for rec in summary[n0:]:
                     rec.update({"workload_type": wt, "dataset_size": ds, "panel": "single-machine"})
             else:
@@ -1410,39 +1428,48 @@ def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path
                             xycoords="axes fraction", rotation=270, va="center",
                             ha="left", fontsize=8.5, color=PALETTE["thesisslate"])
 
-    # bottom Sedona client-boundary panel: received/sent by tier for one broadcast config
-    axS = fig.add_subplot(gs[nrows, :])
-    sed = successful[(successful["workload_type"] == "national-scale-spatial-join")
+    _dir_legend(fig)
+    fig.suptitle("Directional network transfer — bytes received versus sent", fontsize=12, y=1.0)
+    _save_summary(pd.DataFrame(summary), out_path)
+    return _save(fig, out_path)
+
+
+def fig_distributed_client_boundary(successful, style, out_path,
+                                    sedona_cfg="databricks-broadcast-8-nodes",
+                                    workload="national-scale-spatial-join"):
+    """Directional network transfer at the distributed Sedona client boundary (RQ2).
+
+    The received/sent split measured at the driver process for the distributed
+    national-scale spatial join, one mirrored diverging-bar pair per size tier for
+    a single broadcast worker count. Bytes RECEIVED extend right, bytes SENT left,
+    on a symmetric-log axis with the median estimator and its 95% bootstrap CI.
+    This is the distributed analogue of the single-machine directional figure
+    (``fig_bytes_directional``); it is the only place the sent direction is shown
+    for the distributed path, complementing the shuffle-bytes phase breakdown.
+    """
+    sed = successful[(successful["workload_type"] == workload)
                      & (successful["configuration"] == sedona_cfg)]
     sed_tiers = _tier_order(style, sed["dataset_size"].unique())
-    spairs = []
+    fig, ax = plt.subplots(figsize=(7.5, 0.9 * max(len(sed_tiers), 1) + 2.2))
+    fig.subplots_adjust(bottom=0.34, top=0.86)
+    summary = []
+    pairs = []
     for ds in sed_tiers:
         sub = sed[sed["dataset_size"] == ds]
-        spairs.append((ds.capitalize(), sedona_cfg,
-                       sub["network_bytes_received"].dropna().values,
-                       sub["network_bytes_sent"].dropna().values,
-                       _system_color(style, "sedona")))
-    n0 = len(summary)
-    if spairs:
-        _dir_bars(axS, spairs, annotate_local=False)
-        for rec in summary[n0:]:
-            rec.update({"workload_type": "national-scale-spatial-join",
-                        "dataset_size": "(per row)", "panel": "sedona-client-boundary"})
-    axS.set_title(f"Sedona client boundary — {style.label(sedona_cfg)} (national-scale join)",
-                  fontsize=9, color=PALETTE["thesisslate"])
-    axS.set_xlabel("← sent        bytes (symlog)        received →", fontsize=8.5)
-
-    recv_h = plt.Line2D([], [], marker="s", linestyle="", markersize=8,
-                        color=tint(PALETTE["thesisgray"], 0.0),
-                        markeredgecolor="white", label="received (right)")
-    sent_h = plt.Line2D([], [], marker="s", linestyle="", markersize=8,
-                        color=tint(PALETTE["thesisgray"], 0.5),
-                        markeredgecolor="white", label="sent (left)")
-    ci_h = plt.Line2D([], [], color=PALETTE["thesisslate"], linewidth=LW_CONNECTOR,
-                      label="95% bootstrap CI (median)")
-    fig.legend(handles=[recv_h, sent_h, ci_h], loc="lower center", ncol=3,
-               fontsize=8, frameon=False, bbox_to_anchor=(0.5, -0.02))
-    fig.suptitle("Directional network transfer — bytes received versus sent", fontsize=12, y=1.0)
+        pairs.append((ds.capitalize(), sedona_cfg,
+                      sub["network_bytes_received"].dropna().values,
+                      sub["network_bytes_sent"].dropna().values,
+                      _system_color(style, "sedona")))
+    if pairs:
+        _dir_bars(ax, pairs, summary, annotate_local=False)
+        for rec in summary:
+            rec.update({"workload_type": workload, "dataset_size": "(per tier)",
+                        "panel": "sedona-client-boundary"})
+    ax.set_xlabel("← sent        bytes (symlog)        received →", fontsize=8.5)
+    ax.set_ylabel("size tier", fontsize=9)
+    _dir_legend(fig, y=0.01)
+    fig.suptitle(f"Distributed client boundary — {style.label(sedona_cfg)} "
+                 "(national-scale join)", fontsize=12, y=0.98)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 

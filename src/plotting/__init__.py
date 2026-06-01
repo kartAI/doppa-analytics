@@ -44,6 +44,7 @@ from .thesis_figures import (
     fig_cost_time_quadrant,
     fig_cpu_wall_ratio,
     fig_cross_pattern,
+    fig_distributed_client_boundary,
     fig_distributed_strategy_contrast,
     fig_rank_portability,
     fig_reproducibility,

@@ -14,6 +14,3 @@ postgis,1703441.0,13648.0,30785,30785,bbox-filtering,small,single-machine
 local,0.0,66.0,21185,21185,bbox-filtering,small,single-machine
 duckdb,11997.0,774.0,382,382,bbox-filtering,large,single-machine
 postgis,1858684.0,14770.0,24805,24805,bbox-filtering,large,single-machine
-databricks-broadcast-8-nodes,34263.0,18090.0,9,9,national-scale-spatial-join,(per row),sedona-client-boundary
-databricks-broadcast-8-nodes,48156.0,25152.0,9,9,national-scale-spatial-join,(per row),sedona-client-boundary
-databricks-broadcast-8-nodes,62415.0,32321.0,9,9,national-scale-spatial-join,(per row),sedona-client-boundary
