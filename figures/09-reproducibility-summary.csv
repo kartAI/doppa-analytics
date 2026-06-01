@@ -1,0 +1,5 @@
+workload_type,configuration,dataset_size,n_passes,between_run_cv,mean_within_run_halfwidth_s,median_min_s
+point-in-polygon-lookup,duckdb,small,30,0.20101674603401298,0.034101647966666704,1.3770217054999954
+knn-search,postgis,small,30,0.25435211240025773,2.9165550000106086e-05,0.003455075000005081
+bbox-filtering,local,small,30,0.02330203866532859,0.00018462928333254542,0.05463910400000316
+national-scale-spatial-join,databricks-broadcast-8-nodes,large,3,0.0999963599730283,2.0585908231669237,143.646290228

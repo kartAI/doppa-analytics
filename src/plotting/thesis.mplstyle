@@ -1,0 +1,69 @@
+# Thesis figure style — static mirror of src/plotting/style.py:StyleConfig.apply_rcparams.
+#
+# The programmatic apply_rcparams() is the single source of truth (it also layers
+# seaborn's "ticks" theme and registers bundled fonts). This file is the same
+# rcParams as a standalone style for non-notebook / non-seaborn use:
+#     import matplotlib.pyplot as plt
+#     plt.style.use("src/plotting/thesis.mplstyle")
+# Keep the two in sync. Colors are the thesis palette (see packages.sty):
+# slate #2C3E50, light #E5E5E5.
+
+# ── Fonts ──────────────────────────────────────────────────────────────────
+# Humanist sans matching the Lucidchart conceptual diagrams (Lato). Source Sans 3
+# is intended; Open Sans (installed, Lato-like) is the resolved fallback here.
+font.family:        sans-serif
+font.sans-serif:    Source Sans 3, Open Sans, Inter, Lato, Liberation Sans, Arial, DejaVu Sans
+font.monospace:     JetBrains Mono, DejaVu Sans Mono, Liberation Mono, monospace
+mathtext.fontset:   dejavusans
+font.size:          10
+axes.titlesize:     12
+axes.titleweight:   normal
+axes.labelsize:     10
+
+# ── Color (dark-slate text, palette neutrals) ───────────────────────────────
+axes.labelcolor:    #2C3E50
+text.color:         #2C3E50
+xtick.color:        #2C3E50
+ytick.color:        #2C3E50
+
+# ── Spines / ticks (flat: hide top & right) ─────────────────────────────────
+# Hairline weights matching the Lucidchart diagrams; mirror of the LW_* scale
+# in style.py (LW_SPINE 0.5, LW_HAIRLINE 0.4, LW_BORDER 0.7, LW_MARKER_EDGE 0.4).
+axes.spines.top:    False
+axes.spines.right:  False
+axes.linewidth:     0.5
+xtick.major.width:  0.5
+ytick.major.width:  0.5
+xtick.minor.width:  0.4
+ytick.minor.width:  0.4
+xtick.major.size:   3
+ytick.major.size:   3
+
+# ── Patch / marker defaults (inherited when no explicit linewidth) ───────────
+patch.linewidth:        0.7
+lines.markeredgewidth:  0.4
+hatch.linewidth:        0.4
+
+# ── Grid (off; faint light-neutral when enabled) ────────────────────────────
+axes.grid:          False
+grid.alpha:         0.15
+grid.linestyle:     -
+grid.linewidth:     0.4
+grid.color:         #E5E5E5
+
+# ── Legend (frameless) ──────────────────────────────────────────────────────
+legend.frameon:     False
+legend.fontsize:    9
+
+# ── Figure / save (publication DPI, tight) ──────────────────────────────────
+figure.dpi:         150
+savefig.dpi:        300
+savefig.format:     png
+savefig.bbox:       tight
+figure.facecolor:   white
+savefig.facecolor:  white
+
+# ── Vector PDF/PS font embedding (TrueType, not Type 3) ─────────────────────
+# Required for print: some book printers reject Type 3 fonts.
+pdf.fonttype:       42
+ps.fonttype:        42

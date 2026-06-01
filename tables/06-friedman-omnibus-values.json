@@ -1,0 +1,10 @@
+{
+  "workload": "point-in-polygon-lookup",
+  "tier": "small",
+  "metric": "elapsed_time",
+  "chi2": 2564.0,
+  "p": 0.0,
+  "df": 2,
+  "k_configs": 3,
+  "n_blocks": 1282
+}

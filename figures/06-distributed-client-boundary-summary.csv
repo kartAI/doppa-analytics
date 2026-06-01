@@ -1,0 +1,4 @@
+cfg,received_median,sent_median,n_recv,n_sent,workload_type,dataset_size,panel
+databricks-broadcast-8-nodes,34263.0,18090.0,9,9,national-scale-spatial-join,(per tier),sedona-client-boundary
+databricks-broadcast-8-nodes,48156.0,25152.0,9,9,national-scale-spatial-join,(per tier),sedona-client-boundary
+databricks-broadcast-8-nodes,62415.0,32321.0,9,9,national-scale-spatial-join,(per tier),sedona-client-boundary

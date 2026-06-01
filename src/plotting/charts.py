@@ -20,6 +20,12 @@ _ANNOTATION_FACE = tint(PALETTE["thesisamber"], 0.7)
 
 def _savefig(fig: plt.Figure, name: str, figures_dir: Path) -> None:
     fig.savefig(figures_dir / f"{name}.png", bbox_inches="tight", pad_inches=0.15)
+    # Also emit a vector PDF for print (matplotlib's PDF backend is vector by
+    # default; same geometry as the PNG). Fonts embed as TrueType via
+    # StyleConfig.apply_rcparams (pdf.fonttype=42).
+    fig.savefig(
+        figures_dir / f"{name}.pdf", format="pdf", bbox_inches="tight", pad_inches=0.15
+    )
     plt.show()
     plt.close(fig)
 
@@ -73,21 +79,42 @@ def plot_coverage_heatmap(
     expected_configs: dict[str, list[str]] | None = None,
     metadata_df: pd.DataFrame | None = None,
     experiments: dict[str, dict] | None = None,
+    workloads: list[str] | None = None,
+    out_name: str = "coverage_heatmap",
+    title: str = "Benchmark Coverage — Success Rate by Configuration",
 ) -> None:
+    """Coverage/success-rate grid (config rows x size-tier columns).
+
+    Pass ``workloads`` to restrict the rows to a subset of workload types (e.g.
+    the single-machine patterns vs the distributed join), so a design grid that
+    is too tall for one page can be emitted as several focused figures. The
+    column tiers and the attempted/expected cells are scoped to the selected
+    workloads. ``out_name`` is the output filename stem and ``title`` the chart
+    title.
+    """
     all_wts = sorted(samples_df["workload_type"].unique())
+    if workloads is not None:
+        wlset = set(workloads)
+        all_wts = [w for w in all_wts if w in wlset]
+
+    sub = samples_df[samples_df["workload_type"].isin(all_wts)]
     all_sizes = sorted(
-        samples_df["dataset_size"].unique(),
+        sub["dataset_size"].unique(),
         key=lambda s: style.size_order.get(s, 99),
     )
 
     if metadata_df is not None and experiments is not None:
+        from src.analysis.loading import parse_query_id
         for _, row in metadata_df.iterrows():
             qid = row.get("query_id", "")
-            exp = experiments.get(qid)
-            if exp is None:
+            try:
+                parsed = parse_query_id(qid, experiments, all_wts)
+            except ValueError:
                 continue
-            ds = exp.get("dataset_size", "")
-            if ds and ds not in all_sizes:
+            if parsed is None:
+                continue
+            wt, _cfg, ds = parsed
+            if wt in all_wts and ds and ds not in all_sizes:
                 all_sizes.append(ds)
         all_sizes = sorted(all_sizes, key=lambda s: style.size_order.get(s, 99))
 
@@ -247,12 +274,12 @@ def plot_coverage_heatmap(
         ax.axhline(y=y, color="white", linewidth=2)
 
     ax.set_title(
-        "Benchmark Coverage — Success Rate by Configuration",
+        title,
         fontsize=12,
         pad=12,
     )
     fig.tight_layout()
-    _savefig(fig, "coverage_heatmap", figures_dir)
+    _savefig(fig, out_name, figures_dir)
 
 
 # ── Per-cell charts (iterated over workload_type x dataset_size) ─────────

@@ -1,0 +1,16 @@
+workload_type,dataset_size,configuration,min_time,median_bytes
+point-in-polygon-lookup,small,duckdb,1.327399279000005,93323.0
+point-in-polygon-lookup,small,postgis,0.0016057990000000189,1923.0
+point-in-polygon-lookup,small,local,0.3426641980000227,0.0
+point-in-polygon-lookup,large,duckdb,29.919311816999993,12039.0
+point-in-polygon-lookup,large,postgis,0.0014888819999967495,1923.0
+knn-search,small,duckdb,0.7460472449999997,93323.0
+knn-search,small,postgis,0.0016826290000011568,8688.0
+knn-search,small,local,47.816030732,42.0
+knn-search,large,duckdb,15.736374125999987,11997.0
+knn-search,large,postgis,0.001617357999997182,7927.0
+bbox-filtering,small,duckdb,1.05492897500001,93323.0
+bbox-filtering,small,postgis,0.027331008000000878,1703441.0
+bbox-filtering,small,local,0.05209722500001135,0.0
+bbox-filtering,large,duckdb,22.826123492000022,11997.0
+bbox-filtering,large,postgis,0.03893694599999975,1858684.0

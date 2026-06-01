@@ -17,4 +17,37 @@ from .charts import (
     plot_variation,
     plot_violin,
 )
-from .style import DEFAULT_STYLE, StyleConfig
+from .style import (
+    DEFAULT_STYLE,
+    MONO_STACK,
+    PALETTE,
+    ROLE_COLORS,
+    SANS_STACK,
+    NodeStyle,
+    StyleConfig,
+    bottom_legend,
+    fill_style,
+    flow_arrow,
+    lightness_ramp,
+    register_fonts,
+    resolved_sans,
+    ribbon,
+    role_style,
+    rounded_node,
+    shade,
+    tint,
+    two_line_title,
+)
+from .thesis_figures import (
+    fig_bytes_directional,
+    fig_bytes_vs_cardinality,
+    fig_cost_time_quadrant,
+    fig_cpu_wall_ratio,
+    fig_cross_pattern,
+    fig_distributed_client_boundary,
+    fig_distributed_strategy_contrast,
+    fig_rank_portability,
+    fig_reproducibility,
+    fig_size_scaling_slope,
+    fig_spark_stage_profile,
+)

@@ -1,0 +1,28 @@
+workload_type,tier,wt_tier,outcome,winner,winner_value,runner_up,runner_up_value,rel_margin_pct,holm_p,decision
+bbox-filtering,small,Bounding-box (small),Bytes,local,0.0,duckdb,93323.0,,9.337918767043495e-285,significant
+bbox-filtering,small,Bounding-box (small),Cost,duckdb,0.18465878097522082,local,0.2034068837328,10.152835764736784,,clear
+bbox-filtering,small,Bounding-box (small),Time,postgis,0.027331008000000878,local,0.05209722500001135,90.61581995076682,0.0,significant
+bbox-filtering,large,Bounding-box (large),Bytes,duckdb,11997.0,postgis,1858684.0,15392.906559973326,3.660332053699569e-68,significant
+bbox-filtering,large,Bounding-box (large),Cost,postgis,0.3965541106736082,duckdb,1.4209538043013459,258.3253246039077,,clear
+bbox-filtering,large,Bounding-box (large),Time,postgis,0.03893694599999975,duckdb,22.826123492000022,58523.30212544191,2.385529910246094e-64,significant
+knn-search,small,kNN (small),Bytes,local,42.0,postgis,8688.0,20585.714285714286,3.5982213707238427e-85,significant
+knn-search,small,kNN (small),Cost,duckdb,0.17361246909422742,postgis,0.3970295149589439,128.68721182892563,,clear
+knn-search,small,kNN (small),Time,postgis,0.0016826290000011568,duckdb,0.7460472449999997,44238.190117933715,0.0,significant
+knn-search,large,kNN (large),Bytes,postgis,7927.0,duckdb,11997.0,51.343509524410244,5.976756522949936e-81,significant
+knn-search,large,kNN (large),Cost,postgis,0.39505736620684345,duckdb,1.1461144419730767,190.1134214956002,,clear
+knn-search,large,kNN (large),Time,postgis,0.001617357999997182,duckdb,15.736374125999987,972867.8973997966,1.1602615907531916e-73,significant
+national-scale-spatial-join,small,National join (small),Bytes,postgis,9514.0,duckdb,104137.0,994.5659028799664,0.2578125,n.s.
+national-scale-spatial-join,small,National join (small),Cost,postgis,0.053279807309559245,duckdb,0.1698668357856734,218.82028926781908,,clear
+national-scale-spatial-join,small,National join (small),Time,postgis,13.365155059000003,sedona,13.747047119000058,2.857370964378687,0.2578125,n.s.
+national-scale-spatial-join,medium,National join (medium),Bytes,postgis,12127.0,duckdb,22875.0,88.62867980539293,0.08203125,n.s.
+national-scale-spatial-join,medium,National join (medium),Cost,sedona,1.0928679659246485,duckdb,1.4837070789108013,35.76270191573174,,clear
+national-scale-spatial-join,medium,National join (medium),Time,sedona,38.18057318299998,duckdb,1386.335994906,3530.998383029175,0.08203125,n.s.
+national-scale-spatial-join,large,National join (large),Bytes,sedona,69265.0,,,,,single-config
+national-scale-spatial-join,large,National join (large),Cost,sedona,1.5991509033184492,,,,,single-config
+national-scale-spatial-join,large,National join (large),Time,sedona,69.76266371400197,,,,,single-config
+point-in-polygon-lookup,small,Point-in-polygon (small),Bytes,local,0.0,postgis,1923.0,,0.0,significant
+point-in-polygon-lookup,small,Point-in-polygon (small),Cost,local,0.1645709452056,duckdb,0.21096870073617333,28.193163424204787,,clear
+point-in-polygon-lookup,small,Point-in-polygon (small),Time,postgis,0.0016057990000000189,local,0.3426641980000227,21239.171216324,0.0,significant
+point-in-polygon-lookup,large,Point-in-polygon (large),Bytes,postgis,1923.0,duckdb,12039.0,526.0530421216849,1.2041246962646277e-60,significant
+point-in-polygon-lookup,large,Point-in-polygon (large),Cost,postgis,0.39502054967026123,duckdb,1.7202124904250518,335.47417770062316,,clear
+point-in-polygon-lookup,large,Point-in-polygon (large),Time,postgis,0.0014888819999967495,duckdb,29.919311816999993,2009415.3153215172,2.6629606812392546e-58,significant

@@ -1,0 +1,19 @@
+% tab:results-achieved-n  cols {@{}l l l r r r l@{}}  (Config, Workload, Tier, Achieved n, Min s, CI half-width, Stop reason)
+DuckDB + GeoParquet & Point-in-polygon & Small & 1282 & 1.327 & 0.0502 & precision target \\
+DuckDB + GeoParquet & Point-in-polygon & Large & 345 & 29.919 & 1.309 & precision target \\
+DuckDB + GeoParquet & kNN & Small & 2041 & 0.7460 & 0.0217 & precision target \\
+DuckDB + GeoParquet & kNN & Large & 439 & 15.736 & 0.6984 & precision target \\
+DuckDB + GeoParquet & Bounding-box & Small & 1571 & 1.055 & 0.0258 & precision target \\
+DuckDB + GeoParquet & Bounding-box & Large & 382 & 22.826 & 1.101 & precision target \\
+PostGIS & Point-in-polygon & Small & 79186 & 0.0016 & 0.0000 & precision target \\
+PostGIS & Point-in-polygon & Large & 75052 & 0.0015 & 0.0001 & precision target \\
+PostGIS & kNN & Small & 76103 & 0.0017 & 0.0001 & precision target \\
+PostGIS & kNN & Large & 76521 & 0.0016 & 0.0001 & precision target \\
+PostGIS & Bounding-box & Small & 30785 & 0.0273 & 0.0008 & precision target \\
+PostGIS & Bounding-box & Large & 24805 & 0.0389 & 0.0012 & precision target \\
+GeoPandas + Shapefile & Point-in-polygon & Small & 4491 & 0.3427 & 0.0081 & precision target \\
+GeoPandas + Shapefile & Point-in-polygon & Large & \multicolumn{4}{c}{did not run by design} \\
+GeoPandas + Shapefile & kNN & Small & 445 & 47.816 & 2.298 & precision target \\
+GeoPandas + Shapefile & kNN & Large & \multicolumn{4}{c}{did not run by design} \\
+GeoPandas + Shapefile & Bounding-box & Small & 21185 & 0.0521 & 0.0018 & precision target \\
+GeoPandas + Shapefile & Bounding-box & Large & \multicolumn{4}{c}{did not run by design} \\
