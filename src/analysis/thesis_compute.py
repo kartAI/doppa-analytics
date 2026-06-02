@@ -168,7 +168,7 @@ def rq3_system_values(successful, cost_summary):
 
 def rq3_geomean(sysvals):
     """Geometric mean of per-cell normalized value (vs smallest positive) per system."""
-    outcomes = ["Time", "Bytes", "Cost"]
+    outcomes = ["Time", "Cost"]
     out = {}
     for sysname in SYSTEM_ORDER:
         row = {}
@@ -200,7 +200,7 @@ def rq3_winners(sysvals):
         order.append((size_order.get(ds, 9), wt, label))
         d = cell.set_index("system")
         data[label] = {oc: (d[oc].dropna().idxmin() if d[oc].notna().any() else "")
-                       for oc in ["Time", "Bytes", "Cost"]}
+                       for oc in ["Time", "Cost"]}
     labels = [lab for _, _, lab in sorted(order)]
     return pd.DataFrame(data).T.reindex(labels)
 
@@ -261,7 +261,7 @@ def rq3_winners_export(sysvals, pooled, successful, tie_threshold=0.05):
     rows = []
     for (wt, ds), cell in sysvals.groupby(["workload_type", "dataset_size"]):
         d = cell.set_index("system")
-        for oc in ["Time", "Bytes", "Cost"]:
+        for oc in ["Time", "Cost"]:
             s = d[oc].dropna().sort_values()
             rec = {"workload_type": wt, "tier": ds, "wt_tier": f"{WL_SHORT[wt]} ({ds})",
                    "outcome": oc, "winner": "", "winner_value": np.nan,
@@ -324,7 +324,6 @@ def rq3_parallel_axes(geomean, ranks):
         rows.append({
             "system": sysname,
             "Time": float(geomean.loc[sysname, "Time"]),
-            "Bytes": float(geomean.loc[sysname, "Bytes"]),
             "Cost": float(geomean.loc[sysname, "Cost"]),
             "Rank": float(mean_rank.get(sysname, np.nan)),
         })

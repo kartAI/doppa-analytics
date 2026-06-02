@@ -1,10 +1,10 @@
-workload_tier,Time,Bytes,Cost
-Bounding-box (small),postgis,local,duckdb
-kNN (small),postgis,local,duckdb
-National join (small),postgis,postgis,postgis
-Point-in-polygon (small),postgis,local,local
-National join (medium),sedona,postgis,sedona
-Bounding-box (large),postgis,duckdb,postgis
-kNN (large),postgis,postgis,postgis
-National join (large),sedona,sedona,sedona
-Point-in-polygon (large),postgis,postgis,postgis
+workload_tier,Time,Cost
+Bounding-box (small),postgis,duckdb
+kNN (small),postgis,duckdb
+National join (small),postgis,postgis
+Point-in-polygon (small),postgis,local
+National join (medium),sedona,sedona
+Bounding-box (large),postgis,postgis
+kNN (large),postgis,postgis
+National join (large),sedona,sedona
+Point-in-polygon (large),postgis,postgis

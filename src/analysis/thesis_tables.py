@@ -265,10 +265,10 @@ def emit_geomean(geomean_df, out_path) -> pd.DataFrame:
         def g(col):
             v = r.get(col, np.nan)
             return "---" if _nan(v) else f"{v:.2f}"
-        rows.append(f"{SYSTEM_LABEL[sysname]} & {g('Time')} & {g('Bytes')} & {g('Cost')} \\\\")
+        rows.append(f"{SYSTEM_LABEL[sysname]} & {g('Time')} & {g('Cost')} \\\\")
     _write(rows, out_path,
-           "tab:geomean-normalized-performance  cols {@{}l r r r@{}}  "
-           "(Configuration, Time, Bytes, Cost) -- geomean slowdown vs best, 1.00=best")
+           "tab:geomean-normalized-performance  cols {@{}l r r@{}}  "
+           "(Configuration, Time, Cost) -- geomean slowdown vs best, 1.00=best")
     return geomean_df
 
 

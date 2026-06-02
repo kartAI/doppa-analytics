@@ -1118,7 +1118,7 @@ def fig_cost_pareto(pareto_df: pd.DataFrame, style: StyleConfig, out_path) -> Pa
 
 def fig_winners_matrix(winners: pd.DataFrame, style: StyleConfig, out_path) -> Path:
     """Winners matrix: rows = workload x tier, cols = outcome, cell = winning system."""
-    outcomes = ["Time", "Bytes", "Cost"]
+    outcomes = ["Time", "Cost"]
     rows = list(winners.index)
     fig, ax = plt.subplots(figsize=(5.6, 0.5 * len(rows) + 1.6))
     for ri, rk in enumerate(rows):
@@ -1311,8 +1311,8 @@ def fig_rq3_parallel_coords(axes_df, style, out_path) -> Path:
     and trails on another -- in a single frame. Axis extremes are annotated with
     their real values so the normalized positions can be decoded.
     """
-    cols = ["Time", "Bytes", "Cost", "Rank"]
-    use_log = {"Time": True, "Bytes": True, "Cost": True, "Rank": False}
+    cols = ["Time", "Cost", "Rank"]
+    use_log = {"Time": True, "Cost": True, "Rank": False}
     df = axes_df[cols].astype(float)
     norm, lohi = {}, {}
     for col in cols:
@@ -1349,7 +1349,7 @@ def fig_rq3_parallel_coords(axes_df, style, out_path) -> Path:
         ax.annotate(_fmt(col, lo), xy=(xi, 0.0), xytext=(0, -13), textcoords="offset points",
                     ha="center", fontsize=7, color=PALETTE["thesisgray"])
     ax.set_xticks(x)
-    ax.set_xticklabels(["Time", "Bytes", "Cost", "Mean rank"], fontsize=10)
+    ax.set_xticklabels(["Time", "Cost", "Mean rank"], fontsize=10)
     ax.set_yticks([0, 1])
     ax.set_yticklabels(["best", "worst"], fontsize=8)
     ax.set_ylim(-0.1, 1.14)
