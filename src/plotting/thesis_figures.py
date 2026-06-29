@@ -1955,8 +1955,10 @@ def fig_cross_pattern(successful, workloads, configs, tiers, style, out_path):
         if missing:
             ax.annotate("; ".join(f"{style.label(c)}" for c in missing)
                         + ":\nsmall tier only (by design)",
-                        xy=(0.03, 0.97), xycoords="axes fraction", ha="left", va="top",
-                        fontsize=8, fontstyle="italic", color=PALETTE["thesisbrick"])
+                        xy=(0.03, 0.98), xycoords="axes fraction", ha="left", va="top",
+                        fontsize=8, fontstyle="italic", color=PALETTE["thesisbrick"],
+                        bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.85,
+                                  edgecolor="none"), zorder=6)
         ax.set_yscale("log")
         ax.set_xticks(range(len(workloads)))
         # Long workload names, three per ~2.9 in panel: steep rotation + smaller
@@ -1966,6 +1968,9 @@ def fig_cross_pattern(successful, workloads, configs, tiers, style, out_path):
         ax.set_title(ds.capitalize(), fontsize=11, fontweight="bold")
         if ax is axes[0]:
             ax.set_ylabel("Wall-clock minimum (s, log)")
+    # Extra top headroom (shared y-axis) so the "small tier only" note sits in
+    # clear space above the bars rather than on top of them.
+    axes[0].set_ylim(top=axes[0].get_ylim()[1] * 8)
     cfg_h = [plt.Line2D([], [], marker="s", linestyle="", color=style.color(c),
                         markeredgecolor="white", label=style.label(c)) for c in configs]
     fig.suptitle("Cross-pattern single-machine comparison by tier", fontsize=13, y=1.02)
