@@ -18,6 +18,7 @@ Method conventions honored here:
 from __future__ import annotations
 
 import json
+import textwrap
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -247,6 +248,16 @@ def _tier_order(style: StyleConfig, tiers) -> list[str]:
     return sorted(set(tiers), key=lambda t: style.size_order.get(t, 99))
 
 
+def _wrap(label: str, width: int = 14) -> str:
+    """Soft-wrap a panel title onto multiple lines (word boundaries only).
+
+    Used for the narrow multi-panel strips where a full workload name does not
+    fit a single panel column at a legible font; the words are unchanged, only a
+    line break is inserted so the enlarged title fits without overrunning the
+    neighbouring panel."""
+    return "\n".join(textwrap.wrap(label, width)) or label
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # 01 — measurement quality
 # ════════════════════════════════════════════════════════════════════════════
@@ -367,7 +378,7 @@ def fig_convergence(
     ax.set_ylabel("Relative CI half-width")
     ax.set_ylim(0, min(0.5, max(rel) * 1.1 if rel else 0.5))
     ax.set_title(f"Sequential-stopping convergence — {style.label(cfg)}")
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=9)
     _save_summary(pd.DataFrame({"n": ks, "rel_ci_halfwidth": rel}), out_path)
     return _save(fig, out_path)
 
@@ -399,7 +410,7 @@ def fig_estimator_illustration(
     frac_above_min = float(np.mean(vals > vmin * 1.01))  # share past the floor
     frac_below_mean = float(np.mean(vals <= vmean))      # ECDF height at the mean
 
-    fig, ax = plt.subplots(figsize=(7.0, 4.0))
+    fig, ax = plt.subplots(figsize=(4.5, 2.57))
     # shade the minimum-to-mean span: this is the one-sided contamination
     ax.axvspan(vmin, vmean, color=tint(PALETTE["thesisbrick"], 0.85), zorder=0)
     ax.step(vs, y, where="post", color=color, linewidth=LW_SERIES, zorder=3,
@@ -413,7 +424,7 @@ def fig_estimator_illustration(
     # numbers on the figure so the contamination gap is readable at a glance
     ax.annotate(
         f"mean is {100 * contamination:.0f}% above the minimum",
-        xy=(np.sqrt(vmin * vmean), 0.5), ha="center", va="center", fontsize=8,
+        xy=(np.sqrt(vmin * vmean), 0.5), ha="center", va="center", fontsize=9,
         fontstyle="italic", color=shade(PALETTE["thesisbrick"], 0.2),
     )
     ax.set_xscale("log")
@@ -424,7 +435,7 @@ def fig_estimator_illustration(
         f"Estimator choice — {style.workload_label(d['workload_type'].iloc[0])}, "
         f"{style.label(cfg)}"
     )
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=9)
     _save_summary(
         pd.DataFrame([{"query_id": query_id, "n": int(len(vals)), "min": vmin,
                        "median": vmed, "mean": vmean, "mean_over_min": vmean / vmin,
@@ -456,7 +467,10 @@ def fig_cv_dispersion(
     configs = [c for c in sorted(cv["configuration"].unique(),
                                  key=lambda c: (system_of(c), c))]
 
-    fig, ax = plt.subplots(figsize=(max(7, 0.7 * len(configs) + 2), 4.2))
+    # Authored near the on-page display width (0.75\textwidth ≈ 4.33 in). With 13
+    # configuration categories the x-labels can only reach ≥8 pt at that width if
+    # set vertical; group A grants the extra height that the upright labels need.
+    fig, ax = plt.subplots(figsize=(max(4.8, 0.22 * len(configs) + 2.2), 5.4))
     for i, cfg in enumerate(configs):
         sub = cv[cv["configuration"] == cfg]
         xs = _RNG.uniform(-0.18, 0.18, len(sub)) + i
@@ -468,11 +482,11 @@ def fig_cv_dispersion(
     ax.axhline(band, color=PALETTE["thesisbrick"], linestyle="--", linewidth=LW_CONNECTOR,
                label=f"CV = {band:.2f}")
     ax.set_xticks(range(len(configs)))
-    ax.set_xticklabels([style.label(c) for c in configs], rotation=35, ha="right", fontsize=8)
+    ax.set_xticklabels([style.label(c) for c in configs], rotation=90, ha="center", fontsize=8.5)
     ax.set_ylabel("Coefficient of variation")
     ax.set_title(f"Run-to-run dispersion — {style.metric_label(metric)}")
     _floor_nonneg(ax)  # CV is non-negative
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=9)
     _save_summary(cv, out_path)
     return _save(fig, out_path)
 
@@ -506,7 +520,7 @@ def fig_time_of_day_stability(
     d["system"] = d["configuration"].map(system_of)
 
     systems = [s for s in SYSTEM_ORDER if s in set(d["system"])]
-    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    fig, ax = plt.subplots(figsize=(4.9, 3.0))
     xs_line = np.linspace(0, 24, 50)
     summary = []
     rho_all, p_all = spearmanr(d["hod"].values, d["rel"].values)
@@ -533,7 +547,7 @@ def fig_time_of_day_stability(
     ax.set_xlabel("Start time-of-day (UTC, h)")
     ax.set_ylabel("Relative runtime (elapsed / cell median)")
     ax.set_title(f"Runtime versus time-of-day (overall Spearman ρ = {rho_all:+.2f})")
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7.5)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=9, ncol=3)
     summary.append({"system": "ALL", "n": int(len(d)), "spearman_rho": float(rho_all),
                     "spearman_p": float(p_all), "ols_slope_per_hour": np.nan})
     _save_summary(pd.DataFrame(summary), out_path)
@@ -642,7 +656,11 @@ def _rq1_dist_grid(successful, workloads, configs, tiers, style, *, metric, kind
     """
     tiers = _tier_order(style, tiers)
     nrows, ncols = len(workloads), len(tiers)
-    fig, axes = plt.subplots(nrows, ncols, figsize=(3.6 * ncols + 1, 3.0 * nrows + 0.8),
+    # Authored close to the on-page display width (\textwidth ≈ 5.77 in) so LaTeX
+    # includes it ~1:1 and the text is not shrunk; aspect preserved (uniform 0.70
+    # scale of the prior geometry).
+    fig, axes = plt.subplots(nrows, ncols,
+                             figsize=(0.70 * (3.6 * ncols + 1), 0.70 * (3.0 * nrows + 0.8)),
                              squeeze=False)
     summary = []
     for r, wt in enumerate(workloads):
@@ -664,7 +682,7 @@ def _rq1_dist_grid(successful, workloads, configs, tiers, style, *, metric, kind
                 if annotate_local_net and cf == "local" and point <= 0:
                     ax.annotate("local read\n(≈0 network)", xy=(i, 0.04),
                                 xycoords=("data", "axes fraction"), ha="center",
-                                va="bottom", fontsize=6.5, fontstyle="italic",
+                                va="bottom", fontsize=8.5, fontstyle="italic",
                                 color=PALETTE["thesisbrick"])
                     xpos.append(i)
                     labels.append(style.label(cf))
@@ -685,18 +703,18 @@ def _rq1_dist_grid(successful, workloads, configs, tiers, style, *, metric, kind
                 ax.yaxis.set_major_formatter(_bytes_fmt())
             ax.set_xlim(-0.6, len(configs) - 0.4)
             ax.set_xticks(xpos)
-            ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=7.5)
+            ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9)
             if c == 0:
-                ax.set_ylabel(ylabel, fontsize=8.5)
+                ax.set_ylabel(ylabel, fontsize=10)
             if r == 0:
-                ax.set_title(ds.capitalize(), fontsize=10, fontweight="bold")
+                ax.set_title(ds.capitalize(), fontsize=11, fontweight="bold")
             if c == ncols - 1:
                 ax.annotate(style.workload_label(wt), xy=(1.02, 0.5),
                             xycoords="axes fraction", rotation=270, va="center",
-                            ha="left", fontsize=8.5, color=PALETTE["thesisslate"])
+                            ha="left", fontsize=9.5, color=PALETTE["thesisslate"])
             if not present:
                 ax.text(0.5, 0.5, "did not run\nby design", ha="center", va="center",
-                        transform=ax.transAxes, fontsize=8, fontstyle="italic",
+                        transform=ax.transAxes, fontsize=9, fontstyle="italic",
                         color=PALETTE["thesisbrick"])
                 ax.set_xticks([])
 
@@ -708,9 +726,9 @@ def _rq1_dist_grid(successful, workloads, configs, tiers, style, *, metric, kind
                               color=tint(PALETTE["thesisgray"], 0.4),
                               markeredgecolor=PALETTE["thesisgray"],
                               label="per-iteration distribution (violin · box · points)")
-    fig.suptitle(title, fontsize=12, y=1.0)
+    fig.suptitle(title, fontsize=13, y=1.0)
     fig.tight_layout()
-    _legend_below(fig, [est_handle, cloud_handle], fontsize=8)
+    _legend_below(fig, [est_handle, cloud_handle], fontsize=9)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -772,7 +790,7 @@ def fig_rq1_bytes_vs_time(successful, workloads, configs, tiers, style, out_path
     _legend_below_stacked(fig, [
         {"handles": cfg_handles, "title": "Engine"},
         {"handles": size_handles, "title": "Tier"},
-    ], fontsize=7.5)
+    ], fontsize=9)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -780,7 +798,10 @@ def fig_rq1_bytes_vs_time(successful, workloads, configs, tiers, style, out_path
 def fig_rq1_operational_cost(cost_summary, workloads, configs, tiers, style, out_path):
     """Four-term stacked operational cost per config, faceted by workload pattern."""
     tiers = _tier_order(style, tiers)
-    fig, axes = plt.subplots(1, len(workloads), figsize=(4.0 * len(workloads) + 0.5, 4.2),
+    # Authored ≈ on-page display width (\textwidth) with extra height (group A:
+    # wide-and-short strip → taller so the enlarged, upright labels are not
+    # cramped — five config×tier bars per panel only fit a legible font upright).
+    fig, axes = plt.subplots(1, len(workloads), figsize=(2.0 * len(workloads), 5.4),
                              squeeze=False)
     axes = axes[0]
     summary = []
@@ -806,14 +827,14 @@ def fig_rq1_operational_cost(cost_summary, workloads, configs, tiers, style, out
                             **{t: float(r[t]) for t in _COST_TERMS},
                             "total_cost": float(r["total_cost"])})
         ax.set_xticks(x)
-        ax.set_xticklabels([f"{style.label(cf)}\n{ds[:3]}" for cf, ds, _ in bars],
-                           rotation=35, ha="right", fontsize=7)
-        ax.set_title(style.workload_label(wt), fontsize=9.5)
+        ax.set_xticklabels([f"{style.label(cf)} {ds[:3]}" for cf, ds, _ in bars],
+                           rotation=90, ha="center", fontsize=8.5)
+        ax.set_title(style.workload_label(wt), fontsize=11)
         ax.set_ylabel("Cost (USD)" if ax is axes[0] else "")
         ax.set_ylim(bottom=0)  # stacked bars baseline at 0
-    fig.suptitle("Operational cost per single-machine configuration", fontsize=12, y=1.02)
+    fig.suptitle("Operational cost per single-machine configuration", fontsize=13, y=1.02)
     fig.tight_layout()
-    _legend_below(fig, *axes[0].get_legend_handles_labels(), fontsize=7.5)
+    _legend_below(fig, *axes[0].get_legend_handles_labels(), fontsize=9)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -830,7 +851,8 @@ def fig_cpu_decomposition(successful, workloads, configs, tiers, style, out_path
     """
     tiers = _tier_order(style, tiers)
     cells = [(wt, ds) for wt in workloads for ds in tiers]
-    fig, ax = plt.subplots(figsize=(max(8, 0.5 * len(cells) * len(configs)), 4.4))
+    # Authored ≈ on-page display width (0.85\textwidth) with aspect preserved.
+    fig, ax = plt.subplots(figsize=(0.544 * max(8, 0.5 * len(cells) * len(configs)), 0.544 * 4.4))
     summary = []
     width = 0.8 / max(len(configs), 1)
     x = np.arange(len(cells))
@@ -863,7 +885,7 @@ def fig_cpu_decomposition(successful, workloads, configs, tiers, style, out_path
     ax.set_yscale("log")
     ax.set_xticks(x)
     ax.set_xticklabels([f"{style.workload_label(wt)[:10]}\n{ds}" for wt, ds in cells],
-                       rotation=0, fontsize=7)
+                       rotation=0, fontsize=8.5)
     ax.set_ylabel("CPU time (s, log)")
     # legend: config colors + user/system marker convention
     handles = [plt.Line2D([], [], marker="o", linestyle="", color=style.color(c),
@@ -875,23 +897,37 @@ def fig_cpu_decomposition(successful, workloads, configs, tiers, style, out_path
                            markeredgecolor=PALETTE["thesisgray"], markeredgewidth=LW_BORDER)]
     labels = [style.label(c) for c in configs] + ["user (filled)", "system (open)"]
     ax.set_title("CPU-time decomposition (user vs system, median)")
-    _legend_below(fig, handles, labels, fontsize=7)
+    _legend_below(fig, handles, labels, fontsize=9, ncol=3)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
 
-def fig_rq1_latency_ecdf(successful, workload, tier, configs, style, out_path):
+def fig_rq1_latency_ecdf(successful, workload, tier, configs, style, out_path,
+                         compact=False):
     """Empirical CDF of per-iteration elapsed time for one headline workload x tier.
 
     Tail-detail companion to the time grid: one step ECDF per configuration on a
     log time axis, with the p50/p95/p99 quantiles marked on each curve so the
     spread between the median and the upper tail is directly readable across
     configurations.
+
+    ``compact=True`` authors the 2-up appendix grid panels (each ≈ 0.49\\textwidth
+    ≈ 2.83 in on the page) near that width with a squarer aspect and tighter text
+    so labels fit the narrow column; the default authors the full-\\textwidth
+    headline panel (results body).
     """
     cell = successful[(successful["workload_type"] == workload)
                       & (successful["dataset_size"] == tier)]
     levels = [0.50, 0.95, 0.99]
-    fig, ax = plt.subplots(figsize=(7.0, 4.4))
+    if compact:
+        fig, ax = plt.subplots(figsize=(3.2, 3.0))
+    else:
+        fig, ax = plt.subplots(figsize=(5.9, 3.7))
+    annot_fs = 8.5
+    label_fs = 9.5
+    title_fs = 10 if compact else 12
+    legend_fs = 8.5 if compact else 9
+    legend_ncol = 2 if compact else None
     summary = []
     for cf in configs:
         v = cell[cell["configuration"] == cf]["elapsed_time"].dropna().values
@@ -911,14 +947,16 @@ def fig_rq1_latency_ecdf(successful, workload, tier, configs, style, out_path):
     for lv in levels:
         ax.axhline(lv, color=PALETTE["thesislight"], linewidth=LW_BORDER, zorder=0)
         ax.annotate(f"p{int(lv * 100)}", xy=(0.0, lv), xycoords=("axes fraction", "data"),
-                    xytext=(2, 1), textcoords="offset points", fontsize=7,
+                    xytext=(2, 1), textcoords="offset points", fontsize=annot_fs,
                     va="bottom", color=PALETTE["thesisgray"])
     ax.set_xscale("log")
     ax.set_ylim(0, 1.02)
-    ax.set_xlabel("Per-iteration elapsed time (s, log)")
-    ax.set_ylabel("Empirical CDF")
-    ax.set_title(f"Latency distribution — {style.workload_label(workload)} ({tier} tier)")
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8, title="Configuration")
+    ax.set_xlabel("Per-iteration elapsed time (s, log)", fontsize=label_fs)
+    ax.set_ylabel("Empirical CDF", fontsize=label_fs)
+    ax.set_title(f"Latency distribution — {style.workload_label(workload)} ({tier} tier)",
+                 fontsize=title_fs)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=legend_fs,
+                  title="Configuration", ncol=legend_ncol)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -987,7 +1025,9 @@ def fig_efficiency(scaling: pd.DataFrame, style: StyleConfig, out_path) -> Path:
 
 def fig_wall_clock_vs_workers(scaling, single_node, failed, style, out_path) -> Path:
     """Wall-clock vs worker count per strategy/tier, single-node baselines, crossover."""
-    fig, ax = plt.subplots(figsize=(7.2, 4.8))
+    # Authored ≈ on-page display width (\textwidth); group A: taller for the
+    # eight-entry legend + enlarged text.
+    fig, ax = plt.subplots(figsize=(5.9, 5.0))
     summary = []
     for (strat, ds), g in scaling.groupby(["strategy", "dataset_size"]):
         g = g.sort_values("worker_count")
@@ -1008,12 +1048,12 @@ def fig_wall_clock_vs_workers(scaling, single_node, failed, style, out_path) -> 
         note = "Failed (executor OOM): " + ", ".join(
             sorted({f"{r.strategy} {r.dataset_size}" for r in failed.itertuples()}))
         ax.annotate(note, xy=(0.5, 0.015), xycoords="axes fraction", ha="center",
-                    fontsize=7, fontstyle="italic", color=PALETTE["thesisbrick"])
+                    fontsize=8.5, fontstyle="italic", color=PALETTE["thesisbrick"])
     ax.set_yscale("log")
     ax.set_xlabel("Worker count")
     ax.set_ylabel("Wall-clock time (s, log; minimum estimator)")
     ax.set_title("Distributed wall-clock time versus single-node baselines")
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=9, ncol=3)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1085,7 +1125,7 @@ def fig_cost_pareto(pareto_df: pd.DataFrame, style: StyleConfig, out_path) -> Pa
                    linewidth=LW_MARKER_EDGE, zorder=3, label=f"{strat.capitalize()} ({ds})")
         for _, row in g.iterrows():
             ax.annotate(f"{int(row['worker_count'])}", xy=(row["cost"], row["time"]),
-                        xytext=(3, 3), textcoords="offset points", fontsize=6)
+                        xytext=(3, 3), textcoords="offset points", fontsize=8)
     pts = pareto_df[["cost", "time"]].dropna().values
     order = pts[np.argsort(pts[:, 0])]
     frontier, best = [], np.inf
@@ -1106,7 +1146,7 @@ def fig_cost_pareto(pareto_df: pd.DataFrame, style: StyleConfig, out_path) -> Pa
     ax.set_xlabel("Cost per run (USD, log)")
     ax.set_ylabel("Wall-clock time (s, log)")
     ax.set_title("Cost-time tradeoff of the distributed join")
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=9, ncol=3)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1153,7 +1193,9 @@ def fig_winners_matrix(winners: pd.DataFrame, style: StyleConfig, out_path) -> P
 def fig_ranking_stability(rank_long: pd.DataFrame, style: StyleConfig, out_path) -> Path:
     """Slopegraph of rank vs tier per workload (bump chart). Inversions visible as crossings."""
     workloads = list(dict.fromkeys(rank_long["workload_type"]))
-    fig, axes = plt.subplots(1, len(workloads), figsize=(3.3 * len(workloads) + 0.5, 4.2),
+    # Authored near on-page display width (\textwidth) with extra height (group A:
+    # dense 1×4 slopegraph). Fonts are sized up to offset the slight down-scale.
+    fig, axes = plt.subplots(1, len(workloads), figsize=(1.7 * len(workloads) + 0.2, 4.6),
                              squeeze=False)
     axes = axes[0]
     for ax, wt in zip(axes, workloads):
@@ -1168,17 +1210,18 @@ def fig_ranking_stability(rank_long: pd.DataFrame, style: StyleConfig, out_path)
                     markeredgewidth=LW_MARKER_EDGE, label=_name_label(style, cf))
             if xs:
                 ax.annotate(_name_label(style, cf).split(" ")[0], xy=(xs[-1], ys[-1]),
-                            xytext=(6, 0), textcoords="offset points", va="center",
-                            fontsize=7, color=shade(col, 0.2))
+                            xytext=(5, 0), textcoords="offset points", va="center",
+                            fontsize=9, color=shade(col, 0.2))
         ax.set_xticks(range(len(tiers)))
-        ax.set_xticklabels([t.capitalize() for t in tiers])
-        ax.set_title(style.workload_label(wt), fontsize=9.5)
+        ax.set_xticklabels([t.capitalize() for t in tiers], fontsize=8.5)
+        ax.set_title(_wrap(style.workload_label(wt), 14), fontsize=11)
         ax.invert_yaxis()
         n_ranks = int(sub["rank"].max())
         ax.set_yticks(range(1, n_ranks + 1))
+        ax.tick_params(axis="y", labelsize=11)
         if ax is axes[0]:
-            ax.set_ylabel("Rank (1 = fastest)")
-    fig.suptitle("Ranking stability across tiers", fontsize=12, y=1.02)
+            ax.set_ylabel("Rank (1 = fastest)", fontsize=11)
+    fig.suptitle("Ranking stability across tiers", fontsize=14, y=1.02)
     fig.tight_layout()
     _save_summary(rank_long, out_path)
     return _save(fig, out_path)
@@ -1345,20 +1388,20 @@ def fig_rq3_parallel_coords(axes_df, style, out_path) -> Path:
     for xi, col in zip(x, cols):
         lo, hi = lohi[col]
         ax.annotate(_fmt(col, hi), xy=(xi, 1.0), xytext=(0, 4), textcoords="offset points",
-                    ha="center", fontsize=7, color=PALETTE["thesisgray"])
+                    ha="center", fontsize=8.5, color=PALETTE["thesisgray"])
         ax.annotate(_fmt(col, lo), xy=(xi, 0.0), xytext=(0, -13), textcoords="offset points",
-                    ha="center", fontsize=7, color=PALETTE["thesisgray"])
+                    ha="center", fontsize=8.5, color=PALETTE["thesisgray"])
     ax.set_xticks(x)
     ax.set_xticklabels(["Time", "Cost", "Mean rank"], fontsize=10)
     ax.set_yticks([0, 1])
-    ax.set_yticklabels(["best", "worst"], fontsize=8)
+    ax.set_yticklabels(["best", "worst"], fontsize=9)
     ax.set_ylim(-0.1, 1.14)
     ax.set_xlim(-0.35, len(cols) - 0.65)
     for sp in ("top", "right", "left"):
         ax.spines[sp].set_visible(False)
     ax.tick_params(axis="y", length=0)
     ax.set_title("Per-system outcomes across dimensions (parallel coordinates)")
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=8)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=9)
     _save_summary(axes_df.reset_index().rename(columns={"index": "system"}), out_path)
     return _save(fig, out_path)
 
@@ -1381,7 +1424,9 @@ def fig_cell_grid(successful, cost_summary, cells, configs, style, out_path) -> 
     n = len(cells)
     ncols = 3
     nrows = (n + ncols - 1) // ncols
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4.3 * ncols, 3.0 * nrows), squeeze=False)
+    # Authored ≈ on-page display width (\textwidth); group A: taller per panel so
+    # the enlarged per-cell labels are not cramped in the 3×3 grid.
+    fig, axes = plt.subplots(nrows, ncols, figsize=(1.97 * ncols, 2.1 * nrows), squeeze=False)
     cs = cost_summary.reset_index()
     summary = []
     for idx, (wt, ds) in enumerate(cells):
@@ -1405,13 +1450,13 @@ def fig_cell_grid(successful, cost_summary, cells, configs, style, out_path) -> 
         ax.set_xlim(-0.6, len(present) - 0.4)
         ax.set_xticks(x)
         ax.set_xticklabels([style.label(c).split(" ")[0] for c in present], rotation=30,
-                           ha="right", fontsize=6.5)
-        ax.set_title(f"{style.workload_label(wt)} ({ds})", fontsize=8.5)
-        ax.set_ylabel("min time (s, log)", fontsize=7)
+                           ha="right", fontsize=8.5)
+        ax.set_title(f"{style.workload_label(wt)} ({ds})", fontsize=10)
+        ax.set_ylabel("min time (s, log)", fontsize=9)
     for j in range(n, nrows * ncols):
         axes[j // ncols][j % ncols].set_visible(False)
     fig.suptitle("Per-cell summary grid — minimum wall-clock time by configuration",
-                 fontsize=12, y=1.0)
+                 fontsize=13, y=1.0)
     fig.tight_layout()
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
@@ -1439,7 +1484,7 @@ def _dir_bars(ax, pairs, summary, *, annotate_local, linthresh=1000.0):
         ylabels.append(lab)
         if annotate_local and cf == "local" and max(rp, sp) < 1024:
             ax.annotate("local FS\n(not like-for-like)", xy=(0, i), ha="center",
-                        va="center", fontsize=6.0, fontstyle="italic",
+                        va="center", fontsize=8, fontstyle="italic",
                         color=PALETTE["thesisbrick"], zorder=6)
         else:
             ax.barh(i, max(rp, 0), height=0.6, color=color, edgecolor="white",
@@ -1463,9 +1508,9 @@ def _dir_bars(ax, pairs, summary, *, annotate_local, linthresh=1000.0):
     cand = [0.0] + [s * 10.0 ** k for k in range(3, 8) for s in (-1, 1)]
     ax.set_xticks([t for t in sorted(cand) if xl[0] <= t <= xl[1]])
     ax.set_yticks(ypos)
-    ax.set_yticklabels(ylabels, fontsize=7.5)
+    ax.set_yticklabels(ylabels, fontsize=9)
     ax.set_ylim(-0.6, len(pairs) - 0.4)
-    ax.tick_params(axis="x", labelsize=7)
+    ax.tick_params(axis="x", labelsize=8.5)
 
 
 def _dir_legend(fig):
@@ -1478,7 +1523,7 @@ def _dir_legend(fig):
                         markeredgecolor="white", label="sent (left)")
     ci_h = plt.Line2D([], [], color=PALETTE["thesisslate"], linewidth=LW_CONNECTOR,
                       label="95% bootstrap CI (median)")
-    _legend_below(fig, [recv_h, sent_h, ci_h], fontsize=8)
+    _legend_below(fig, [recv_h, sent_h, ci_h], fontsize=9)
 
 
 def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path):
@@ -1497,7 +1542,9 @@ def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path
     """
     tiers = _tier_order(style, tiers)
     nrows, ncols = len(workloads), len(tiers)
-    fig = plt.figure(figsize=(3.8 * ncols + 1.0, 2.5 * nrows + 1.0))
+    # Authored ≈ on-page display width (\textwidth) with aspect preserved (uniform
+    # 0.67 scale of the prior geometry) so LaTeX includes it ~1:1.
+    fig = plt.figure(figsize=(0.67 * (3.8 * ncols + 1.0), 0.67 * (2.5 * nrows + 1.0)))
     gs = fig.add_gridspec(nrows, ncols, hspace=0.6, wspace=0.4)
     summary = []
 
@@ -1521,19 +1568,19 @@ def fig_bytes_directional(successful, workloads, configs, tiers, style, out_path
                     rec.update({"workload_type": wt, "dataset_size": ds, "panel": "single-machine"})
             else:
                 ax.text(0.5, 0.5, "did not run\nby design", ha="center", va="center",
-                        transform=ax.transAxes, fontsize=8, fontstyle="italic",
+                        transform=ax.transAxes, fontsize=9, fontstyle="italic",
                         color=PALETTE["thesisbrick"])
                 ax.set_xticks([])
                 ax.set_yticks([])
             if r == 0:
-                ax.set_title(ds.capitalize(), fontsize=10, fontweight="bold")
+                ax.set_title(ds.capitalize(), fontsize=11, fontweight="bold")
             if c == ncols - 1 and pairs:
                 ax.annotate(style.workload_label(wt), xy=(1.02, 0.5),
                             xycoords="axes fraction", rotation=270, va="center",
-                            ha="left", fontsize=8.5, color=PALETTE["thesisslate"])
+                            ha="left", fontsize=9.5, color=PALETTE["thesisslate"])
 
     _dir_legend(fig)
-    fig.suptitle("Directional network transfer — bytes received versus sent", fontsize=12, y=1.0)
+    fig.suptitle("Directional network transfer — bytes received versus sent", fontsize=13, y=1.0)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1569,8 +1616,8 @@ def fig_distributed_client_boundary(successful, style, out_path,
         for rec in summary:
             rec.update({"workload_type": workload, "dataset_size": "(per tier)",
                         "panel": "sedona-client-boundary"})
-    ax.set_xlabel("← sent        bytes (symlog)        received →", fontsize=8.5)
-    ax.set_ylabel("size tier", fontsize=9)
+    ax.set_xlabel("← sent        bytes (symlog)        received →", fontsize=9.5)
+    ax.set_ylabel("size tier", fontsize=10)
     _dir_legend(fig)
     fig.suptitle(f"Distributed client boundary — {style.label(sedona_cfg)} "
                  "(national-scale join)", fontsize=12, y=0.98)
@@ -1595,7 +1642,9 @@ def fig_cost_time_quadrant(cost_summary, successful, workloads, configs, tiers, 
     glyph = {"duckdb": "o", "postgis": "s", "local": "^"}
     ncols = min(len(workloads), 2)
     nrows = (len(workloads) + ncols - 1) // ncols
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4.7 * ncols, 3.9 * nrows), squeeze=False)
+    # Authored ≈ on-page display width (\textwidth) with aspect preserved.
+    fig, axes = plt.subplots(nrows, ncols, figsize=(0.614 * 4.7 * ncols, 0.614 * 3.9 * nrows),
+                             squeeze=False)
     summary = []
     for idx, wt in enumerate(workloads):
         ax = axes[idx // ncols][idx % ncols]
@@ -1636,7 +1685,7 @@ def fig_cost_time_quadrant(cost_summary, successful, workloads, configs, tiers, 
             ax.scatter(bcost, bt, marker="*", s=260, color=_system_color(style, "sedona"),
                        edgecolor="white", linewidth=LW_MARKER_EDGE, zorder=6)
             ax.annotate(f"Sedona\nbest worker", xy=(bcost, bt), xytext=(5, 4),
-                        textcoords="offset points", fontsize=6.5,
+                        textcoords="offset points", fontsize=8,
                         color=shade(_system_color(style, "sedona"), 0.2))
             summary.append({"workload_type": wt, "configuration": bcfg, "dataset_size": bds,
                             "cost_usd": bcost, "min_time_s": bt, "marker": "sedona-anchor"})
@@ -1651,13 +1700,13 @@ def fig_cost_time_quadrant(cost_summary, successful, workloads, configs, tiers, 
                 (0.98, 0.98, "slow · costly", "right", "top"),
             ]:
                 ax.annotate(txt, xy=(fx, fy), xycoords="axes fraction", ha=ha, va=va,
-                            fontsize=6.5, fontstyle="italic", color=PALETTE["thesisgray"])
+                            fontsize=8, fontstyle="italic", color=PALETTE["thesisgray"])
         ax.set_xscale("log")
         ax.set_yscale("log")
-        ax.set_xlabel("Operational cost (USD, log)", fontsize=8.5)
+        ax.set_xlabel("Operational cost (USD, log)", fontsize=10)
         if idx % ncols == 0:
-            ax.set_ylabel("Wall-clock minimum (s, log)", fontsize=8.5)
-        ax.set_title(style.workload_label(wt), fontsize=9.5)
+            ax.set_ylabel("Wall-clock minimum (s, log)", fontsize=10)
+        ax.set_title(style.workload_label(wt), fontsize=11)
     for j in range(len(workloads), nrows * ncols):
         axes[j // ncols][j % ncols].set_visible(False)
     cfg_h = [plt.Line2D([], [], marker=glyph.get(c, "o"), linestyle="", color=PALETTE["thesisgray"],
@@ -1668,12 +1717,12 @@ def fig_cost_time_quadrant(cost_summary, successful, workloads, configs, tiers, 
     tier_h = [plt.Line2D([], [], marker="o", linestyle="", color=style.size_colors[t],
                          markeredgecolor=shade(style.size_colors[t], 0.35), label=t.capitalize())
               for t in tiers]
-    fig.suptitle("Single-machine cost–time decision quadrant", fontsize=12, y=1.0)
+    fig.suptitle("Single-machine cost–time decision quadrant", fontsize=13, y=1.0)
     fig.tight_layout()
     _legend_below_stacked(fig, [
         {"handles": cfg_h, "title": "Configuration"},
         {"handles": tier_h, "title": "Tier"},
-    ], fontsize=7.5)
+    ], fontsize=9)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1726,7 +1775,7 @@ def fig_bytes_vs_cardinality(successful, configs, style, out_path,
             kf = _bytes_fmt()(k, None)
             ax.annotate(f"{kf}/row", xy=(xhi, k * xhi), xytext=(-2, 2),
                         textcoords="offset points", ha="right", va="bottom",
-                        fontsize=6.0, color=PALETTE["thesisgray"], zorder=0)
+                        fontsize=8, color=PALETTE["thesisgray"], zorder=0)
         ax.set_xlim(xlo, xhi)
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -1743,7 +1792,7 @@ def fig_bytes_vs_cardinality(successful, configs, style, out_path,
     _legend_below_stacked(fig, [
         {"handles": cfg_h, "title": "Configuration"},
         {"handles": wl_h, "title": "Pattern"},
-    ], fontsize=7.5)
+    ], fontsize=9)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1773,7 +1822,8 @@ def fig_distributed_strategy_contrast(successful, cost_summary, style, out_path,
     d["wc"] = d["configuration"].map(extract_worker_count)
     cs = cost_summary.reset_index()
     strat_list = ["broadcast", "partitioned"]
-    fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.4))
+    # Authored ≈ on-page display width (\textwidth); group A: a touch taller.
+    fig, axes = plt.subplots(1, 2, figsize=(6.2, 4.6))
     summary = []
     for strat in strat_list:
         g = d[d["strat"] == strat]
@@ -1815,22 +1865,22 @@ def fig_distributed_strategy_contrast(successful, cost_summary, style, out_path,
     oom = " / ".join(oom_tiers)
     axes[0].annotate(
         f"Partitioned {oom} tiers: did not complete\n(executor OOM — see descriptive-statistics table)",
-        xy=(0.5, 0.97), xycoords="axes fraction", ha="center", va="top", fontsize=7,
+        xy=(0.5, 0.97), xycoords="axes fraction", ha="center", va="top", fontsize=9,
         fontstyle="italic", color=PALETTE["thesisbrick"])
     axes[0].set_yscale("log")
     axes[0].set_xlabel("Worker count")
     axes[0].set_ylabel("Wall-clock minimum (s, log)")
-    axes[0].set_title("Wall-clock time", fontsize=10)
+    axes[0].set_title("Wall-clock time", fontsize=11)
     axes[1].set_xlabel("Worker count")
     axes[1].set_ylabel("Total operational cost (USD)")
     axes[1].set_ylim(bottom=0)
-    axes[1].set_title("Operational cost", fontsize=10)
+    axes[1].set_title("Operational cost", fontsize=11)
     for ax in axes:
         ax.set_xticks([2, 4, 8, 12, 16])
     fig.suptitle(f"Broadcast versus partitioned join at the {tier} tier (national-scale join)",
-                 fontsize=12, y=1.02)
+                 fontsize=13, y=1.02)
     fig.tight_layout()
-    _legend_below(fig, *axes[0].get_legend_handles_labels(), fontsize=8, title="Strategy")
+    _legend_below(fig, *axes[0].get_legend_handles_labels(), fontsize=9, title="Strategy")
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1851,7 +1901,8 @@ def fig_cross_pattern(successful, workloads, configs, tiers, style, out_path):
     lead is pattern-portable or pattern-specific.
     """
     tiers = _tier_order(style, tiers)
-    fig, axes = plt.subplots(1, len(tiers), figsize=(4.4 * len(tiers) + 0.5, 4.4),
+    # Authored ≈ on-page display width (\textwidth) with aspect preserved.
+    fig, axes = plt.subplots(1, len(tiers), figsize=(0.62 * (4.4 * len(tiers) + 0.5), 0.62 * 4.4),
                              squeeze=False, sharey=True)
     axes = axes[0]
     summary = []
@@ -1881,7 +1932,7 @@ def fig_cross_pattern(successful, workloads, configs, tiers, style, out_path):
                              & (successful["configuration"].isin(configs))]
             if ran.empty:
                 ax.annotate("did not run\nby design", xy=(xi, 0.5), xycoords=("data", "axes fraction"),
-                            ha="center", va="center", fontsize=6.5, fontstyle="italic",
+                            ha="center", va="center", fontsize=8, fontstyle="italic",
                             color=PALETTE["thesisbrick"])
         # configurations absent from this whole tier (e.g. Shapefile at large):
         # name them as did-not-run-by-design rather than leaving a silent gap.
@@ -1893,19 +1944,19 @@ def fig_cross_pattern(successful, workloads, configs, tiers, style, out_path):
             ax.annotate("; ".join(f"{style.label(c)}" for c in missing)
                         + ":\nsmall tier only (by design)",
                         xy=(0.03, 0.97), xycoords="axes fraction", ha="left", va="top",
-                        fontsize=6.5, fontstyle="italic", color=PALETTE["thesisbrick"])
+                        fontsize=8, fontstyle="italic", color=PALETTE["thesisbrick"])
         ax.set_yscale("log")
         ax.set_xticks(range(len(workloads)))
-        ax.set_xticklabels([style.workload_label(w) for w in workloads], rotation=20,
-                           ha="right", fontsize=7.5)
-        ax.set_title(ds.capitalize(), fontsize=10, fontweight="bold")
+        ax.set_xticklabels([style.workload_label(w) for w in workloads], rotation=30,
+                           ha="right", fontsize=9)
+        ax.set_title(ds.capitalize(), fontsize=11, fontweight="bold")
         if ax is axes[0]:
             ax.set_ylabel("Wall-clock minimum (s, log)")
     cfg_h = [plt.Line2D([], [], marker="s", linestyle="", color=style.color(c),
                         markeredgecolor="white", label=style.label(c)) for c in configs]
-    fig.suptitle("Cross-pattern single-machine comparison by tier", fontsize=12, y=1.02)
+    fig.suptitle("Cross-pattern single-machine comparison by tier", fontsize=13, y=1.02)
     fig.tight_layout()
-    _legend_below(fig, cfg_h, fontsize=8)
+    _legend_below(fig, cfg_h, fontsize=9)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1926,7 +1977,8 @@ def fig_rank_portability(geomean, style, out_path):
     systems = list(geomean.index)
     ranks = {d: geomean[d].rank(method="min") for d in dims}
     x = np.arange(len(dims))
-    fig, (axL, axR) = plt.subplots(1, 2, figsize=(11.0, 4.6))
+    # Authored ≈ on-page display width (\textwidth); group A: taller for room.
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(6.2, 5.0))
     summary = []
     for sysname in systems:
         color = _system_color(style, sysname)
@@ -1935,35 +1987,35 @@ def fig_rank_portability(geomean, style, out_path):
         axL.plot(x, ys_rank, marker="o", ms=7, color=color, linewidth=LW_SERIES,
                  markeredgewidth=LW_MARKER_EDGE, markeredgecolor="white")
         axL.annotate(short, xy=(x[-1], ys_rank[-1]), xytext=(6, 0),
-                     textcoords="offset points", va="center", fontsize=7, color=shade(color, 0.2))
+                     textcoords="offset points", va="center", fontsize=9, color=shade(color, 0.2))
         ys_mag = [float(geomean.loc[sysname, d]) for d in dims]
         axR.plot(x, ys_mag, marker="o", ms=7, color=color, linewidth=LW_SERIES,
                  markeredgewidth=LW_MARKER_EDGE, markeredgecolor="white",
                  label=SYSTEM_LABEL.get(sysname, sysname))
         axR.annotate(short, xy=(x[-1], ys_mag[-1]), xytext=(6, 0),
-                     textcoords="offset points", va="center", fontsize=7, color=shade(color, 0.2))
+                     textcoords="offset points", va="center", fontsize=9, color=shade(color, 0.2))
         for d in dims:
             summary.append({"system": sysname, "dimension": d, "rank": float(ranks[d][sysname]),
                             "geomean_norm": float(geomean.loc[sysname, d])})
     axL.invert_yaxis()
     axL.set_yticks(range(1, len(systems) + 1))
     axL.set_xticks(x)
-    axL.set_xticklabels(dims)
+    axL.set_xticklabels(dims, fontsize=10)
     axL.set_xlim(-0.3, len(dims) - 0.7)
-    axL.set_ylabel("Rank (1 = best)")
-    axL.set_title("Per-dimension rank", fontsize=10)
+    axL.set_ylabel("Rank (1 = best)", fontsize=10.5)
+    axL.set_title("Per-dimension rank", fontsize=11)
     axR.axhline(1.0, color=PALETTE["thesisslate"], linestyle="--", linewidth=LW_CONNECTOR,
                 zorder=1, label="dimension best (1.0)")
     axR.set_yscale("log")
     axR.set_xticks(x)
-    axR.set_xticklabels(dims)
+    axR.set_xticklabels(dims, fontsize=10)
     axR.set_xlim(-0.3, len(dims) - 0.7)
-    axR.set_ylabel(r"Geomean-normalized magnitude ($\times$, log)")
-    axR.set_title("Absolute magnitude", fontsize=10)
+    axR.set_ylabel(r"Geomean-normalized magnitude ($\times$, log)", fontsize=10.5)
+    axR.set_title("Absolute magnitude", fontsize=11)
     handles, labels = axR.get_legend_handles_labels()
-    fig.suptitle("Rank portability versus absolute magnitude", fontsize=12, y=1.02)
+    fig.suptitle("Rank portability versus absolute magnitude", fontsize=13, y=1.02)
     fig.tight_layout()
-    _legend_below(fig, handles, labels, fontsize=8)
+    _legend_below(fig, handles, labels, fontsize=9)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -1986,7 +2038,8 @@ def fig_cpu_wall_ratio(successful, workloads, configs, tiers, style, out_path):
     """
     tiers = _tier_order(style, tiers)
     cells = [(wt, ds) for wt in workloads for ds in tiers]
-    fig, ax = plt.subplots(figsize=(max(8, 0.55 * len(cells) * len(configs)), 4.4))
+    # Authored ≈ on-page display width (0.9\textwidth) with aspect preserved.
+    fig, ax = plt.subplots(figsize=(0.524 * max(8, 0.55 * len(cells) * len(configs)), 0.524 * 4.4))
     width = 0.8 / max(len(configs), 1)
     x = np.arange(len(cells))
     summary = []
@@ -2013,15 +2066,15 @@ def fig_cpu_wall_ratio(successful, workloads, configs, tiers, style, out_path):
                zorder=4, label="1.0 (one fully-busy core)")
     ax.set_xticks(x)
     ax.set_xticklabels([f"{style.workload_label(wt)[:10]}\n{ds}" for wt, ds in cells],
-                       fontsize=7)
-    ax.set_ylabel("CPU-to-wall ratio  (cpu$_{user}$+cpu$_{sys}$)/elapsed")
+                       fontsize=8.5)
+    ax.set_ylabel("CPU-to-wall ratio  (cpu$_{user}$+cpu$_{sys}$)/elapsed", fontsize=9.5)
     ax.set_ylim(bottom=0)
     handles = [plt.Line2D([], [], marker="s", linestyle="", color=style.color(c),
                           markeredgecolor="white", label=style.label(c)) for c in configs]
     handles.append(plt.Line2D([], [], color=PALETTE["thesisbrick"], linestyle="--",
                               linewidth=LW_CONNECTOR, label="1.0 (one busy core)"))
     ax.set_title("CPU-to-wall-clock ratio per configuration")
-    _legend_below(fig, handles, fontsize=7.5)
+    _legend_below(fig, handles, fontsize=9, ncol=2)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
 
@@ -2035,7 +2088,8 @@ def fig_size_scaling_slope(successful, workloads, configs, style, out_path):
     appears as a single small-tier point rather than a slope. Restyles the older
     grouped-bar size-scaling chart into the thesis slopegraph idiom.
     """
-    fig, axes = plt.subplots(1, len(workloads), figsize=(3.6 * len(workloads) + 0.5, 4.4),
+    # Authored ≈ on-page display width (0.95\textwidth); group A: taller for room.
+    fig, axes = plt.subplots(1, len(workloads), figsize=(1.85 * len(workloads) + 0.3, 4.8),
                              squeeze=False, sharey=True)
     axes = axes[0]
     summary = []
@@ -2068,7 +2122,7 @@ def fig_size_scaling_slope(successful, workloads, configs, style, out_path):
                             markeredgecolor="white", markeredgewidth=LW_MARKER_EDGE, zorder=4)
                 ax.annotate(f"{style.label(cf).split(' ')[0]}\n(small only)", xy=(xs[0], ys[0]),
                             xytext=(6, 0), textcoords="offset points", va="center",
-                            fontsize=6.5, color=shade(color, 0.2))
+                            fontsize=9, color=shade(color, 0.2))
             else:
                 ax.errorbar(xs, ys, yerr=[lo_err, hi_err], marker="o", ms=5, color=color,
                             ecolor=color, capsize=2.5, elinewidth=LW_CONNECTOR,
@@ -2077,19 +2131,19 @@ def fig_size_scaling_slope(successful, workloads, configs, style, out_path):
                 growth = ys[-1] / ys[0] if ys[0] > 0 else np.nan
                 ax.annotate(f"{style.label(cf).split(' ')[0]}  ×{growth:.0f}",
                             xy=(xs[-1], ys[-1]), xytext=(6, 0), textcoords="offset points",
-                            va="center", fontsize=6.5, color=shade(color, 0.2))
+                            va="center", fontsize=9, color=shade(color, 0.2))
             for o, ds, p, lo, hi in pts:
                 summary.append({"workload_type": wt, "configuration": cf, "dataset_size": ds,
                                 "min_time_s": p, "ci_low": lo, "ci_high": hi})
         ax.set_yscale("log")
         ax.set_xticks([style.size_order[t] for t in all_tiers])
-        ax.set_xticklabels([t.capitalize() for t in all_tiers])
+        ax.set_xticklabels([t.capitalize() for t in all_tiers], fontsize=8.5)
         ax.set_xlim(-0.3, len(all_tiers) - 0.4)
-        ax.set_title(style.workload_label(wt), fontsize=9.5)
+        ax.set_title(style.workload_label(wt), fontsize=11)
         if ax is axes[0]:
-            ax.set_ylabel("Wall-clock minimum (s, log)")
+            ax.set_ylabel("Wall-clock minimum (s, log)", fontsize=10.5)
     fig.suptitle("Same-engine size scaling (minimum estimator, with growth factor)",
-                 fontsize=12, y=1.02)
+                 fontsize=13, y=1.02)
     fig.tight_layout()
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
@@ -2149,9 +2203,16 @@ def fig_spark_stage_profile(successful, style, out_path, strategy="broadcast", t
 
     ramp = lightness_ramp(style.strategy_colors.get(strategy, PALETTE["thesissteel"]),
                           max(nstages, 1))
-    fig, axes = plt.subplots(1, len(workers), figsize=(2.2 * len(workers) + 0.6, 4.2),
+    # Authored near the on-page display width (\textwidth / 0.9\textwidth); group A:
+    # taller so the enlarged stage ticks and per-panel titles have room. Height is
+    # kept moderate because the B.12 variant stacks three of these vertically.
+    fig, axes = plt.subplots(1, len(workers), figsize=(0.52 * (2.2 * len(workers) + 0.6), 3.8),
                              squeeze=False, sharex=True)
     axes = axes[0]
+    # Some configs (the partitioned strategy) emit ~44 stages; every stage cannot
+    # carry a legible label in a stack-safe height, so label every step-th stage
+    # (all tick marks are kept) — for the ~18-stage broadcast profiles step == 1.
+    ylabel_step = max(1, int(np.ceil(nstages / 18)))
     summary = []
     xmax = max((medians[w].max() for w in workers), default=1.0)
     for ax, w in zip(axes, workers):
@@ -2159,21 +2220,22 @@ def fig_spark_stage_profile(successful, style, out_path, strategy="broadcast", t
         ys = np.arange(len(vals))
         ax.barh(ys, vals, color=[ramp[i] for i in range(len(vals))], edgecolor="white",
                 linewidth=LW_HAIRLINE, zorder=3)
-        ax.set_title(f"{w}N", fontsize=9, fontweight="bold")
+        ax.set_title(f"{w}N", fontsize=11, fontweight="bold")
         ax.invert_yaxis()
         ax.set_xlim(0, xmax * 1.05)
         if ax is axes[0]:
             ax.set_yticks(ys)
-            ax.set_yticklabels([f"S{i}" for i in ys], fontsize=7)
-            ax.set_ylabel("Spark stage")
+            ax.set_yticklabels([f"S{i}" if (i % ylabel_step == 0) else "" for i in ys],
+                               fontsize=9)
+            ax.set_ylabel("Spark stage", fontsize=10.5)
         else:
             ax.set_yticks(ys)
             ax.set_yticklabels([])
-        ax.tick_params(axis="x", labelsize=7)
+        ax.tick_params(axis="x", labelsize=9.5)
         for i, vv in enumerate(vals):
             summary.append({"worker_count": w, "stage_index": i, "median_duration_s": float(vv)})
-    fig.supxlabel("Median stage duration (s)", fontsize=9)
-    fig.suptitle(f"Spark per-stage duration profile — {strategy}, {tier} tier", fontsize=12, y=1.02)
+    fig.supxlabel("Median stage duration (s)", fontsize=11)
+    fig.suptitle(f"Spark per-stage duration profile — {strategy}, {tier} tier", fontsize=13, y=1.02)
     fig.tight_layout()
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)
@@ -2233,6 +2295,6 @@ def fig_reproducibility(successful, style, out_path, cells=None):
     ax.set_xlabel("Benchmark pass (1–30)")
     ax.set_ylabel("Per-pass minimum elapsed (s, log)")
     ax.set_title("Run-to-run reproducibility: between-pass minima vs within-pass CI")
-    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=7.5)
+    _legend_below(fig, *ax.get_legend_handles_labels(), fontsize=9, ncol=2)
     _save_summary(pd.DataFrame(summary), out_path)
     return _save(fig, out_path)

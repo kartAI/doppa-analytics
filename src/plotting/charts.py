@@ -1326,10 +1326,16 @@ def plot_databricks_metrics(
     n_cols = min(2, n_metrics)
     n_rows = (n_metrics + n_cols - 1) // n_cols
 
+    # Authored near the on-page display width (0.9\textwidth ≈ 5.19 in) so LaTeX
+    # includes it ~1:1 and the text is not shrunk. With ten configuration
+    # categories per panel the x-labels only reach a legible size at that width
+    # when set vertical; group A grants the extra height the upright labels need.
     fig, axes = plt.subplots(
-        n_rows, n_cols, figsize=(7 * n_cols, 5.5 * n_rows),
+        n_rows, n_cols, figsize=(2.9 * n_cols, 3.2 * n_rows),
     )
-    fig.subplots_adjust(hspace=0.45, wspace=0.3)
+    # The configuration names are long and set vertical (see below); leave a wide
+    # row gap so they do not run into the next row's panel title.
+    fig.subplots_adjust(hspace=1.6, wspace=0.35)
     axes_flat = np.atleast_1d(axes).flatten()
 
     palette = {c: style.color(c) for c in dbr_configs}
@@ -1387,13 +1393,13 @@ def plot_databricks_metrics(
             )
         ax.set_xticklabels(
             [style.label(c) for c in metric_configs],
-            rotation=35,
-            ha="right",
-            fontsize=8,
+            rotation=90,
+            ha="center",
+            fontsize=8.5,
         )
         ax.set_xlabel("")
         ax.set_title(
-            style.metric_label(metric), fontsize=11, fontweight="bold"
+            style.metric_label(metric), fontsize=12, fontweight="bold"
         )
         ax.set_ylabel("")
 
