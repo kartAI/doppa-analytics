@@ -1992,28 +1992,19 @@ def fig_rank_portability(geomean, style, out_path):
     # Authored ≈ on-page display width (\textwidth); group A: taller for room.
     fig, (axL, axR) = plt.subplots(1, 2, figsize=(6.2, 5.0))
     summary = []
-    # On the magnitude panel the systems can sit very close on the last dimension
-    # (all clustered near the cost axis), so their right-hand labels overprint each
-    # other. Spread the labels vertically by their order on that dimension while
-    # the markers stay on the data.
-    _last = dims[-1]
-    _mag_order = sorted(systems, key=lambda s: float(geomean.loc[s, _last]))
-    _ylab_off = {s: (i - (len(_mag_order) - 1) / 2) * 11
-                 for i, s in enumerate(_mag_order)}
+    # Series are identified by the shared legend below the figure (no in-plot
+    # labels): the per-system inline labels would otherwise overprint on the
+    # magnitude panel where several systems coincide near the cost axis.
     for sysname in systems:
         color = _system_color(style, sysname)
-        short = SYSTEM_LABEL.get(sysname, sysname).split(" ")[0]
         ys_rank = [float(ranks[d][sysname]) for d in dims]
         axL.plot(x, ys_rank, marker="o", ms=7, color=color, linewidth=LW_SERIES,
-                 markeredgewidth=LW_MARKER_EDGE, markeredgecolor="white")
-        axL.annotate(short, xy=(x[-1], ys_rank[-1]), xytext=(6, 0),
-                     textcoords="offset points", va="center", fontsize=9, color=shade(color, 0.2))
+                 markeredgewidth=LW_MARKER_EDGE, markeredgecolor="white",
+                 label=SYSTEM_LABEL.get(sysname, sysname))
         ys_mag = [float(geomean.loc[sysname, d]) for d in dims]
         axR.plot(x, ys_mag, marker="o", ms=7, color=color, linewidth=LW_SERIES,
                  markeredgewidth=LW_MARKER_EDGE, markeredgecolor="white",
                  label=SYSTEM_LABEL.get(sysname, sysname))
-        axR.annotate(short, xy=(x[-1], ys_mag[-1]), xytext=(8, _ylab_off[sysname]),
-                     textcoords="offset points", va="center", fontsize=9, color=shade(color, 0.2))
         for d in dims:
             summary.append({"system": sysname, "dimension": d, "rank": float(ranks[d][sysname]),
                             "geomean_norm": float(geomean.loc[sysname, d])})
@@ -2227,7 +2218,7 @@ def fig_spark_stage_profile(successful, style, out_path, strategy="broadcast", t
     # taller so the enlarged stage ticks and per-panel titles have room. Height is
     # kept small because the B.12 variant stacks three of these on one portrait
     # page (it overflowed the page bottom at a larger height).
-    fig, axes = plt.subplots(1, len(workers), figsize=(0.52 * (2.2 * len(workers) + 0.6), 2.6),
+    fig, axes = plt.subplots(1, len(workers), figsize=(0.52 * (2.2 * len(workers) + 0.6), 3.0),
                              squeeze=False, sharex=True)
     axes = axes[0]
     # Some configs (the partitioned strategy) emit ~44 stages; every stage cannot
