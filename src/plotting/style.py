@@ -223,7 +223,7 @@ class StyleConfig:
 
     config_labels: dict[str, str] = field(
         default_factory=lambda: {
-            "local": "Local (Python)",
+            "local": "Shapefile",
             "postgis": "PostGIS",
             "duckdb": "DuckDB",
             "databricks-broadcast-2-nodes": "Databricks Broadcast (2N)",
