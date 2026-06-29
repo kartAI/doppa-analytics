@@ -2218,7 +2218,7 @@ def fig_spark_stage_profile(successful, style, out_path, strategy="broadcast", t
     # taller so the enlarged stage ticks and per-panel titles have room. Height is
     # kept small because the B.12 variant stacks three of these on one portrait
     # page (it overflowed the page bottom at a larger height).
-    fig, axes = plt.subplots(1, len(workers), figsize=(0.52 * (2.2 * len(workers) + 0.6), 3.0),
+    fig, axes = plt.subplots(1, len(workers), figsize=(0.52 * (2.2 * len(workers) + 0.6), 2.5),
                              squeeze=False, sharex=True)
     axes = axes[0]
     # Some configs (the partitioned strategy) emit ~44 stages; every stage cannot
