@@ -1959,8 +1959,10 @@ def fig_cross_pattern(successful, workloads, configs, tiers, style, out_path):
                         fontsize=8, fontstyle="italic", color=PALETTE["thesisbrick"])
         ax.set_yscale("log")
         ax.set_xticks(range(len(workloads)))
-        ax.set_xticklabels([style.workload_label(w) for w in workloads], rotation=30,
-                           ha="right", fontsize=9)
+        # Long workload names, three per ~2.9 in panel: steep rotation + smaller
+        # font so the angled labels do not overlap each other.
+        ax.set_xticklabels([style.workload_label(w) for w in workloads], rotation=45,
+                           ha="right", rotation_mode="anchor", fontsize=8)
         ax.set_title(ds.capitalize(), fontsize=11, fontweight="bold")
         if ax is axes[0]:
             ax.set_ylabel("Wall-clock minimum (s, log)")
