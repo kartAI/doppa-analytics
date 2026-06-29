@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import textwrap
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -1323,19 +1324,19 @@ def plot_databricks_metrics(
     dbr_data = successful[successful["configuration"].isin(dbr_configs)]
 
     n_metrics = len(dbr_metrics_present)
-    n_cols = min(2, n_metrics)
-    n_rows = (n_metrics + n_cols - 1) // n_cols
+    # Single row of panels: this figure is placed in a *landscape* (sidewaysfigure)
+    # float in the thesis, so it is authored wide-and-short to fill the rotated
+    # page. One row keeps the long, vertical configuration labels legible (they get
+    # the panel's full height) and avoids the inter-row collisions a stacked grid
+    # caused. Each metric spans several orders of magnitude with extreme outliers,
+    # so the y-axes are logarithmic (below) — otherwise the boxes squash flat.
+    n_cols = n_metrics
+    n_rows = 1
 
-    # Authored near the on-page display width (0.9\textwidth ≈ 5.19 in) so LaTeX
-    # includes it ~1:1 and the text is not shrunk. With ten configuration
-    # categories per panel the x-labels only reach a legible size at that width
-    # when set vertical; group A grants the extra height the upright labels need.
     fig, axes = plt.subplots(
-        n_rows, n_cols, figsize=(2.9 * n_cols, 3.2 * n_rows),
+        n_rows, n_cols, figsize=(1.8 * n_cols, 5.2),
     )
-    # The configuration names are long and set vertical (see below); leave a wide
-    # row gap so they do not run into the next row's panel title.
-    fig.subplots_adjust(hspace=1.6, wspace=0.35)
+    fig.subplots_adjust(top=0.82, wspace=0.5)
     axes_flat = np.atleast_1d(axes).flatten()
 
     palette = {c: style.color(c) for c in dbr_configs}
@@ -1387,6 +1388,10 @@ def plot_databricks_metrics(
             ax=ax,
         )
 
+        # Log y-axis: each metric spans several decades with large outliers, so a
+        # linear axis squashes the boxes to a flat line at the bottom (worst on the
+        # driver-collection panel). Log lets the distribution and outliers read.
+        ax.set_yscale("log")
         if "bytes" in metric:
             ax.yaxis.set_major_formatter(
                 FuncFormatter(lambda x, _, m=metric: _fmt_value(x, m))
@@ -1398,8 +1403,10 @@ def plot_databricks_metrics(
             fontsize=8.5,
         )
         ax.set_xlabel("")
+        # Wrap the metric name so the title fits the narrow single-row panel.
         ax.set_title(
-            style.metric_label(metric), fontsize=12, fontweight="bold"
+            "\n".join(textwrap.wrap(style.metric_label(metric), 17)),
+            fontsize=10.5, fontweight="bold",
         )
         ax.set_ylabel("")
 

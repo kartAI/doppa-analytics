@@ -24,7 +24,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, LogLocator, NullFormatter
 from scipy.stats import bootstrap as _scipy_bootstrap, gaussian_kde, spearmanr
 
 from src.analysis.loading import extract_strategy, extract_worker_count
@@ -424,8 +424,9 @@ def fig_estimator_illustration(
     # numbers on the figure so the contamination gap is readable at a glance
     ax.annotate(
         f"mean is {100 * contamination:.0f}% above the minimum",
-        xy=(np.sqrt(vmin * vmean), 0.5), ha="center", va="center", fontsize=9,
+        xy=(0.97, 0.08), xycoords="axes fraction", ha="right", va="bottom", fontsize=9,
         fontstyle="italic", color=shade(PALETTE["thesisbrick"], 0.2),
+        bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.7, edgecolor="none"),
     )
     ax.set_xscale("log")
     ax.set_ylim(0, 1.02)
@@ -920,7 +921,8 @@ def fig_rq1_latency_ecdf(successful, workload, tier, configs, style, out_path,
                       & (successful["dataset_size"] == tier)]
     levels = [0.50, 0.95, 0.99]
     if compact:
-        fig, ax = plt.subplots(figsize=(3.2, 3.0))
+        # Short enough that three 2-up rows of these panels fit one portrait page.
+        fig, ax = plt.subplots(figsize=(3.2, 1.8))
     else:
         fig, ax = plt.subplots(figsize=(5.9, 3.7))
     annot_fs = 8.5
@@ -1700,9 +1702,16 @@ def fig_cost_time_quadrant(cost_summary, successful, workloads, configs, tiers, 
                 (0.98, 0.98, "slow · costly", "right", "top"),
             ]:
                 ax.annotate(txt, xy=(fx, fy), xycoords="axes fraction", ha=ha, va=va,
-                            fontsize=8, fontstyle="italic", color=PALETTE["thesisgray"])
+                            fontsize=7, fontstyle="italic", color=PALETTE["thesisgray"],
+                            bbox=dict(boxstyle="round,pad=0.12", facecolor="white",
+                                      alpha=0.6, edgecolor="none"), zorder=7)
         ax.set_xscale("log")
         ax.set_yscale("log")
+        # Decade-only x-ticks: when a panel spans less than one decade the default
+        # log formatter labels the minor ticks too, which collide; show decade
+        # labels only so the axis stays readable.
+        ax.xaxis.set_major_locator(LogLocator(base=10))
+        ax.xaxis.set_minor_formatter(NullFormatter())
         ax.set_xlabel("Operational cost (USD, log)", fontsize=10)
         if idx % ncols == 0:
             ax.set_ylabel("Wall-clock minimum (s, log)", fontsize=10)
@@ -1863,10 +1872,13 @@ def fig_distributed_strategy_contrast(successful, cost_summary, style, out_path,
                                 "metric": "total_cost_usd", "value": c, "ci_low": np.nan,
                                 "ci_high": np.nan})
     oom = " / ".join(oom_tiers)
+    # Placed in the empty mid-band of the log panel (broadcast curve sits low,
+    # partitioned line high) with a white backing so it never overprints a line.
     axes[0].annotate(
         f"Partitioned {oom} tiers: did not complete\n(executor OOM — see descriptive-statistics table)",
-        xy=(0.5, 0.97), xycoords="axes fraction", ha="center", va="top", fontsize=9,
-        fontstyle="italic", color=PALETTE["thesisbrick"])
+        xy=(0.5, 0.6), xycoords="axes fraction", ha="center", va="center", fontsize=9,
+        fontstyle="italic", color=PALETTE["thesisbrick"],
+        bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.7, edgecolor="none"))
     axes[0].set_yscale("log")
     axes[0].set_xlabel("Worker count")
     axes[0].set_ylabel("Wall-clock minimum (s, log)")
@@ -1980,6 +1992,14 @@ def fig_rank_portability(geomean, style, out_path):
     # Authored ≈ on-page display width (\textwidth); group A: taller for room.
     fig, (axL, axR) = plt.subplots(1, 2, figsize=(6.2, 5.0))
     summary = []
+    # On the magnitude panel the systems can sit very close on the last dimension
+    # (all clustered near the cost axis), so their right-hand labels overprint each
+    # other. Spread the labels vertically by their order on that dimension while
+    # the markers stay on the data.
+    _last = dims[-1]
+    _mag_order = sorted(systems, key=lambda s: float(geomean.loc[s, _last]))
+    _ylab_off = {s: (i - (len(_mag_order) - 1) / 2) * 11
+                 for i, s in enumerate(_mag_order)}
     for sysname in systems:
         color = _system_color(style, sysname)
         short = SYSTEM_LABEL.get(sysname, sysname).split(" ")[0]
@@ -1992,7 +2012,7 @@ def fig_rank_portability(geomean, style, out_path):
         axR.plot(x, ys_mag, marker="o", ms=7, color=color, linewidth=LW_SERIES,
                  markeredgewidth=LW_MARKER_EDGE, markeredgecolor="white",
                  label=SYSTEM_LABEL.get(sysname, sysname))
-        axR.annotate(short, xy=(x[-1], ys_mag[-1]), xytext=(6, 0),
+        axR.annotate(short, xy=(x[-1], ys_mag[-1]), xytext=(8, _ylab_off[sysname]),
                      textcoords="offset points", va="center", fontsize=9, color=shade(color, 0.2))
         for d in dims:
             summary.append({"system": sysname, "dimension": d, "rank": float(ranks[d][sysname]),
@@ -2205,14 +2225,15 @@ def fig_spark_stage_profile(successful, style, out_path, strategy="broadcast", t
                           max(nstages, 1))
     # Authored near the on-page display width (\textwidth / 0.9\textwidth); group A:
     # taller so the enlarged stage ticks and per-panel titles have room. Height is
-    # kept moderate because the B.12 variant stacks three of these vertically.
-    fig, axes = plt.subplots(1, len(workers), figsize=(0.52 * (2.2 * len(workers) + 0.6), 3.8),
+    # kept small because the B.12 variant stacks three of these on one portrait
+    # page (it overflowed the page bottom at a larger height).
+    fig, axes = plt.subplots(1, len(workers), figsize=(0.52 * (2.2 * len(workers) + 0.6), 2.6),
                              squeeze=False, sharex=True)
     axes = axes[0]
     # Some configs (the partitioned strategy) emit ~44 stages; every stage cannot
     # carry a legible label in a stack-safe height, so label every step-th stage
-    # (all tick marks are kept) — for the ~18-stage broadcast profiles step == 1.
-    ylabel_step = max(1, int(np.ceil(nstages / 18)))
+    # (all tick marks are kept).
+    ylabel_step = max(1, int(np.ceil(nstages / 14)))
     summary = []
     xmax = max((medians[w].max() for w in workers), default=1.0)
     for ax, w in zip(axes, workers):
