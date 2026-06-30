@@ -83,6 +83,7 @@ def plot_coverage_heatmap(
     workloads: list[str] | None = None,
     out_name: str = "coverage_heatmap",
     title: str = "Benchmark Coverage — Success Rate by Configuration",
+    transpose: bool = False,
 ) -> None:
     """Coverage/success-rate grid (config rows x size-tier columns).
 
@@ -199,86 +200,113 @@ def plot_coverage_heatmap(
     )
     cmap.set_bad(color=PALETTE["thesislight"])
 
-    y_labels_formatted = []
-    prev_wt = None
-    for wt, cfg in row_labels:
-        label = style.label(cfg)
-        if wt != prev_wt:
-            label = f"{style.workload_label(wt)} — {label}"
-        prev_wt = wt
-        y_labels_formatted.append(label)
+    # Per-cell label text + text color, shared by both orientations. Indexed by
+    # the canonical (config-row, tier-col) position in the matrices.
+    def _cell(wt, cfg, ds, ri, ci):
+        n_tot = int(total_matrix[ri, ci])
+        n_succ = int(success_matrix[ri, ci])
+        rate = rate_matrix[ri, ci]
+        was_attempted = (wt, cfg, ds) in attempted_set
+        if n_tot == 0 and not was_attempted:
+            return "N/A", PALETTE["thesisgray"]
+        if n_tot == 0 and was_attempted:
+            return "FAILED\n(0 iters)", "white"
+        if rate == 1.0:
+            return f"{n_succ}", ("white" if n_succ > 0 else PALETTE["thesisslate"])
+        if rate == 0.0:
+            return f"0/{n_tot}\nFAILED", "white"
+        return (f"{n_succ}/{n_tot}\n({rate:.0%})",
+                PALETTE["thesisslate"] if rate > 0.5 else "white")
 
-    n_rows = len(row_labels)
-    fig, ax = plt.subplots(
-        figsize=(max(7, 2.0 * len(col_labels)), max(6, 0.5 * n_rows + 1.5))
-    )
+    cfg_labels = [style.label(cfg) for (_wt, cfg) in row_labels]
+    tier_labels = [ds.capitalize() for ds in col_labels]
+    group_keys = [wt for (wt, _cfg) in row_labels]
 
-    sns.heatmap(
-        rate_matrix,
-        cmap=cmap,
-        vmin=0,
-        vmax=1,
-        ax=ax,
-        annot=False,
-        cbar_kws={"label": "Success rate", "shrink": 0.8, "pad": 0.02},
-        xticklabels=[ds.capitalize() for ds in col_labels],
-        yticklabels=y_labels_formatted,
-        linewidths=0,
-    )
+    # Success rate is a fraction in [0, 1]; show the colorbar as 0–100 %.
+    pct = FuncFormatter(lambda v, _pos: f"{v * 100:.0f}%")
+    cbar_kws = {"label": "Success rate", "shrink": 0.8, "pad": 0.02,
+                "format": pct, "ticks": [0, 0.2, 0.4, 0.6, 0.8, 1.0]}
 
-    ax.xaxis.set_ticks_position("top")
-    ax.xaxis.set_label_position("top")
-    for label in ax.get_xticklabels():
-        label.set_fontsize(11)
-        label.set_fontweight("bold")
-    ax.tick_params(axis="y", labelsize=8)
+    if transpose:
+        # Tiers along the rows, configurations along the columns, so the long
+        # configuration list runs horizontally and fills the page width.
+        n_cfg, n_tier = len(row_labels), len(col_labels)
+        groups, start = [], 0
+        for i in range(1, n_cfg + 1):
+            if i == n_cfg or group_keys[i] != group_keys[start]:
+                groups.append((start, i, group_keys[start]))
+                start = i
+        multi_group = len({g[2] for g in groups}) > 1
 
-    for ri in range(len(row_labels)):
-        for ci in range(len(col_labels)):
+        fig, ax = plt.subplots(
+            figsize=(min(6.3, max(5.2, 0.5 * n_cfg + 1.4)), 0.55 * n_tier + 2.4)
+        )
+        sns.heatmap(
+            rate_matrix.T, cmap=cmap, vmin=0, vmax=1, ax=ax, annot=False,
+            cbar_kws=cbar_kws, xticklabels=cfg_labels, yticklabels=tier_labels,
+            linewidths=0,
+        )
+        ax.set_xticklabels(cfg_labels, rotation=90, fontsize=8)
+        ax.set_yticklabels(tier_labels, rotation=0, fontsize=10)
+        for ci in range(n_cfg):
+            wt, cfg = row_labels[ci]
+            for ri in range(n_tier):
+                text, color = _cell(wt, cfg, col_labels[ri], ci, ri)
+                ax.text(ci + 0.5, ri + 0.5, text, ha="center", va="center",
+                        fontsize=7, fontweight="medium", color=color)
+        for s, e, _wt in groups[1:]:
+            ax.axvline(x=s, color="white", linewidth=2)
+        # Workload group headers above their column blocks (only when the figure
+        # spans more than one workload — the distributed grid has just one).
+        if multi_group:
+            for s, e, wt in groups:
+                ax.text((s + e) / 2, 1.015, style.workload_label(wt),
+                        transform=ax.get_xaxis_transform(), ha="center",
+                        va="bottom", fontsize=9, fontweight="bold")
+        ax.set_ylabel("Dataset tier", fontsize=10)
+        ax.set_title(title, fontsize=12, pad=30 if multi_group else 12)
+    else:
+        y_labels_formatted = []
+        prev_wt = None
+        for wt, cfg in row_labels:
+            label = style.label(cfg)
+            if wt != prev_wt:
+                label = f"{style.workload_label(wt)} — {label}"
+            prev_wt = wt
+            y_labels_formatted.append(label)
+
+        n_rows = len(row_labels)
+        fig, ax = plt.subplots(
+            figsize=(max(7, 2.0 * len(col_labels)), max(6, 0.5 * n_rows + 1.5))
+        )
+        sns.heatmap(
+            rate_matrix, cmap=cmap, vmin=0, vmax=1, ax=ax, annot=False,
+            cbar_kws=cbar_kws,
+            xticklabels=[ds.capitalize() for ds in col_labels],
+            yticklabels=y_labels_formatted, linewidths=0,
+        )
+        ax.xaxis.set_ticks_position("top")
+        ax.xaxis.set_label_position("top")
+        for label in ax.get_xticklabels():
+            label.set_fontsize(11)
+            label.set_fontweight("bold")
+        ax.tick_params(axis="y", labelsize=8)
+        for ri in range(len(row_labels)):
             wt, cfg = row_labels[ri]
-            ds = col_labels[ci]
-            n_tot = int(total_matrix[ri, ci])
-            n_succ = int(success_matrix[ri, ci])
-            rate = rate_matrix[ri, ci]
-            was_attempted = (wt, cfg, ds) in attempted_set
+            for ci in range(len(col_labels)):
+                text, color = _cell(wt, cfg, col_labels[ci], ri, ci)
+                ax.text(ci + 0.5, ri + 0.5, text, ha="center", va="center",
+                        fontsize=7, fontweight="medium", color=color)
+        wt_boundaries = []
+        prev_wt = None
+        for ri, (wt, _) in enumerate(row_labels):
+            if wt != prev_wt and prev_wt is not None:
+                wt_boundaries.append(ri)
+            prev_wt = wt
+        for y in wt_boundaries:
+            ax.axhline(y=y, color="white", linewidth=2)
+        ax.set_title(title, fontsize=12, pad=12)
 
-            if n_tot == 0 and not was_attempted:
-                text = "N/A"
-                color = PALETTE["thesisgray"]
-            elif n_tot == 0 and was_attempted:
-                text = "FAILED\n(0 iters)"
-                color = "white"
-            elif rate == 1.0:
-                text = f"{n_succ}"
-                color = "white" if n_succ > 0 else PALETTE["thesisslate"]
-            elif rate == 0.0:
-                text = f"0/{n_tot}\nFAILED"
-                color = "white"
-            else:
-                text = f"{n_succ}/{n_tot}\n({rate:.0%})"
-                color = PALETTE["thesisslate"] if rate > 0.5 else "white"
-
-            ax.text(
-                ci + 0.5, ri + 0.5, text,
-                ha="center", va="center",
-                fontsize=7, fontweight="medium",
-                color=color,
-            )
-
-    wt_boundaries = []
-    prev_wt = None
-    for ri, (wt, _) in enumerate(row_labels):
-        if wt != prev_wt and prev_wt is not None:
-            wt_boundaries.append(ri)
-        prev_wt = wt
-    for y in wt_boundaries:
-        ax.axhline(y=y, color="white", linewidth=2)
-
-    ax.set_title(
-        title,
-        fontsize=12,
-        pad=12,
-    )
     fig.tight_layout()
     _savefig(fig, out_name, figures_dir)
 
